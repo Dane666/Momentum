@@ -24,7 +24,9 @@ import os
 import warnings
 import logging
 import argparse
+import importlib.util
 from datetime import datetime
+from pathlib import Path
 from typing import List, Dict
 
 # ==================== 全局初始化 ====================
@@ -40,9 +42,32 @@ os.environ['no_proxy'] = '*'
 os.environ['NO_PROXY'] = '*'
 
 # 添加父目录到路径 (用于 from momentum import ...)
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT.parent))
 # 添加项目根目录到路径 (用于 import adata)
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, str(PROJECT_ROOT.parent.parent))
+
+
+def _bootstrap_package_alias() -> None:
+    """Allow `python main.py` to work even if the repo directory is not named `momentum`."""
+    if 'momentum' in sys.modules:
+        return
+
+    init_file = PROJECT_ROOT / '__init__.py'
+    spec = importlib.util.spec_from_file_location(
+        'momentum',
+        init_file,
+        submodule_search_locations=[str(PROJECT_ROOT)],
+    )
+    if spec is None or spec.loader is None:
+        raise ImportError(f'无法为 {init_file} 创建 momentum 包别名')
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules['momentum'] = module
+    spec.loader.exec_module(module)
+
+
+_bootstrap_package_alias()
 
 # 配置日志
 from momentum import config as cfg
@@ -264,4 +289,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
