@@ -4,6 +4,15 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      run_mode:
+        description: Run smoke or full backtest
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - full
   schedule:
     - cron: "5 7 * * 5"
 
@@ -54,17 +63,24 @@ jobs:
           PY
 
       - name: Run unit tests
-        run: python -m pytest tests/test_backtest.py -q
+        run: python -m pytest tests/test_backtest.py tests/test_fetcher.py -q
 
-      - name: Run smoke backtest on push and manual trigger
-        if: github.event_name != 'schedule'
+      - name: Run smoke backtest on push and manual smoke trigger
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'smoke')
         env:
-          MOMENTUM_CODE_LIST_FILE: data/ci_stock_codes.csv
           MOMENTUM_CODE_LIMIT: "20"
           MOMENTUM_POOL_SIZE: "20"
           MOMENTUM_MAX_IO_WORKERS: "6"
           MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "false"
           MOMENTUM_LOG_FILE: backtest_smoke.log
+        run: python main.py --mode backtest --days 20 --no-report
+
+      - name: Run manual full backtest
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full'
+        env:
+          MOMENTUM_POOL_SIZE: "80"
+          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "false"
+          MOMENTUM_LOG_FILE: backtest_manual_full.log
         run: python main.py --mode backtest --days 20 --no-report
 
       - name: Run scheduled monthly-window backtest

@@ -191,13 +191,13 @@ class MomentumBacktester:
         2. 在每个回测日，根据当天的成交额排名动态选择候选股
         3. 这样完全模拟实盘scan逻辑，且结果可复现
         """
-        from ..data import fetch_realtime_quotes, fetch_kline_from_api, fetch_stock_concept, fetch_all_stock_codes_local
+        from ..data import fetch_realtime_quotes, fetch_kline_from_api, fetch_stock_concept, fetch_all_stock_codes
         from .. import config as cfg
 
         logger.info(f"正在初始化 {self.backtest_days}日 回测底池 (全市场模式)...")
 
         # 获取全市场股票代码
-        codes = fetch_all_stock_codes_local()
+        codes = fetch_all_stock_codes()
         if not codes:
             df_real = fetch_realtime_quotes(fs='沪深A股')
             if df_real is not None and not df_real.empty:
@@ -1242,4 +1242,3 @@ def run_sensitivity_analysis(
         return df_results
 
     return None
-

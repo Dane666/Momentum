@@ -67,6 +67,8 @@ from .fetcher import (
     fetch_market_index,
     fetch_etf_list,
     fetch_etf_quotes_with_fallback,
+    fetch_all_stock_codes,
+    fetch_all_stock_codes_adata,
     fetch_all_stock_codes_local,
     fetch_all_stock_codes_eastmoney,
     fetch_quotes_sina,
@@ -112,6 +114,8 @@ __all__ = [
     'fetch_market_index',
     'fetch_etf_list',
     'fetch_etf_quotes_with_fallback',
+    'fetch_all_stock_codes',
+    'fetch_all_stock_codes_adata',
     'fetch_all_stock_codes_local',
     'fetch_all_stock_codes_eastmoney',
     'fetch_quotes_sina',
@@ -128,4 +132,3 @@ __all__ = [
     # 代理防护
     'disable_proxy',
 ]
-

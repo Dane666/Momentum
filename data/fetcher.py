@@ -39,6 +39,36 @@ from .sources import (
 logger = logging.getLogger('momentum')
 
 
+def _normalize_stock_codes(codes: List[str]) -> List[str]:
+    """标准化股票代码并过滤掉当前行情链路不支持的市场。"""
+    normalized = []
+    for code in codes:
+        if code is None:
+            continue
+        code_str = str(code).strip()
+        if not code_str:
+            continue
+        if code_str.endswith('.0'):
+            code_str = code_str[:-2]
+        code_str = code_str.zfill(6)
+        # 当前新浪行情链路仅覆盖沪深市场，北交所代码先过滤掉
+        if not code_str.startswith(('00', '30', '60', '68')):
+            continue
+        normalized.append(code_str)
+    return list(dict.fromkeys(normalized))
+
+
+def _apply_code_limit(codes: List[str]) -> List[str]:
+    """应用环境变量中的代码数量限制。"""
+    limit = os.getenv('MOMENTUM_CODE_LIMIT', '').strip()
+    if not limit:
+        return codes
+    try:
+        return codes[:max(1, int(limit))]
+    except ValueError:
+        return codes
+
+
 def get_exchange(code: str) -> str:
     """简易交易所推断"""
     if code.startswith(('6', '5')):
@@ -324,19 +354,66 @@ def fetch_all_stock_codes_local() -> list:
         if df is not None and not df.empty:
             # 过滤有效代码 (排除已退市的 PT 股)
             codes = df[~df['short_name'].str.contains('PT', na=False)]['stock_code'].tolist()
-            # 补零到6位
-            codes = [str(c).zfill(6) for c in codes]
-            limit = os.getenv('MOMENTUM_CODE_LIMIT', '').strip()
-            if limit:
-                try:
-                    codes = codes[:max(1, int(limit))]
-                except ValueError:
-                    pass
+            codes = _apply_code_limit(_normalize_stock_codes(codes))
             logger.info(f"[Fetcher] 本地文件获取到 {len(codes)} 只股票代码")
             return codes
     except Exception as e:
         logger.warning(f"[Fetcher] 本地代码文件读取失败: {e}")
     
+    return []
+
+
+def fetch_all_stock_codes_adata() -> list:
+    """
+    使用 adata 动态获取全市场股票代码。
+
+    优先使用 repo 内已有的 adata 能力，避免默认依赖静态 CSV。
+    """
+    try:
+        import adata.stock.info as stock_info
+
+        df = stock_info.all_code()
+        if df is None or df.empty:
+            logger.warning("[Fetcher] adata 未返回股票代码")
+            return []
+
+        code_column = 'stock_code' if 'stock_code' in df.columns else 'code'
+        if code_column not in df.columns:
+            logger.warning(f"[Fetcher] adata 返回缺少股票代码列: {df.columns.tolist()}")
+            return []
+
+        filtered = df.copy()
+        if 'short_name' in filtered.columns:
+            filtered = filtered[~filtered['short_name'].astype(str).str.contains('PT', na=False)]
+            filtered = filtered[~filtered['short_name'].astype(str).str.contains('退', na=False)]
+
+        codes = _apply_code_limit(_normalize_stock_codes(filtered[code_column].tolist()))
+        logger.info(f"[Fetcher] adata 获取到 {len(codes)} 只股票代码")
+        return codes
+    except Exception as e:
+        logger.warning(f"[Fetcher] adata 获取代码列表失败: {e}")
+        return []
+
+
+def fetch_all_stock_codes() -> list:
+    """
+    获取股票代码列表。
+
+    优先级：
+    1. 显式指定的本地 CSV（便于人工调试或定向 smoke test）
+    2. adata 动态代码列表
+    3. 东方财富动态代码列表
+    4. 项目内置本地 CSV 兜底
+    """
+    csv_path = os.getenv('MOMENTUM_CODE_LIST_FILE', '').strip()
+    if csv_path:
+        return fetch_all_stock_codes_local()
+
+    for getter in (fetch_all_stock_codes_adata, fetch_all_stock_codes_eastmoney, fetch_all_stock_codes_local):
+        codes = getter()
+        if codes:
+            return codes
+
     return []
 
 
@@ -366,15 +443,15 @@ def fetch_realtime_quotes(fs: str = '沪深A股') -> Optional[pd.DataFrame]:
     # 1. 优先使用新浪接口（稳定可靠）
     # 获取代码列表
     if fs == '沪深A股':
-        codes = fetch_all_stock_codes_local()
+        codes = fetch_all_stock_codes()
     elif fs == 'ETF':
         df_etf = fetch_etf_list()
         codes = df_etf['股票代码'].tolist() if df_etf is not None else []
     elif fs == '沪股通':
-        codes = fetch_all_stock_codes_local()
+        codes = fetch_all_stock_codes()
         codes = [c for c in codes if c.startswith('60')]
     elif fs == '深股通':
-        codes = fetch_all_stock_codes_local()
+        codes = fetch_all_stock_codes()
         codes = [c for c in codes if c.startswith(('00', '30'))]
     else:
         logger.warning(f"[Fetcher] 不支持的市场类型: {fs}")
