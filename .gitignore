@@ -12,3 +12,4 @@ stock_etl/etl.log
 stock_etl/stock_data.db
 grid_trading_candidates_*.csv
 param_optimization_*.csv
+config.local.json

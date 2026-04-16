@@ -5,6 +5,8 @@ Qlib-Pro v16 配置文件
 """
 
 import os
+import json
+from pathlib import Path
 
 
 def _env_str(name: str, default: str) -> str:
@@ -41,6 +43,36 @@ def _env_bool(name: str, default: bool) -> bool:
     if value in (None, ""):
         return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _load_local_config() -> dict:
+    """读取项目根目录下的本地配置文件。"""
+    config_path = Path(__file__).with_name("config.local.json")
+    if not config_path.exists():
+        return {}
+
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+LOCAL_CONFIG = _load_local_config()
+
+
+def _local_str(name: str, default: str) -> str:
+    value = LOCAL_CONFIG.get(name)
+    return str(value).strip() if value not in (None, "") else default
+
+
+def _local_bool(name: str, default: bool) -> bool:
+    value = LOCAL_CONFIG.get(name)
+    if value in (None, ""):
+        return default
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
 # ==================== 性能参数 ====================
 MAX_IO_WORKERS = _env_int("MOMENTUM_MAX_IO_WORKERS", 15)   # 网络IO并发数
@@ -119,10 +151,13 @@ NETWORK_MAX_RETRIES = 3          # 网络最大重试次数
 LOG_FILE = _env_str("MOMENTUM_LOG_FILE", "qlib_pro.log")
 LOG_LEVEL = _env_str("MOMENTUM_LOG_LEVEL", "INFO")   # DEBUG / INFO / WARNING / ERROR
 # ==================== 飞书通知配置 ====================
-FEISHU_WEBHOOK_URL = os.getenv("FEISHU_WEBHOOK_URL", "").strip()
+FEISHU_WEBHOOK_URL = _env_str(
+    "FEISHU_WEBHOOK_URL",
+    _local_str("FEISHU_WEBHOOK_URL", ""),
+).strip()
 ENABLE_FEISHU_NOTIFICATION = _env_bool(
     "MOMENTUM_ENABLE_FEISHU_NOTIFICATION",
-    bool(FEISHU_WEBHOOK_URL),
+    _local_bool("MOMENTUM_ENABLE_FEISHU_NOTIFICATION", bool(FEISHU_WEBHOOK_URL)),
 )
 
 # ==================== Gemini AI 配置 ====================

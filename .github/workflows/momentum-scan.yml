@@ -8,11 +8,11 @@ on:
       run_mode:
         description: Run smoke or full market scan
         required: true
-        default: smoke
+        default: full
         type: choice
         options:
-          - smoke
           - full
+          - smoke
   schedule:
     - cron: "45 6 * * 1-5"
 
@@ -63,22 +63,22 @@ jobs:
           PY
 
       - name: Run unit tests
-        run: python -m pytest tests/test_backtest.py tests/test_fetcher.py -q
+        run: python -m pytest tests/test_backtest.py tests/test_fetcher.py tests/test_fetcher_local_fallback.py -q
 
-      - name: Run smoke scan on push and manual smoke trigger
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'smoke')
+      - name: Run manual smoke scan
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'smoke'
         env:
           MOMENTUM_CODE_LIMIT: "20"
           MOMENTUM_MAX_IO_WORKERS: "6"
-          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "false"
+          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
           MOMENTUM_LOG_FILE: scan_smoke.log
         run: python main.py --mode scan
 
-      - name: Run manual full scan
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full'
+      - name: Run full scan on push and manual full trigger
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full')
         env:
-          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "false"
-          MOMENTUM_LOG_FILE: scan_manual_full.log
+          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
+          MOMENTUM_LOG_FILE: scan_full.log
         run: python main.py --mode scan
 
       - name: Run scheduled production scan

@@ -1,0 +1,4 @@
+{
+  "FEISHU_WEBHOOK_URL": "https://open.feishu.cn/open-apis/bot/v2/hook/replace-with-your-token",
+  "MOMENTUM_ENABLE_FEISHU_NOTIFICATION": true
+}
