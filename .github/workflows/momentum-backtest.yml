@@ -36,7 +36,22 @@ jobs:
 
       - name: Check China trading day
         id: calendar
-        run: python -c "import os; from datetime import datetime; from zoneinfo import ZoneInfo; import chinese_calendar as cc; today = datetime.now(ZoneInfo('Asia/Shanghai')).date(); is_open = cc.is_workday(today); print(f'Shanghai date: {today}, trading_day={is_open}'); output = os.environ['GITHUB_OUTPUT']; open(output, 'a', encoding='utf-8').write(f'is_open={str(is_open).lower()}\n')"
+        run: |
+          python <<'PY'
+          import os
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+
+          import chinese_calendar as cc
+
+          today = datetime.now(ZoneInfo("Asia/Shanghai")).date()
+          is_open = cc.is_workday(today)
+
+          print(f"Shanghai date: {today}, trading_day={is_open}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"is_open={str(is_open).lower()}\n")
+          PY
 
       - name: Run unit tests
         run: python -m pytest tests/test_backtest.py -q
