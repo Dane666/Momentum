@@ -10,18 +10,18 @@ fetcher 单元测试
 import pandas as pd
 
 
-def test_fetch_all_stock_codes_prefers_adata(monkeypatch):
+def test_fetch_all_stock_codes_prefers_local_cache(monkeypatch):
     from ..data import fetcher
 
     monkeypatch.delenv('MOMENTUM_CODE_LIST_FILE', raising=False)
     monkeypatch.delenv('MOMENTUM_CODE_LIMIT', raising=False)
-    monkeypatch.setattr(fetcher, 'fetch_all_stock_codes_adata', lambda: ['000001', '600000'])
+    monkeypatch.setattr(fetcher, 'fetch_all_stock_codes_local', lambda: ['000003', '600000'])
+    monkeypatch.setattr(fetcher, 'fetch_all_stock_codes_adata', lambda: ['000001', '600001'])
     monkeypatch.setattr(fetcher, 'fetch_all_stock_codes_eastmoney', lambda: ['000002'])
-    monkeypatch.setattr(fetcher, 'fetch_all_stock_codes_local', lambda: ['000003'])
 
     codes = fetcher.fetch_all_stock_codes()
 
-    assert codes == ['000001', '600000']
+    assert codes == ['000003', '600000']
 
 
 def test_fetch_realtime_quotes_uses_dynamic_codes(monkeypatch):

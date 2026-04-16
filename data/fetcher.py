@@ -427,16 +427,15 @@ def fetch_all_stock_codes() -> list:
     获取股票代码列表。
 
     优先级：
-    1. 显式指定的本地 CSV（便于人工调试或定向 smoke test）
+    1. 显式指定的本地 CSV / adata 包内置全量缓存（稳定、离线可用）
     2. adata 动态代码列表
     3. 东方财富动态代码列表
-    4. 项目内置本地 CSV 兜底
     """
     csv_path = os.getenv('MOMENTUM_CODE_LIST_FILE', '').strip()
     if csv_path:
         return fetch_all_stock_codes_local()
 
-    for getter in (fetch_all_stock_codes_adata, fetch_all_stock_codes_eastmoney, fetch_all_stock_codes_local):
+    for getter in (fetch_all_stock_codes_local, fetch_all_stock_codes_adata, fetch_all_stock_codes_eastmoney):
         codes = getter()
         if codes:
             return codes
