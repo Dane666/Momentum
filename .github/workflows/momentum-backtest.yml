@@ -1,0 +1,70 @@
+name: momentum-backtest
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "5 7 * * 5"
+
+concurrency:
+  group: momentum-backtest-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TZ: Asia/Shanghai
+      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+      MOMENTUM_LOG_LEVEL: INFO
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Check China trading day
+        id: calendar
+        run: python -c "import os; from datetime import datetime; from zoneinfo import ZoneInfo; import chinese_calendar as cc; today = datetime.now(ZoneInfo('Asia/Shanghai')).date(); is_open = cc.is_workday(today); print(f'Shanghai date: {today}, trading_day={is_open}'); output = os.environ['GITHUB_OUTPUT']; open(output, 'a', encoding='utf-8').write(f'is_open={str(is_open).lower()}\n')"
+
+      - name: Run unit tests
+        run: python -m pytest tests/test_backtest.py -q
+
+      - name: Run smoke backtest on push and manual trigger
+        if: github.event_name != 'schedule'
+        env:
+          MOMENTUM_CODE_LIST_FILE: data/ci_stock_codes.csv
+          MOMENTUM_CODE_LIMIT: "20"
+          MOMENTUM_POOL_SIZE: "20"
+          MOMENTUM_MAX_IO_WORKERS: "6"
+          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "false"
+          MOMENTUM_LOG_FILE: backtest_smoke.log
+        run: python main.py --mode backtest --days 20 --no-report
+
+      - name: Run scheduled monthly-window backtest
+        if: github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true'
+        env:
+          MOMENTUM_POOL_SIZE: "80"
+          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
+          MOMENTUM_LOG_FILE: backtest_schedule.log
+        run: python main.py --mode backtest --days 20 --no-report
+
+      - name: Upload backtest logs and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: momentum-backtest-artifacts
+          path: |
+            *.log
+            reports/**

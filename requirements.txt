@@ -1,0 +1,13 @@
+pandas>=2.2
+numpy>=1.26
+requests>=2.32
+tqdm>=4.66
+scipy>=1.13
+plotly>=5.24
+beautifulsoup4>=4.12
+ollama>=0.4
+efinance>=0.5
+adata>=2.9
+py-mini-racer>=0.6
+pytest>=8.3
+chinese-calendar>=1.10

@@ -1,0 +1,13 @@
+# 股票数据 ETL 脚本依赖
+# Python 3.10+
+
+# HTTP 请求库
+requests>=2.28.0
+
+# PaddleOCR - 本地 OCR 识别
+# 注意：首次安装会自动下载模型文件
+paddlepaddle>=2.5.0
+paddleocr>=2.7.0
+
+# Ollama Python 客户端 - 本地 LLM 调用
+ollama>=0.1.0
