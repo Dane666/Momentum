@@ -69,6 +69,20 @@ def _apply_code_limit(codes: List[str]) -> List[str]:
         return codes
 
 
+def _read_stock_codes_from_csv(csv_path: str) -> List[str]:
+    """从 CSV 读取并标准化股票代码。"""
+    df = pd.read_csv(csv_path, dtype={'stock_code': str})
+    if df is None or df.empty or 'stock_code' not in df.columns:
+        return []
+
+    filtered = df.copy()
+    if 'short_name' in filtered.columns:
+        filtered = filtered[~filtered['short_name'].astype(str).str.contains('PT', na=False)]
+        filtered = filtered[~filtered['short_name'].astype(str).str.contains('退', na=False)]
+
+    return _apply_code_limit(_normalize_stock_codes(filtered['stock_code'].tolist()))
+
+
 def get_exchange(code: str) -> str:
     """简易交易所推断"""
     if code.startswith(('6', '5')):
@@ -304,7 +318,7 @@ def fetch_all_stock_codes_eastmoney() -> list:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        resp = requests.get(url, params=params, headers=headers, timeout=5)
+        resp = requests.get(url, params=params, headers=headers, timeout=10)
         
         if resp.status_code != 200:
             logger.warning(f"[Fetcher] Eastmoney Direct HTTP {resp.status_code}")
@@ -333,30 +347,43 @@ def fetch_all_stock_codes_eastmoney() -> list:
 
 def fetch_all_stock_codes_local() -> list:
     """
-    从本地 CSV 文件获取股票代码列表 (离线回退)
-    
-    文件路径: tests/utils/all_code.csv
+    从本地/内置 CSV 文件获取股票代码列表 (离线回退)
     """
     import os
     try:
-        # 优先使用环境变量指定的代码列表，便于 GitHub Actions 做小样本 smoke test
-        csv_path = os.getenv('MOMENTUM_CODE_LIST_FILE', '').strip()
-        if not csv_path:
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            csv_path = os.path.join(current_dir, '..', '..', 'utils', 'all_code.csv')
-            csv_path = os.path.normpath(csv_path)
-        
-        if not os.path.exists(csv_path):
-            logger.warning(f"[Fetcher] 本地代码文件不存在: {csv_path}")
-            return []
-        
-        df = pd.read_csv(csv_path, dtype={'stock_code': str})
-        if df is not None and not df.empty:
-            # 过滤有效代码 (排除已退市的 PT 股)
-            codes = df[~df['short_name'].str.contains('PT', na=False)]['stock_code'].tolist()
-            codes = _apply_code_limit(_normalize_stock_codes(codes))
-            logger.info(f"[Fetcher] 本地文件获取到 {len(codes)} 只股票代码")
-            return codes
+        candidate_paths = []
+
+        # 1. 显式指定的代码列表，便于 smoke test 或手工调试
+        env_csv_path = os.getenv('MOMENTUM_CODE_LIST_FILE', '').strip()
+        if env_csv_path:
+            candidate_paths.append(env_csv_path)
+
+        # 2. adata 安装包自带的全量代码缓存
+        try:
+            from adata.stock.cache import get_code_csv_path
+            candidate_paths.append(get_code_csv_path())
+        except Exception:
+            pass
+
+        # 3. 历史兼容路径
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        legacy_csv_path = os.path.join(current_dir, '..', '..', 'utils', 'all_code.csv')
+        candidate_paths.append(os.path.normpath(legacy_csv_path))
+
+        seen_paths = set()
+        for csv_path in candidate_paths:
+            if not csv_path or csv_path in seen_paths:
+                continue
+            seen_paths.add(csv_path)
+
+            if not os.path.exists(csv_path):
+                logger.warning(f"[Fetcher] 本地代码文件不存在: {csv_path}")
+                continue
+
+            codes = _read_stock_codes_from_csv(csv_path)
+            if codes:
+                logger.info(f"[Fetcher] 本地文件获取到 {len(codes)} 只股票代码: {csv_path}")
+                return codes
     except Exception as e:
         logger.warning(f"[Fetcher] 本地代码文件读取失败: {e}")
     
