@@ -14,7 +14,7 @@ on:
           - full
           - smoke
   schedule:
-    - cron: "45 6 * * 1-5"
+    - cron: "40 6 * * 1-5"    # 14:40 Beijing, with sleep-until-14:44 step for guaranteed freshness
 
 concurrency:
   group: momentum-scan-${{ github.ref }}
@@ -42,6 +42,25 @@ jobs:
 
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Wait for 14:44 market window
+        if: github.event_name == 'schedule'
+        run: |
+          python <<'PY'
+          from datetime import datetime, timedelta
+          from zoneinfo import ZoneInfo
+          import time
+          tz = ZoneInfo("Asia/Shanghai")
+          now = datetime.now(tz)
+          target = now.replace(hour=14, minute=44, second=30, microsecond=0)
+          if now < target:
+              wait_sec = (target - now).total_seconds()
+              print(f"⏰ {now.strftime('%H:%M:%S')} — waiting {wait_sec:.0f}s until 14:44:30 CST")
+              time.sleep(max(0, wait_sec))
+              print(f"⏰ {datetime.now(tz).strftime('%H:%M:%S')} — resuming scan")
+          else:
+              print(f"⏰ {now.strftime('%H:%M:%S')} — past 14:44:30, running immediately")
+          PY
 
       - name: Check China trading day
         id: calendar
