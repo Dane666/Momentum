@@ -14,7 +14,7 @@ on:
           - full
           - smoke
   schedule:
-    - cron: "5 7 * * 5"
+    - cron: "5 7 * * 5"   # 周五 15:05 CST — 收盘后跑
 
 concurrency:
   group: momentum-backtest-${{ github.ref }}
@@ -43,6 +43,14 @@ jobs:
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
+      - name: Restore K-line cache
+        uses: actions/cache@v4
+        with:
+          path: qlib_pro_v16.db
+          key: kline-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          restore-keys: |
+            kline-v1-${{ runner.os }}-
+
       - name: Check China trading day
         id: calendar
         run: |
@@ -50,48 +58,37 @@ jobs:
           import os
           from datetime import datetime
           from zoneinfo import ZoneInfo
-
           import chinese_calendar as cc
-
           today = datetime.now(ZoneInfo("Asia/Shanghai")).date()
           is_open = cc.is_workday(today)
-
-          print(f"Shanghai date: {today}, trading_day={is_open}")
-
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+          print(f"Date: {today}, trading_day={is_open}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
               fh.write(f"is_open={str(is_open).lower()}\n")
           PY
 
       - name: Run unit tests
         run: python -m pytest tests/test_backtest.py tests/test_fetcher.py tests/test_fetcher_local_fallback.py -q
 
-      - name: Run smoke backtest on push and manual smoke trigger
+      - name: Smoke backtest (push / manual smoke)
         if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'smoke')
         env:
           MOMENTUM_CODE_LIMIT: "20"
           MOMENTUM_POOL_SIZE: "20"
           MOMENTUM_MAX_IO_WORKERS: "6"
-          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
           MOMENTUM_LOG_FILE: backtest_smoke.log
-        run: python main.py --mode backtest --days 20 --no-report
+        run: python main.py --mode backtest --days 20 --periods 5 --no-report
 
-      - name: Run manual full backtest
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full'
+      - name: Full backtest (manual full / weekly schedule)
+        if: >
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full') ||
+          (github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true')
         env:
-          MOMENTUM_POOL_SIZE: "80"
+          MOMENTUM_POOL_SIZE: "150"
           MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
-          MOMENTUM_LOG_FILE: backtest_manual_full.log
-        run: python main.py --mode backtest --days 20 --no-report
+          MOMENTUM_LOG_FILE: backtest_full.log
+        run: python main.py --mode backtest --days 65 --periods 5,3 --no-report
 
-      - name: Run scheduled monthly-window backtest
-        if: github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true'
-        env:
-          MOMENTUM_POOL_SIZE: "80"
-          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
-          MOMENTUM_LOG_FILE: backtest_schedule.log
-        run: python main.py --mode backtest --days 20 --no-report
-
-      - name: Upload backtest logs and reports
+      - name: Upload logs and reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
