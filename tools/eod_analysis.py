@@ -90,7 +90,28 @@ def run():
     # 龙虎榜
     dt = fetch_dragon_tiger()
     if dt is not None and not dt.empty:
-        lines.append(f"\n🐉 龙虎榜: {len(dt)} 条")
+        dt['龙虎榜净买额'] = pd.to_numeric(dt['龙虎榜净买额'], errors='coerce')
+        # 过滤 ST/退市，选正常股
+        normal = dt[~dt['股票名称'].astype(str).str.contains('ST|退', na=False)]
+        # 净买入 Top5
+        top_buy = normal.nlargest(5, '龙虎榜净买额')
+        lines.append(f"\n🐉 龙虎榜 净买入 Top5 (共{len(dt)}条):")
+        for _, r in top_buy.iterrows():
+            code = r.get('股票代码','?')
+            name = r.get('股票名称','?')
+            net = r['龙虎榜净买额'] / 1e4  # 转万元
+            reason = str(r.get('解读',''))[:15]
+            lines.append(f"  {code} {name}: +{net:.0f}万 | {reason}")
+        # 机构买入汇总
+        inst = dt[dt['解读'].astype(str).str.contains('机构', na=False)]
+        if not inst.empty:
+            lines.append(f"\n🏦 机构上榜: {len(inst)} 只")
+            inst_top = inst.nlargest(3, '龙虎榜净买额')
+            for _, r in inst_top.iterrows():
+                code = r.get('股票代码','?')
+                name = r.get('股票名称','?')
+                net = r['龙虎榜净买额'] / 1e4
+                lines.append(f"  {code} {name}: {net:+.0f}万")
 
     # 持仓
     try:
