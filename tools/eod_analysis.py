@@ -93,8 +93,9 @@ def run():
         dt['龙虎榜净买额'] = pd.to_numeric(dt['龙虎榜净买额'], errors='coerce')
         # 过滤 ST/退市，选正常股
         normal = dt[~dt['股票名称'].astype(str).str.contains('ST|退', na=False)]
-        # 净买入 Top5
-        top_buy = normal.nlargest(5, '龙虎榜净买额')
+        # 净买入 Top5 (去重)
+        normal['_code_dedup'] = normal['股票代码'].astype(str)
+        top_buy = normal.drop_duplicates('_code_dedup').nlargest(5, '龙虎榜净买额')
         lines.append(f"\n🐉 龙虎榜 净买入 Top5 (共{len(dt)}条):")
         for _, r in top_buy.iterrows():
             code = r.get('股票代码','?')
