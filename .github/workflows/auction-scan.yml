@@ -1,0 +1,54 @@
+name: auction-scan
+#
+# 集合竞价全景透视 — 09:25 CST 精准触发
+# 主: cron-job.org → workflow_dispatch
+# 备: GitHub cron 09:20 CST
+#
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/auction.py"
+      - ".github/workflows/auction-scan.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "20 1 * * 1-5"   # 09:20 CST fallback
+
+jobs:
+  auction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      TZ: Asia/Shanghai
+      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      - name: Wait for 09:25 (schedule fallback only)
+        if: github.event_name == 'schedule'
+        run: |
+          python3 -c "
+          from datetime import datetime; from zoneinfo import ZoneInfo; import time
+          tz=ZoneInfo('Asia/Shanghai'); now=datetime.now(tz)
+          target=now.replace(hour=9,minute=25,second=0,microsecond=0)
+          if now<target:
+              w=(target-now).total_seconds()
+              print(f'wait {w:.0f}s')
+              time.sleep(max(0,w))
+          print(f'run at {datetime.now(tz).strftime(\"%H:%M:%S\")}')
+          "
+      - name: Run auction scan
+        run: |
+          python <<'PY'
+          import sys; from pathlib import Path; p=Path('.').resolve()
+          sys.path.insert(0,str(p.parent))
+          import importlib.util
+          spec=importlib.util.spec_from_file_location('momentum',p/'__init__.py',submodule_search_locations=[str(p)])
+          m=importlib.util.module_from_spec(spec);sys.modules['momentum']=m;spec.loader.exec_module(m)
+          from tools.auction import run; run()
+          PY

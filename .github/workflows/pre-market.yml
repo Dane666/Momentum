@@ -1,0 +1,36 @@
+name: pre-market-report
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/pre_market.py"
+      - ".github/workflows/pre-market.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "30 0 * * 1-5"   # 08:30 CST Mon-Fri
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TZ: Asia/Shanghai
+      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install yfinance && pip install -r requirements.txt
+      - name: Run pre-market report
+        run: |
+          python <<'PY'
+          import sys; from pathlib import Path; p = Path('.').resolve()
+          sys.path.insert(0, str(p.parent))
+          import importlib.util
+          spec = importlib.util.spec_from_file_location('momentum', p/'__init__.py', submodule_search_locations=[str(p)])
+          m = importlib.util.module_from_spec(spec); sys.modules['momentum'] = m; spec.loader.exec_module(m)
+          from tools.pre_market import run; run()
+          PY
