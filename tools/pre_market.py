@@ -20,7 +20,10 @@ US_INDICES = {
 }
 TECH_STOCKS = {
     'NVDA': '英伟达', 'AAPL': '苹果', 'TSLA': '特斯拉',
-    'MSFT': '微软', 'AMD': 'AMD', '^SOX': '费城半导体',
+    'MSFT': '微软', 'AMD': 'AMD',
+    'MU': '镁光', 'WDC': '西部数据', 'STX': '希捷',
+    'SMCI': '超微电脑', 'AVGO': '博通', 'INTC': '英特尔',
+    '^SOX': '费城半导体',
 }
 MACRO = {
     'CNH=X': '离岸人民币(USDCNH)', 'DX-Y.NYB': '美元指数(DXY)', '^TNX': '美10Y国债收益率',
