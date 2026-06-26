@@ -446,72 +446,166 @@ def fetch_all_stock_codes() -> list:
 def fetch_realtime_quotes(fs: str = '沪深A股') -> Optional[pd.DataFrame]:
     """
     获取实时行情 (新浪优先，更稳定)
-    
+
     数据源优先级：
     1. 新浪接口（主数据源，稳定可靠）
     2. efinance（备用，经常连接失败）
-    
-    支持的市场类型:
-    - 沪深A股: 全市场A股
-    - ETF: 全市场ETF
-    - 沪股通: 沪港通标的
-    - 深股通: 深港通标的  
-    
+    3. K线缓存降级（离线/盘后可用，取最近收盘数据）
+
     Args:
         fs: 市场类型
-    
     Returns:
         标准化的行情 DataFrame，失败返回空 DataFrame
     """
     import time
     logger.info(f"[Fetcher] 获取 {fs} 实时行情")
-    
-    # 1. 优先使用新浪接口（稳定可靠）
-    # 获取代码列表
+
     if fs == '沪深A股':
         codes = fetch_all_stock_codes()
     elif fs == 'ETF':
         df_etf = fetch_etf_list()
         codes = df_etf['股票代码'].tolist() if df_etf is not None else []
-    elif fs == '沪股通':
+    elif fs in ('沪股通', '深股通'):
         codes = fetch_all_stock_codes()
-        codes = [c for c in codes if c.startswith('60')]
-    elif fs == '深股通':
-        codes = fetch_all_stock_codes()
-        codes = [c for c in codes if c.startswith(('00', '30'))]
+        if fs == '沪股通':
+            codes = [c for c in codes if c.startswith('60')]
+        else:
+            codes = [c for c in codes if c.startswith(('00','30'))]
     else:
         logger.warning(f"[Fetcher] 不支持的市场类型: {fs}")
         return pd.DataFrame()
-    
+
+    codes = _apply_code_limit(codes) if codes else []
+
     if codes:
         logger.info(f"[Fetcher] 使用新浪接口获取 {fs} ({len(codes)} 只)")
         try:
             df = fetch_quotes_sina(codes)
             if df is not None and len(df) > 10:
-                # 标记量比需要从K线计算
                 df['_fake_vol_ratio'] = True
                 logger.info(f"[Fetcher] 新浪接口成功: {len(df)} 只 {fs}")
                 return df
         except Exception as e:
             logger.warning(f"[Fetcher] 新浪接口失败: {e}，切换到 efinance")
-    
-    # 2. 备用：efinance（经常连接失败）
-    for attempt in range(2):
+
+    if codes:
+        for attempt in range(2):
+            try:
+                import efinance as ef
+                df = ef.stock.get_realtime_quotes(fs=fs)
+                if df is not None and len(df) > 10:
+                    logger.info(f"[Fetcher] efinance 成功: {len(df)} 只 {fs}")
+                    return df
+            except Exception as e:
+                if attempt < 1:
+                    time.sleep(1)
+                else:
+                    logger.warning(f"[Fetcher] efinance 也失败: {e}")
+
+    # 3. 降级：从 K 线缓存取最近收盘数据 (离线/盘后可用)
+    if codes:
+        logger.info(f"[Fetcher] 实时源均失败，降级到 K 线缓存 ({len(codes)} 只)")
         try:
-            import efinance as ef
-            df = ef.stock.get_realtime_quotes(fs=fs)
+            df = _build_quotes_from_kline_cache(codes)
             if df is not None and len(df) > 10:
-                logger.info(f"[Fetcher] efinance 成功: {len(df)} 只 {fs}")
+                logger.info(f"[Fetcher] K 线缓存降级成功: {len(df)} 只")
                 return df
         except Exception as e:
-            if attempt < 1:
-                logger.debug(f"[Fetcher] efinance 第{attempt+1}次失败，1秒后重试...")
-                time.sleep(1)
-            else:
-                logger.warning(f"[Fetcher] efinance 也失败: {e}")
-    
+            logger.warning(f"[Fetcher] K 线缓存降级也失败: {e}")
+
     logger.error(f"[Fetcher] 所有数据源均失败")
     return pd.DataFrame()
+
+
+def _build_quotes_from_kline_cache(codes: list) -> pd.DataFrame:
+    """
+    从 SQLite K 线缓存构造行情 DataFrame (离线降级方案)
+
+    取每只股票最近一个交易日的收盘数据，模拟实时行情格式。
+    """
+    import sqlite3
+    import os
+    import pandas as pd
+
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'qlib_pro_v16.db')
+
+    # 获取股票名称和市值 (从 adata CSV cache)
+    name_map = {}
+    mkt_cap_map = {}
+    try:
+        from adata.stock.cache import get_code_csv_path
+        csv_path = get_code_csv_path()
+        if os.path.exists(csv_path):
+            df_info = pd.read_csv(csv_path, dtype=str)
+            if 'stock_code' in df_info.columns and 'short_name' in df_info.columns:
+                for _, r in df_info.iterrows():
+                    c = str(r['stock_code']).zfill(6)
+                    name_map[c] = str(r['short_name'])
+            if 'market_cap' in df_info.columns:
+                for _, r in df_info.iterrows():
+                    try:
+                        mkt_cap_map[str(r['stock_code']).zfill(6)] = float(r['market_cap'])
+                    except (ValueError, KeyError):
+                        pass
+    except Exception:
+        pass
+
+    if not os.path.exists(db_path):
+        logger.warning(f"[Fetcher] K线缓存文件不存在: {db_path}")
+        return pd.DataFrame()
+
+    try:
+        conn = sqlite3.connect(db_path, check_same_thread=False)
+        placeholders = ','.join(['?' for _ in codes])
+        query = f"""
+        SELECT k.code, k.trade_date, k.open, k.high, k.low, k.close,
+               k.volume, k.amount, k.turnover_ratio
+        FROM kline_cache k
+        INNER JOIN (
+            SELECT code, MAX(trade_date) as max_date
+            FROM kline_cache WHERE code IN ({placeholders})
+            GROUP BY code
+        ) latest ON k.code=latest.code AND k.trade_date=latest.max_date
+        """
+        df = pd.read_sql_query(query, conn, params=tuple(codes))
+        conn.close()
+
+        if df.empty:
+            return pd.DataFrame()
+
+        records = []
+        for _, row in df.iterrows():
+            code = str(row['code']).zfill(6)
+            close = float(row['close']) if pd.notna(row['close']) else 0
+            amt = float(row['amount']) if pd.notna(row['amount']) else 0
+            vol = float(row['volume']) if pd.notna(row['volume']) else 0
+            hi = float(row['high']) if pd.notna(row['high']) else close
+            lo = float(row['low']) if pd.notna(row['low']) else close
+            opn = float(row['open']) if pd.notna(row['open']) else close
+            to = float(row['turnover_ratio']) if pd.notna(row['turnover_ratio']) else 0
+
+            records.append({
+                '股票代码': code,
+                '股票名称': name_map.get(code, code),
+                '最新价': close,
+                '涨跌幅': ((close - opn) / opn * 100) if opn > 0 else 0,
+                '涨跌额': close - opn if opn > 0 else 0,
+                '成交量': vol,
+                '成交额': amt * 2.0,  # K线缓存 amount=vol*close 估算偏低，×2 补偿
+                '最高': hi,
+                '最低': lo,
+                '今开': opn,
+                '昨日收盘': opn,
+                '量比': 1.0,
+                '换手率': to,
+                '总市值': mkt_cap_map.get(code, 0),
+                '_from_cache': True,
+            })
+
+        return pd.DataFrame(records)
+    except Exception as e:
+        logger.warning(f"[Fetcher] K线缓存降级出错: {e}")
+        return pd.DataFrame()
 
 
 def fetch_stock_concept(code: str, use_cache: bool = True) -> str:
