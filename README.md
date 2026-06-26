@@ -1,45 +1,47 @@
-# Momentum
+# Momentum — A 股量化交易系统
 
-Momentum 是一个面向 A 股尾盘扫描与短周期回测的量化策略项目，支持：
+全自动 A 股短周期动量策略系统。覆盖盘前、竞价、盘中、盘后全时段，所有结果通过飞书推送。
 
-- `scan`：交易日尾盘选股
-- `monitor`：盘中持仓诊断
-- `backtest`：策略回测与统计分析
+## 功能矩阵
+
+| 时段 | 模块 | 内容 | 频率 |
+|------|------|------|------|
+| 08:30 | 盘前早报 | 美股三大指数、核心科技、宏观三剑客、风险评级 | 每日 |
+| 09:25 | 集合竞价 | 全市场高开率/低开率、涨停/跌停开盘、情绪判断 | 每日 |
+| 14:44 | 尾盘选股 | 动量因子扫描、行业分散选股、自适应止损建议 | 每日 |
+| 16:00 | 盘后归档 | 涨停板统计、龙虎榜净买入 Top5、机构动向、持仓体检 | 每日 |
+| 周五 | 周度回测 | 65 天回测、多周期对比、飞书推送 | 每周 |
+
+## 架构
+
+```
+main.py          CLI 入口 (scan / backtest / monitor / optimize)
+config.py        策略参数集中管理
+core/            扫描引擎、因子计算、行业中性化
+backtest/        回测模拟器、参数优化器、稳定性诊断
+data/            数据获取 (新浪/腾讯/efinance/K线缓存降级)
+risk/            退出规则、自适应止损
+tools/           盘前早报、竞价扫描、盘后分析
+```
 
 ## 本地运行
 
 ```bash
-python3 -m pip install -r requirements.txt
-python3 -m pytest tests/test_backtest.py tests/test_fetcher.py tests/test_fetcher_local_fallback.py -q
-python3 main.py --mode scan
-python3 main.py --mode backtest --days 20 --no-report
+pip install -r requirements.txt
+python main.py --mode scan                    # 尾盘选股
+python main.py --mode backtest --days 65 --periods 5,3 --no-report  # 回测
+python main.py --mode optimize --days 65      # 参数优化
 ```
 
 ## 飞书配置
 
-当前通知模块发送的是飞书机器人标准消息体，因此请使用“自定义机器人”Webhook，而不是 `flow/api/trigger-webhook/...` 这一类流程触发地址。
-
-正确的 URL 形式：
+使用飞书自定义机器人 Webhook：
 
 ```text
 https://open.feishu.cn/open-apis/bot/v2/hook/<your-token>
 ```
 
-### 本地配置
-
-项目根目录支持本地配置文件：
-
-```text
-config.local.json
-```
-
-可以参考：
-
-```text
-config.local.example.json
-```
-
-示例内容：
+本地配置 `config.local.json`（已 gitignore）：
 
 ```json
 {
@@ -48,66 +50,60 @@ config.local.example.json
 }
 ```
 
-`config.local.json` 已加入 `.gitignore`，适合保存本机 webhook，不需要额外设置环境变量。
+GitHub Actions 中在 `Settings → Secrets → Actions` 设置 `FEISHU_WEBHOOK_URL`。
 
-在 GitHub 仓库 `Settings -> Secrets and variables -> Actions` 中新增：
+## 自动化工作流
 
-- `FEISHU_WEBHOOK_URL`：填入上面的机器人 webhook
+| 工作流 | 主触发 | 时间 | 备用 |
+|--------|--------|------|------|
+| `pre-market.yml` | GitHub cron | 08:30 CST | workflow_dispatch |
+| `auction-scan.yml` | cron-job.org | 09:25 CST | GitHub cron 09:20 |
+| `momentum-scan.yml` | cron-job.org | 14:25→14:44 CST | GitHub cron 14:40 |
+| `eod-analysis.yml` | GitHub cron | 16:00 CST | workflow_dispatch |
+| `momentum-backtest.yml` | GitHub cron | 周五 15:05 CST | workflow_dispatch |
 
-如果没有配置这个 secret，Actions 仍然会继续执行，只是不发送通知。
-
-## GitHub Actions
-
-仓库内置了两个工作流：
-
-- `momentum-scan.yml`：每交易日 14:25 预取数据，14:44 尾盘扫描
-- `momentum-backtest.yml`：每周五收盘后运行回测
-
-### 触发方式
-
-| 触发方式 | 时间 | 精度 |
-|---------|------|------|
-| **cron-job.org**（主） | 14:25 CST | ±1s |
-| GitHub schedule（备用） | 14:40 CST | ±15min 排队 |
-| workflow_dispatch | 手动 | 即时 |
-| push | 即时 | 仅跑单元测试 |
-
-### scan 两步执行
-
-```
-14:25  外部 cron 精准触发 → 预取 200 只 K 线 → SQLite 缓存
-14:35  Sleep 等待市场窗口
-14:44  启动扫描 → 缓存全命中 → 秒级完成 → 飞书推送 📱
-```
-
-`actions/cache@v4` 持久化 `qlib_pro_v16.db`，每日预热加速次日.
+尾盘扫描采用两阶段执行：14:25 预取 K 线缓存 → 14:44 热缓存秒级扫描。`actions/cache@v4` 持久化 `qlib_pro_v16.db` 跨天复用。
 
 ## 外部 Cron 配置
 
-用 [cron-job.org](https://console.cron-job.org)（免费）精准触发：
+[cron-job.org](https://console.cron-job.org)（免费）精准触发。共需配置两个：
 
-| 字段 | 值 |
-|------|-----|
-| URL | `https://api.github.com/repos/Dane666/Momentum/actions/workflows/momentum-scan.yml/dispatches` |
-| Method | POST |
-| Headers | `Authorization: Bearer <GH_PAT>` / `Accept: application/vnd.github+json` / `X-GitHub-Api-Version: 2022-11-28` / `Content-Type: application/json` |
-| Body | `{"ref":"main","inputs":{"run_mode":"full"}}` |
-| Cron | `25 14 * * 1-5`，时区 Asia/Shanghai |
+**尾盘扫描** (`momentum-scan.yml`)：
+- URL: `.../momentum-scan.yml/dispatches`, Method: POST
+- Body: `{"ref":"main","inputs":{"run_mode":"full"}}`
+- Cron: `25 14 * * 1-5`, 时区 Asia/Shanghai
 
-需要 GitHub PAT，scope 最少 `workflow`。
+**竞价扫描** (`auction-scan.yml`)：
+- URL: `.../auction-scan.yml/dispatches`, Method: POST
+- Body: `{"ref":"main"}`
+- Cron: `25 1 * * 1-5`, 时区 Asia/Shanghai
+
+Headers 统一：`Authorization: Bearer <GH_PAT>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json`。
+
+Token 需要 `workflow` scope。
 
 ## 参数优化
 
-65 天网格搜索，以收益率为目标：
+65 天网格搜索：
 
 | 参数 | 优化前 | 优化后 |
 |------|--------|--------|
-| MAX_TOTAL_PICKS | 3 | **1** |
+| MAX_TOTAL_PICKS | 3 | 1 |
 | MAX_SECTOR_PICKS | 1 | 2 |
-| use_adaptive_exit | True | True |
+| HOLD_PERIOD | 5 | 5 |
+| USE_ADAPTIVE_EXIT | True | True |
 
-收益 8.68% → 9.67%（+11.4%）。单只持仓回撤增大（6.61% → 15.25%）。
+收益 +11.4%（8.68% → 9.67%）。单只持仓回撤从 6.61% 增至 15.25%。
+
+## 常见问题
+
+| 问题 | 原因 | 解决 |
+|------|------|------|
+| 飞书推 2 只而非 1 只 | scanner.py `max(2,...)` 硬编码 | 已修复为 `max(1,...)` |
+| 盘后扫描无数据 | 实时 API 收盘失效 | K 线缓存降级自动接管 |
+| Actions 排队延迟 | GitHub 调度器不保证准时 | cron-job.org 外部触发 |
+| 回测 15 分钟+ | 全量 K 线从头拉取 | actions/cache 预热 |
 
 ## 时区
 
-GitHub cron 使用 UTC：`14:40 CST` = `06:40 UTC`。`chinese-calendar` 自动跳过非交易日。
+GitHub cron 使用 UTC。`chinese-calendar` 自动跳过非交易日。
