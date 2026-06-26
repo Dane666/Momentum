@@ -101,8 +101,8 @@ MAX_CHANGE_PCT = 9.2         # 最大涨幅%
 MIN_VOL_RATIO = 1.2          # 最小量比
 MIN_AMOUNT = _env_int("MOMENTUM_MIN_AMOUNT", 200000000)       # 最小成交额 (2亿)
 MIN_SHARPE = 1.0             # 最小夏普比率
-MAX_SECTOR_PICKS = 1         # 同行业最大持仓数 - 120天优化: 1最优
-MAX_TOTAL_PICKS = _env_int("MOMENTUM_MAX_TOTAL_PICKS", 3)     # 总选股数量上限
+MAX_SECTOR_PICKS = 2         # 同行业最大持仓数 - 65天优化: 2最优
+MAX_TOTAL_PICKS = _env_int("MOMENTUM_MAX_TOTAL_PICKS", 1)     # 总选股数量上限 - 65天优化: 1最优(集中持仓)
 
 # ==================== 庄股识别配置 ====================
 ENABLE_MANIPULATION_FILTER = False   # 是否启用庄股过滤 (120天验证无差异，关闭)

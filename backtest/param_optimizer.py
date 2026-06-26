@@ -253,13 +253,23 @@ class ParamOptimizer:
             use_1445_data=False,
         )
         preloader.prepare_backtest_data()
-        
+
+        # 预获取基准指数 (避免每个组合都网络请求一次)
+        from ..data import fetch_market_index
+        bench = fetch_market_index(index_code='000300', k_type=1)
+        if bench is not None and not bench.empty:
+            bench['trade_date'] = pd.to_datetime(bench['trade_date']).dt.normalize()
+            print(f"📈 基准指数加载成功: {len(bench)} 个交易日")
+        else:
+            print(f"⚠️ 基准指数加载失败，部分回测可能失败")
+
         # 共享缓存
         shared_cache = {
             'all_data_cache': preloader.all_data_cache,
             'sector_cache': preloader.sector_cache,
             'stock_info_cache': preloader.stock_info_cache,
             'code_names': getattr(preloader, 'code_names', {}),
+            'bench': bench,  # 预缓存基准指数
         }
         
         print(f"\n🚀 开始遍历 {total} 个参数组合...\n")
@@ -354,8 +364,8 @@ class ParamOptimizer:
             tester.stock_info_cache = shared_cache['stock_info_cache']
             tester.code_names = shared_cache['code_names']
             
-            # 执行回测 (跳过数据加载)
-            result = tester._run_backtest_with_cache()
+            # 执行回测 (跳过数据加载，使用预缓存的基准指数)
+            result = tester._run_backtest_with_cache(bench=shared_cache.get('bench'))
             
             # 恢复原始配置
             for key, value in original_values.items():

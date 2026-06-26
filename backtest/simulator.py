@@ -735,23 +735,27 @@ class MomentumBacktester:
         )
         return model.neutralize_and_score(df)
 
-    def _run_backtest_with_cache(self) -> Optional[Dict]:
+    def _run_backtest_with_cache(self, bench: Optional[pd.DataFrame] = None) -> Optional[Dict]:
         """
         使用已加载的缓存执行回测 (参数优化专用)
-        
+
         跳过数据加载步骤，直接使用 all_data_cache 等缓存数据。
+
+        Args:
+            bench: 预获取的基准指数 DataFrame (可选，避免重复网络请求)
         """
         from ..data import fetch_market_index
-        
+
         if not self.all_data_cache:
             logger.error("缓存为空，请先调用 prepare_backtest_data()")
             return None
-        
-        # 获取基准指数
-        bench = fetch_market_index(index_code='000300', k_type=1)
+
+        # 获取基准指数 (优先使用传入的缓存)
+        if bench is None:
+            bench = fetch_market_index(index_code='000300', k_type=1)
         if bench is None or bench.empty:
             return None
-        
+
         bench['trade_date'] = pd.to_datetime(bench['trade_date']).dt.normalize()
         all_dates = sorted(bench['trade_date'].tolist())
         
