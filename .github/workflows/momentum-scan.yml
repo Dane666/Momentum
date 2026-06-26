@@ -1,12 +1,18 @@
 name: momentum-scan
-
+#
+# Trigger guide:
+#   Primary:  cron-job.org → POST workflow_dispatch API   14:45 CST (±1s precision)
+#   Backup:   GitHub schedule cron                       14:40 CST (±15min queue)
+#   Manual:   GitHub UI "Run workflow" button
+#   CI:       push to main
+#
 on:
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
       run_mode:
-        description: Run smoke or full market scan
+        description: full=production scan  /  smoke=fast test
         required: true
         default: full
         type: choice
@@ -14,7 +20,7 @@ on:
           - full
           - smoke
   schedule:
-    - cron: "40 6 * * 1-5"    # 14:40 Beijing, with sleep-until-14:44 step for guaranteed freshness
+    - cron: "40 6 * * 1-5"   # 14:40 CST — backup if external cron fails
 
 concurrency:
   group: momentum-scan-${{ github.ref }}
@@ -23,7 +29,7 @@ concurrency:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
     env:
       TZ: Asia/Shanghai
       FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
@@ -43,11 +49,11 @@ jobs:
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
-      - name: Wait for 14:44 market window
+      - name: Wait for 14:44 market window (schedule fallback only)
         if: github.event_name == 'schedule'
         run: |
           python <<'PY'
-          from datetime import datetime, timedelta
+          from datetime import datetime
           from zoneinfo import ZoneInfo
           import time
           tz = ZoneInfo("Asia/Shanghai")
@@ -55,11 +61,9 @@ jobs:
           target = now.replace(hour=14, minute=44, second=30, microsecond=0)
           if now < target:
               wait_sec = (target - now).total_seconds()
-              print(f"⏰ {now.strftime('%H:%M:%S')} — waiting {wait_sec:.0f}s until 14:44:30 CST")
+              print(f"SCHEDULE FALLBACK — waiting {wait_sec:.0f}s until 14:44:30")
               time.sleep(max(0, wait_sec))
-              print(f"⏰ {datetime.now(tz).strftime('%H:%M:%S')} — resuming scan")
-          else:
-              print(f"⏰ {now.strftime('%H:%M:%S')} — past 14:44:30, running immediately")
+          print(f"Running at {datetime.now(tz).strftime('%H:%M:%S')}")
           PY
 
       - name: Check China trading day
@@ -69,22 +73,19 @@ jobs:
           import os
           from datetime import datetime
           from zoneinfo import ZoneInfo
-
           import chinese_calendar as cc
-
           today = datetime.now(ZoneInfo("Asia/Shanghai")).date()
           is_open = cc.is_workday(today)
-
-          print(f"Shanghai date: {today}, trading_day={is_open}")
-
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+          print(f"Date: {today}, trading_day={is_open}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
               fh.write(f"is_open={str(is_open).lower()}\n")
           PY
 
-      - name: Run unit tests
+      - name: Run unit tests (push only)
+        if: github.event_name == 'push'
         run: python -m pytest tests/test_backtest.py tests/test_fetcher.py tests/test_fetcher_local_fallback.py -q
 
-      - name: Run manual smoke scan
+      - name: Smoke scan (manual smoke trigger)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'smoke'
         env:
           MOMENTUM_CODE_LIMIT: "20"
@@ -93,24 +94,18 @@ jobs:
           MOMENTUM_LOG_FILE: scan_smoke.log
         run: python main.py --mode scan
 
-      - name: Run full scan on push and manual full trigger
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full')
+      - name: Production scan (external cron / manual full / schedule backup)
+        if: >
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full') ||
+          (github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true')
         env:
           MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
-          MOMENTUM_LOG_FILE: scan_full.log
+          MOMENTUM_LOG_FILE: scan_prod.log
         run: python main.py --mode scan
 
-      - name: Run scheduled production scan
-        if: github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true'
-        env:
-          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
-          MOMENTUM_LOG_FILE: scan_schedule.log
-        run: python main.py --mode scan
-
-      - name: Upload scan logs
+      - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: momentum-scan-logs
-          path: |
-            *.log
+          path: "*.log"
