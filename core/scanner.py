@@ -236,8 +236,8 @@ class MarketScanner:
         
         # 使用仓位系数动态调整选股数量
         position_multiplier = getattr(self.engine, 'position_multiplier', 1.0)
-        # 最少选2只，保证有备选，但不超过配置上限的2倍
-        base_picks = max(2, cfg.MAX_TOTAL_PICKS)
+        # 65天优化: 集中持仓 MAX_TOTAL_PICKS=1 收益最优，下限改为1
+        base_picks = max(1, cfg.MAX_TOTAL_PICKS)
         max_picks = min(base_picks * 2, int(base_picks * max(1.0, position_multiplier)))
 
         rsi_passed = [r for _, r in df_quant.iterrows() if r['rsi'] <= self.engine.RSI_DANGER_ZONE]
