@@ -60,26 +60,54 @@ config.local.example.json
 
 仓库内置了两个工作流：
 
-- `momentum-scan.yml`：每个中国交易日 14:45 运行尾盘扫描
-- `momentum-backtest.yml`：每周五收盘后运行 1 个月数据回测
+- `momentum-scan.yml`：每交易日 14:25 预取数据，14:44 尾盘扫描
+- `momentum-backtest.yml`：每周五收盘后运行回测
 
-为了方便刚推送后立即验证，这两个工作流都支持：
+### 触发方式
 
-- `push`
-- `workflow_dispatch`
+| 触发方式 | 时间 | 精度 |
+|---------|------|------|
+| **cron-job.org**（主） | 14:25 CST | ±1s |
+| GitHub schedule（备用） | 14:40 CST | ±15min 排队 |
+| workflow_dispatch | 手动 | 即时 |
+| push | 即时 | 仅跑单元测试 |
 
-其中：
+### scan 两步执行
 
-- `momentum-scan.yml`：`push` 默认运行全量 scan，并开启飞书通知
-- `workflow_dispatch`：默认 `full`，也支持手动切回 `smoke`
-- `schedule`：继续走生产参数
-- `momentum-backtest.yml`：默认仍保留手动 `full` / `smoke` 两种模式
+```
+14:25  外部 cron 精准触发 → 预取 200 只 K 线 → SQLite 缓存
+14:35  Sleep 等待市场窗口
+14:44  启动扫描 → 缓存全命中 → 秒级完成 → 飞书推送 📱
+```
 
-## 时区说明
+`actions/cache@v4` 持久化 `qlib_pro_v16.db`，每日预热加速次日.
 
-GitHub Actions 的 `cron` 使用 UTC：
+## 外部 Cron 配置
 
-- `14:45 Asia/Shanghai` 对应 `06:45 UTC`
-- `15:05 Asia/Shanghai` 对应 `07:05 UTC`
+用 [cron-job.org](https://console.cron-job.org)（免费）精准触发：
 
-工作流里已经额外加入了 `chinese-calendar` 判断，遇到中国法定非交易日会自动跳过计划任务。
+| 字段 | 值 |
+|------|-----|
+| URL | `https://api.github.com/repos/Dane666/Momentum/actions/workflows/momentum-scan.yml/dispatches` |
+| Method | POST |
+| Headers | `Authorization: Bearer <GH_PAT>` / `Accept: application/vnd.github+json` / `X-GitHub-Api-Version: 2022-11-28` / `Content-Type: application/json` |
+| Body | `{"ref":"main","inputs":{"run_mode":"full"}}` |
+| Cron | `25 14 * * 1-5`，时区 Asia/Shanghai |
+
+需要 GitHub PAT，scope 最少 `workflow`。
+
+## 参数优化
+
+65 天网格搜索，以收益率为目标：
+
+| 参数 | 优化前 | 优化后 |
+|------|--------|--------|
+| MAX_TOTAL_PICKS | 3 | **1** |
+| MAX_SECTOR_PICKS | 1 | 2 |
+| use_adaptive_exit | True | True |
+
+收益 8.68% → 9.67%（+11.4%）。单只持仓回撤增大（6.61% → 15.25%）。
+
+## 时区
+
+GitHub cron 使用 UTC：`14:40 CST` = `06:40 UTC`。`chinese-calendar` 自动跳过非交易日。
