@@ -53,14 +53,16 @@ jobs:
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
-      - name: Restore K-line cache
-        id: kline-cache
+      - name: Restore caches
+        id: caches
         uses: actions/cache@v4
         with:
-          path: qlib_pro_v16.db
-          key: kline-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          path: |
+            qlib_pro_v16.db
+            data/picks_tracking.json
+          key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
           restore-keys: |
-            kline-v1-${{ runner.os }}-
+            state-v1-${{ runner.os }}-
 
       - name: Pre-fetch K-line data (warm cache)
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -159,6 +161,34 @@ jobs:
           MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
           MOMENTUM_LOG_FILE: scan_prod.log
         run: python main.py --mode scan
+
+      - name: Save picks to tracking
+        if: >
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full') ||
+          (github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true')
+        run: |
+          python <<'PY'
+          import json, os, re
+          from datetime import datetime
+          picks = []
+          try:
+              with open('scan_prod.log','r') as f: text=f.read()
+              for m in re.finditer(r'(\d{6})\s+(\S+)\s+(\d+\.\d{2})\s+', text):
+                  code, name, price = m.groups()
+                  if float(price)>0.1 and name not in ('代码','全市场'):
+                      picks.append({'code':code,'name':name,'price':float(price)})
+          except: pass
+          if not picks: exit(0)
+          today=datetime.now().strftime('%Y-%m-%d')
+          tracking=[]
+          try:
+              with open('data/picks_tracking.json','r') as f: tracking=json.load(f)
+          except: pass
+          if not any(p.get('date')==today for p in tracking):
+              for p in picks: tracking.append({'date':today,'code':p['code'],'name':p['name'],'price':p['price']})
+              with open('data/picks_tracking.json','w') as f: json.dump(tracking,f,ensure_ascii=False,indent=2)
+              print(f'Saved {len(picks)} picks')
+          PY
 
       - name: Upload logs
         if: always()

@@ -127,6 +127,35 @@ def run():
     except Exception:
         pass
 
+    # 选股跟踪: 近5日收益
+    try:
+        import json, os
+        track_file = 'data/picks_tracking.json'
+        if os.path.exists(track_file):
+            with open(track_file) as f: tracking = json.load(f)
+            recent = [p for p in tracking if (datetime.now()-datetime.strptime(p['date'],'%Y-%m-%d')).days <= 5]
+            if recent:
+                lines.append('\n📈 近期选股跟踪:')
+                for p in sorted(recent, key=lambda x: x['date'], reverse=True)[:8]:
+                    code, entry, d = p['code'], p['price'], p['date']
+                    perf = ''
+                    try:
+                        from momentum.data import load_or_fetch_kline, fetch_kline_from_api
+                        df = load_or_fetch_kline(str(code), fetch_kline_from_api)
+                        if df is not None and not df.empty:
+                            df['close'] = pd.to_numeric(df['close'], errors='coerce')
+                            df['high'] = pd.to_numeric(df['high'], errors='coerce')
+                            df = df[df['trade_date'] >= d].reset_index(drop=True)
+                            for i, (label, idx) in enumerate([('D1',1),('D2',2),('D3',3)]):
+                                if idx < len(df):
+                                    c = float(df['close'].iloc[idx]); h = float(df['high'].iloc[idx])
+                                    rc = (c-entry)/entry*100; rh = (h-entry)/entry*100
+                                    perf += f' {label}: {rc:+.1f}%高{rh:+.1f}%'
+                    except: pass
+                    lines.append(f'  {d} {code} {p["name"]}: ¥{entry:.2f}{perf}')
+    except Exception:
+        pass
+
     rpt = '\n'.join(lines)
     print(rpt)
     send_feishu(rpt)

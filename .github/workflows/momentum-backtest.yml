@@ -43,13 +43,15 @@ jobs:
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
-      - name: Restore K-line cache
+      - name: Restore caches
         uses: actions/cache@v4
         with:
-          path: qlib_pro_v16.db
-          key: kline-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          path: |
+            qlib_pro_v16.db
+            data/picks_tracking.json
+          key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
           restore-keys: |
-            kline-v1-${{ runner.os }}-
+            state-v1-${{ runner.os }}-
 
       - name: Check China trading day
         id: calendar
