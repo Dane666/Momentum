@@ -72,8 +72,28 @@ def send_feishu(text: str):
 
 def run():
     logger.info("[EOD] Running...")
-    now = datetime.now().strftime('%Y-%m-%d %H:%M')
-    lines = [f"📋 盘后归档 | {now}", "─" * 40]
+    now = datetime.now()
+
+    # 从龙虎榜提取实际数据日期
+    data_date = now.strftime('%Y-%m-%d')
+    dt = fetch_dragon_tiger()
+    if dt is not None and not dt.empty and '上榜日期' in dt.columns:
+        dd = str(dt['上榜日期'].iloc[0])[:10]
+        if dd: data_date = dd
+
+    # 重复检测: 如果今天已经跑过同一天数据的报告，跳过
+    lock_file = 'data/eod_last_date.txt'
+    skip = False
+    try:
+        import os
+        if os.path.exists(lock_file):
+            with open(lock_file) as f:
+                if f.read().strip() == data_date:
+                    logger.info(f"[EOD] Already reported for {data_date}, skipping")
+                    return
+    except: pass
+
+    lines = [f"📋 盘后归档 | {data_date} {now.strftime('%H:%M')}", "─" * 40]
 
     # 涨停板
     up = fetch_limit_board()
@@ -146,7 +166,7 @@ def run():
                             df['close'] = pd.to_numeric(df['close'], errors='coerce')
                             df['high'] = pd.to_numeric(df['high'], errors='coerce')
                             df = df[df['trade_date'] >= d].reset_index(drop=True)
-                            for i, (label, idx) in enumerate([('D1',1),('D2',2),('D3',3)]):
+                            for i, (label, idx) in enumerate([('当日',0),('次日',1),('D2',2),('D3',3)]):
                                 if idx < len(df):
                                     c = float(df['close'].iloc[idx]); h = float(df['high'].iloc[idx])
                                     rc = (c-entry)/entry*100; rh = (h-entry)/entry*100
@@ -159,3 +179,11 @@ def run():
     rpt = '\n'.join(lines)
     print(rpt)
     send_feishu(rpt)
+
+    # 标记已推送 (防止重复)
+    import os as _os
+    try: _os.makedirs('data', exist_ok=True)
+    except: pass
+    try:
+        with open(lock_file, 'w') as f: f.write(data_date)
+    except: pass
