@@ -765,9 +765,20 @@ class MomentumBacktester:
             logger.error("缓存为空，请先调用 prepare_backtest_data()")
             return None
 
-        # 获取基准指数 (优先使用传入的缓存)
+        # 获取基准指数 (优先使用传入的缓存，API不可用时从stock数据推导交易日)
         if bench is None:
             bench = fetch_market_index(index_code='000300', k_type=1)
+        if bench is None or bench.empty:
+            # 降级：从已加载的stock K线数据中推导交易日历
+            logger.warning("基准指数获取失败，从stock缓存推导交易日")
+            sample_dates = set()
+            for code, stock_df in list(self.all_data_cache.items())[:100]:
+                if stock_df is not None and not stock_df.empty and 'trade_date' in stock_df.columns:
+                    sample_dates.update(stock_df['trade_date'].dropna().tolist())
+            if sample_dates:
+                bench = pd.DataFrame({'trade_date': sorted(sample_dates)})
+                bench['trade_date'] = pd.to_datetime(bench['trade_date']).dt.normalize()
+                logger.info(f"从stock缓存推导出 {len(bench)} 个交易日")
         if bench is None or bench.empty:
             return None
 
@@ -892,8 +903,18 @@ class MomentumBacktester:
             logger.error("回测底池为空")
             return None
 
-        # 获取基准指数 (沪深300)
+        # 获取基准指数 (沪深300, API不可用时从stock缓存推导交易日)
         bench = fetch_market_index(index_code='000300', k_type=1)
+        if bench is None or bench.empty:
+            logger.warning("基准指数获取失败，从stock缓存推导交易日")
+            sample_dates = set()
+            for code, stock_df in list(self.all_data_cache.items())[:100]:
+                if stock_df is not None and not stock_df.empty and 'trade_date' in stock_df.columns:
+                    sample_dates.update(stock_df['trade_date'].dropna().tolist())
+            if sample_dates:
+                bench = pd.DataFrame({'trade_date': sorted(sample_dates)})
+                bench['trade_date'] = pd.to_datetime(bench['trade_date']).dt.normalize()
+                logger.info(f"从stock缓存推导 {len(bench)} 交易日")
         if bench is None or bench.empty:
             logger.error("获取基准指数失败")
             return None

@@ -693,7 +693,7 @@ def fetch_market_index(index_code: str = '000300', k_type: int = 1) -> Optional[
         else:
             prefix = 'sz'
         
-        url = f'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={prefix}{index_code},day,,,500,qfq'
+        url = f'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={prefix}{index_code},day,,,800,qfq'
         headers = {'Referer': 'https://gu.qq.com/'}
         
         resp = requests.get(url, headers=headers, timeout=10)
