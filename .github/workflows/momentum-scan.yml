@@ -161,7 +161,7 @@ jobs:
         env:
           MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
           MOMENTUM_LOG_FILE: scan_prod.log
-        run: python main.py --mode scan
+        run: python main.py --mode scan 2>&1 | tee scan_stdout.txt
 
       - name: Save picks to tracking
         if: >
@@ -173,7 +173,7 @@ jobs:
           from datetime import datetime
           picks = []
           try:
-              with open('scan_prod.log','r') as f: text=f.read()
+              with open('scan_stdout.txt','r') as f: text=f.read()
               for m in re.finditer(r'(\d{6})\s+(\S+)\s+(\d+\.\d{2})\s+', text):
                   code, name, price = m.groups()
                   if float(price)>0.1 and name not in ('代码','全市场'):

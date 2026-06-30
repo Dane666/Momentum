@@ -1,0 +1,40 @@
+name: position-monitor
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "40,10 1-6 * * 1-5"
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TZ: Asia/Shanghai
+      BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip, cache-dependency-path: requirements.txt}
+      - uses: actions/cache@v4
+        with:
+          path: |
+            qlib_pro_v16.db
+            data/picks_tracking.json
+            data/eod_last_date.txt
+          key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          restore-keys: [state-v1-${{ runner.os }}-]
+      - run: pip install -r requirements.txt
+      - name: Check trading day
+        id: cal
+        run: |
+          python3 -c "import os;from datetime import datetime;from zoneinfo import ZoneInfo;import chinese_calendar as cc;t=datetime.now(ZoneInfo('Asia/Shanghai')).date();o=cc.is_workday(t);open(os.environ['GITHUB_OUTPUT'],'a').write(f'is_open={str(o).lower()}\n')"
+      - name: Run monitor
+        if: github.event_name != 'schedule' || steps.cal.outputs.is_open == 'true'
+        run: |
+          python -c "
+          import sys;from pathlib import Path;p=Path('.').resolve();sys.path.insert(0,str(p.parent))
+          import importlib.util
+          s=importlib.util.spec_from_file_location('momentum',p/'__init__.py',submodule_search_locations=[str(p)])
+          m=importlib.util.module_from_spec(s);sys.modules['momentum']=m;s.loader.exec_module(m)
+          from tools.position_monitor import run;run()
+          "

@@ -666,6 +666,10 @@ class MomentumBacktester:
                 manipulation_score, momentum_r2, ivol, illiq, overnight_ratio = \
                     self._calc_manipulation_factors(snap_df)
 
+            # 上方套牢盘比例
+            from ..factors.technical import calc_trapped_ratio
+            trapped_ratio = calc_trapped_ratio(snap_df, 60)
+
             return {
                 'code': code, 
                 'name': name,
@@ -691,7 +695,8 @@ class MomentumBacktester:
                 'nlp_score': self.nlp_score_default, 
                 'hk_bonus': 0.0, 
                 'chip_rate': 0.0,
-                'big_order_t': 0.0, 
+                'trapped_ratio': trapped_ratio,
+                'big_order_t': 0.0,
                 'big_order_y': 0.0,
                 # 前向收益与出场信息
                 'fwd_ret': fwd_ret, 
@@ -745,6 +750,7 @@ class MomentumBacktester:
             bench: 预获取的基准指数 DataFrame (可选，避免重复网络请求)
         """
         from ..data import fetch_market_index
+        from .. import config as cfg
 
         if not self.all_data_cache:
             logger.error("缓存为空，请先调用 prepare_backtest_data()")
@@ -806,12 +812,18 @@ class MomentumBacktester:
                 if row['sharpe_t'] <= self.min_sharpe:
                     continue
                 
+                # 上方套牢盘过滤
+                if getattr(cfg, 'ENABLE_TRAPPED_FILTER', False):
+                    trapped = row.get('trapped_ratio', 1.0)
+                    if trapped > getattr(cfg, 'MAX_TRAPPED_RATIO', 0.10):
+                        continue
+
                 # 庄股过滤 (如果启用)
                 if self.enable_manipulation_filter:
                     manip_score = row.get('manipulation_score', 0)
                     if manip_score >= self.manipulation_score_threshold:
                         continue
-                    
+
                 s = row['sector']
                 if sector_counts.get(s, 0) < self.max_sector_picks:
                     picks.append(row)
@@ -864,6 +876,7 @@ class MomentumBacktester:
     def run_backtest(self) -> Optional[Dict]:
         """执行回测"""
         from ..data import fetch_market_index, BacktestTradeRecorder
+        from .. import config as cfg
 
         pool = self.prepare_backtest_data()
         if not pool:
@@ -971,12 +984,18 @@ class MomentumBacktester:
                 if row['sharpe_t'] <= self.min_sharpe:
                     continue
                 
+                # 上方套牢盘过滤
+                if getattr(cfg, 'ENABLE_TRAPPED_FILTER', False):
+                    trapped = row.get('trapped_ratio', 1.0)
+                    if trapped > getattr(cfg, 'MAX_TRAPPED_RATIO', 0.10):
+                        continue
+
                 # 庄股过滤 (如果启用)
                 if self.enable_manipulation_filter:
                     manip_score = row.get('manipulation_score', 0)
                     if manip_score >= self.manipulation_score_threshold:
                         continue
-                    
+
                 s = row['sector']
                 if sector_counts.get(s, 0) < self.max_sector_picks:
                     picks.append(row)
