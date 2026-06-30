@@ -45,9 +45,9 @@ def check(entry: dict) -> str:
         holds = (datetime.now() - datetime.strptime(entry['date'], '%Y-%m-%d')).days
 
         if h >= ep * (1 + TP):
-            return f"🎯 止盈! {entry['code']} {entry['name']}: {c:.2f} (+{pnl:+.1f}%)"
+            return f"🎯 止盈! {entry['code']} {entry['name']}: 现{c:.2f} 高{h:.2f}≥止盈{ep*(1+TP):.2f} (+{pnl:+.1f}%)"
         if l <= ep * (1 - SL):
-            return f"🛑 止损! {entry['code']} {entry['name']}: {c:.2f} ({pnl:+.1f}%)"
+            return f"🛑 止损! {entry['code']} {entry['name']}: 现{c:.2f} 低{l:.2f}≤止损{ep*(1-SL):.2f} ({pnl:+.1f}%)"
         if c < ma5:
             return f"⚠️ 破MA5 {entry['code']} {entry['name']}: {c:.2f} MA5={ma5:.2f}"
         if bias > BIAS_LIMIT * 100:
