@@ -88,7 +88,6 @@ jobs:
         env:
           MOMENTUM_POOL_SIZE: "150"
           MOMENTUM_LOG_FILE: backtest_full.log
-          MOMENTUM_LOG_FILE: backtest_full.log
         run: python main.py --mode backtest --days 65 --periods 5,3 --no-report
 
       - name: Upload logs and reports
