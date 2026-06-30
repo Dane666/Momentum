@@ -217,3 +217,18 @@ def compute_dual_day_factors(df: pd.DataFrame) -> Tuple[Optional[dict], Optional
     yesterday = compute_technical_snapshot(df.iloc[:-1])
 
     return today, yesterday
+
+
+def calc_trapped_ratio(df, lookback: int = 60) -> float:
+    """上方套牢盘比例: 最近N日成交量中在现价之上的占比"""
+    df = df.tail(lookback).copy()
+    cp = float(df['close'].iloc[-1])
+    total, trapped = 0.0, 0.0
+    for _, r in df.iterrows():
+        h, l, v = float(r['high']), float(r['low']), float(r['volume'])
+        if v <= 0: continue
+        if h <= cp: continue
+        if l >= cp: trapped += v
+        else: trapped += v * (h - cp) / (h - l) if h > l else v
+        total += v
+    return trapped / total if total > 0 else 1.0

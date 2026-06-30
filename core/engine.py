@@ -88,6 +88,7 @@ class MomentumEngine:
         from .. import config as cfg
         from ..data import load_or_fetch_kline, fetch_kline_from_api, fetch_stock_concept
         from ..factors import get_style_group, compute_dual_day_factors
+        from ..factors.technical import calc_trapped_ratio
 
         try:
             # 1. 使用缓存优先加载K线
@@ -176,6 +177,7 @@ class MomentumEngine:
                 'ma5': today['ma5'],
                 'ma20': today['ma20'],
                 'chip_rate': chip_rate,
+                'trapped_ratio': calc_trapped_ratio(df, 60),
                 'big_order_t': big_order_t,
                 'big_order_y': big_order_y,
                 # 今日因子
