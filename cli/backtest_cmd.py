@@ -56,7 +56,22 @@ def run_backtest(
 
     # 使用 window_shift=1 保持回测窗口稳定（避免因每日数据更新导致窗口前移）
     result = run_sensitivity_analysis(days=days, periods=periods, window_shift=1)
-    
+
+    # Bark 推送回测结果
+    try:
+        from momentum.notify.bark import send_bark
+        sessions = get_backtest_sessions(limit=1)
+        if not sessions.empty:
+            r = sessions.iloc[0]
+            msg = (f"📈 回测报告 ({days}天)\n"
+                   f"收益: {r['profit_pct']:+.2f}% | 年化: {r['annual_ret']:+.2f}%\n"
+                   f"夏普: {r['sharpe']:.2f} | 胜率: {r['win_rate']:.1f}%\n"
+                   f"回撤: {r['max_dd']:.2f}% | 交易: {int(r['trade_count'])}笔\n"
+                   f"参数: MAX=3, 套牢盘=ON, 固定止盈+10%/-5%")
+            send_bark("📈 回测报告", msg)
+    except Exception:
+        pass
+
     # 自动生成完整报告
     if auto_report and record_trades:
         print("\n" + "=" * 60)
