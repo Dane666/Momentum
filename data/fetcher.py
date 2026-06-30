@@ -688,12 +688,12 @@ def fetch_market_index(index_code: str = '000300', k_type: int = 1) -> Optional[
     """
     import requests
     
-    # 1. mootdx TCP 优先 (不封IP)
+    # 1. mootdx TCP 优先 (000001=上证指数 近似替代CSI300)
     try:
         from .fetcher_mootdx import fetch_index_mootdx
-        df = fetch_index_mootdx(code=index_code, count=800)
+        df = fetch_index_mootdx(code='000001', count=800)
         if df is not None and not df.empty:
-            logger.info(f"[Fetcher] 获取指数 {index_code} 成功 (mootdx): {len(df)} 天")
+            logger.info(f"[Fetcher] 获取上证指数成功 (mootdx): {len(df)} 天")
             return df
     except Exception:
         pass

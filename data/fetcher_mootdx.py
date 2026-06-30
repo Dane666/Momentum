@@ -26,11 +26,15 @@ def fetch_kline_mootdx(code: str, start_date: str = None, count: int = 500) -> O
         logger.debug(f"mootdx kline {code}: {e}")
         return None
 
-def fetch_index_mootdx(code: str = '000300', count: int = 800) -> Optional[pd.DataFrame]:
+def fetch_index_mootdx(code: str = '000001', count: int = 800) -> Optional[pd.DataFrame]:
     try:
         df = _get().bars(symbol=code, category=4, start=0, count=count)
         if df is None or df.empty: return None
-        return df.reset_index().rename(columns={'index':'trade_date'})
+        df = df.reset_index()
+        if 'datetime' in df.columns: df = df.drop(columns=['datetime'])
+        df = df.rename(columns={'index':'trade_date'})
+        df['trade_date'] = pd.to_datetime(df['trade_date']).dt.strftime('%Y-%m-%d')
+        return df[['trade_date','open','close','high','low']]
     except Exception as e:
         logger.warning(f"mootdx index {code}: {e}")
         return None
