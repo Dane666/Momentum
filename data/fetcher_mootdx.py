@@ -16,9 +16,11 @@ def fetch_kline_mootdx(code: str, start_date: str = None, count: int = 500) -> O
     try:
         df = _get().bars(symbol=code, category=4, start=0, count=count)
         if df is None or df.empty: return None
-        df = df.reset_index()
+        # mootdx: index='datetime', columns has BOTH 'datetime' AND 'vol'/'volume'
         if 'datetime' in df.columns: df = df.drop(columns=['datetime'])
-        df = df.rename(columns={'index':'trade_date','vol':'volume'})
+        if 'volume' in df.columns: df = df.drop(columns=['volume'])  # duplicate of 'vol'
+        df = df.reset_index()  # index 'datetime' → column 'datetime'
+        df = df.rename(columns={'datetime':'trade_date','vol':'volume'})
         df['trade_date'] = pd.to_datetime(df['trade_date']).dt.strftime('%Y-%m-%d')
         df['turnover_ratio'] = 0.0
         return df[['trade_date','open','close','high','low','volume','amount','turnover_ratio']]
@@ -30,9 +32,10 @@ def fetch_index_mootdx(code: str = '000001', count: int = 800) -> Optional[pd.Da
     try:
         df = _get().bars(symbol=code, category=4, start=0, count=count)
         if df is None or df.empty: return None
-        df = df.reset_index()
         if 'datetime' in df.columns: df = df.drop(columns=['datetime'])
-        df = df.rename(columns={'index':'trade_date'})
+        if 'volume' in df.columns: df = df.drop(columns=['volume'])
+        df = df.reset_index()
+        df = df.rename(columns={'datetime':'trade_date'})
         df['trade_date'] = pd.to_datetime(df['trade_date']).dt.strftime('%Y-%m-%d')
         return df[['trade_date','open','close','high','low']]
     except Exception as e:
