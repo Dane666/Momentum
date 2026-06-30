@@ -105,6 +105,7 @@ MAX_SECTOR_PICKS = 2         # 同行业最大持仓数 - 65天优化: 2最优
 MAX_TOTAL_PICKS = _env_int("MOMENTUM_MAX_TOTAL_PICKS", 1)     # 总选股数量上限 - 65天优化: 1最优(集中持仓)
 MAX_TRAPPED_RATIO = 0.10      # 上方套牢盘比例上限 (0=关闭, 0.10=10%)
 ENABLE_TRAPPED_FILTER = True  # 是否启用上方套牢盘过滤 - 65天回测验证: 收益+58% 夏普+90%
+USE_30M_EXIT = _env_bool("MOMENTUM_USE_30M_EXIT", False)  # 30分钟ATR退出模式
 
 # ==================== 庄股识别配置 ====================
 ENABLE_MANIPULATION_FILTER = False   # 是否启用庄股过滤 (120天验证无差异，关闭)

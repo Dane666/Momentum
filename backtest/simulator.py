@@ -517,8 +517,17 @@ class MomentumBacktester:
         Returns:
             (fwd_ret, exit_reason, actual_hold_days, exit_date)
         """
+        # 新30分钟ATR退出模式
+        if getattr(cfg, 'USE_30M_EXIT', False):
+            from ..risk.exit_30m import simulate_atr_exit
+            if entry_price_1445 is not None and entry_price_1445 > 0:
+                ep = entry_price_1445
+            else:
+                ep = full_df['close'].iloc[t_idx]
+            return simulate_atr_exit(ep, full_df, t_idx, self.hold_period, use_daily=True)
+
         from ..risk import ExitRuleEngine
-        
+
         # 优先使用14:45真实价格，否则使用收盘价
         if entry_price_1445 is not None and entry_price_1445 > 0:
             entry_price = entry_price_1445
