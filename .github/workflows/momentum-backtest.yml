@@ -21,6 +21,11 @@ on:
         options:
           - original
           - atr
+      days:
+        description: Backtest days (65/120)
+        required: false
+        default: "65"
+        type: string
   schedule:
     - cron: "5 7 * * 5"   # 周五 15:05 CST — 收盘后跑
 
@@ -120,7 +125,7 @@ jobs:
           MOMENTUM_POOL_SIZE: "150"
           MOMENTUM_LOG_FILE: backtest_full.log
           MOMENTUM_USE_30M_EXIT: "${{ github.event.inputs.exit_mode == 'atr' }}"
-        run: python main.py --mode backtest --days 65 --periods 5,3 --no-report
+        run: python main.py --mode backtest --days ${{ github.event.inputs.days || 65 }} --periods 5,3 --no-report
 
       - name: Upload logs and reports
         if: always()
