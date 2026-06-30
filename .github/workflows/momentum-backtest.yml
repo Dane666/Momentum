@@ -13,6 +13,14 @@ on:
         options:
           - full
           - smoke
+      exit_mode:
+        description: Exit strategy (original/atr)
+        required: false
+        default: original
+        type: choice
+        options:
+          - original
+          - atr
   schedule:
     - cron: "5 7 * * 5"   # 周五 15:05 CST — 收盘后跑
 
@@ -88,6 +96,7 @@ jobs:
         env:
           MOMENTUM_POOL_SIZE: "150"
           MOMENTUM_LOG_FILE: backtest_full.log
+          MOMENTUM_USE_30M_EXIT: "${{ github.event.inputs.exit_mode == 'atr' }}"
         run: python main.py --mode backtest --days 65 --periods 5,3 --no-report
 
       - name: Upload logs and reports
