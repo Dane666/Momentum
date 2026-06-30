@@ -517,6 +517,8 @@ class MomentumBacktester:
         Returns:
             (fwd_ret, exit_reason, actual_hold_days, exit_date)
         """
+        from .. import config as cfg
+
         # 新30分钟ATR退出模式
         if getattr(cfg, 'USE_30M_EXIT', False):
             from ..risk.exit_30m import simulate_atr_exit
@@ -533,9 +535,8 @@ class MomentumBacktester:
             entry_price = entry_price_1445
         else:
             entry_price = full_df['close'].iloc[t_idx]
-        
+
         # 使用自适应止损模式 (可通过配置开关)
-        from .. import config as cfg
         use_adaptive = getattr(cfg, 'USE_ADAPTIVE_EXIT', False)
         
         engine = ExitRuleEngine(adaptive=use_adaptive)
@@ -565,10 +566,11 @@ class MomentumBacktester:
             mkt_cap: 市值
         """
         try:
+            from .. import config as cfg
             full_df = self.all_data_cache.get(code)
             if full_df is None:
                 return None
-                
+
             target_t = pd.to_datetime(t_date).normalize()
             target_date_str = target_t.strftime('%Y-%m-%d')
             snap_df = full_df[full_df['trade_date'] <= target_t].copy()
@@ -617,7 +619,7 @@ class MomentumBacktester:
                 mom_5 = (close_series.iloc[-1] / close_series.iloc[-5]) - 1
                 mom_20 = ((close_series.iloc[-1] / close_series.iloc[-20]) - 1) * (0.02 / v20)
                 
-                curr_to = df_slice['turnover_rate'].iloc[-1]
+                curr_to = df_slice.get('turnover_rate', df_slice.get('turnover_ratio', pd.Series([0]))).iloc[-1]
                 to_mult = 1.15 if 12 < curr_to < 18 else (0.6 if curr_to < 3 and df_slice['ret'].iloc[-1] > 0.05 else 1.0)
                 
                 sharpe = (df_slice['ret'].tail(20).mean() / v20) * np.sqrt(252)
@@ -625,7 +627,7 @@ class MomentumBacktester:
                 tr = (df_slice['high'] - df_slice['low']).tail(20)
                 atr = tr.mean()
                 
-                vr = df_slice['vol'].iloc[-1] / (df_slice['vol'].tail(6).iloc[:-1].mean() + 1e-9)
+                vr = df_slice['volume'].iloc[-1] / (df_slice['volume'].tail(6).iloc[:-1].mean() + 1e-9)
                 
                 return mom_5, mom_20 * to_mult, sharpe, vr, curr_to, atr
 
@@ -728,7 +730,7 @@ class MomentumBacktester:
                 'overnight_ratio': overnight_ratio,
             }
         except Exception as e:
-            logger.debug(f"[Backtest] {code} 模拟失败: {e}")
+            logger.error(f"[Backtest] {code} 模拟异常: {e}")
             return None
 
     def _industry_neutralization(self, df: pd.DataFrame) -> pd.DataFrame:
