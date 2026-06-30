@@ -77,6 +77,29 @@ jobs:
               fh.write(f"is_open={str(is_open).lower()}\n")
           PY
 
+      - name: Pre-fetch K-line (warm cache)
+        run: |
+          python <<'PY'
+          import sys,os,time;from pathlib import Path;p=Path('.').resolve()
+          sys.path.insert(0,str(p.parent))
+          import importlib.util
+          s=importlib.util.spec_from_file_location('momentum',p/'__init__.py',submodule_search_locations=[str(p)])
+          m=importlib.util.module_from_spec(s);sys.modules['momentum']=m;s.loader.exec_module(m)
+          from momentum.data import load_or_fetch_kline,fetch_all_stock_codes,fetch_kline_from_api,init_db
+          from momentum import config as cfg;from concurrent.futures import ThreadPoolExecutor,as_completed
+          init_db()
+          codes=[c for c in fetch_all_stock_codes() if c.startswith(('60','00')) and 'ST' not in c][:200]
+          print(f'Pre-fetching {len(codes)} stocks...');start=time.time();ok=fail=0
+          with ThreadPoolExecutor(max_workers=20) as pool:
+              fx={pool.submit(load_or_fetch_kline,c,fetch_kline_from_api,cfg.KLINE_START_DATE):c for c in codes}
+              for f in as_completed(fx):
+                  try:
+                      if f.result(timeout=30) is not None: ok+=1
+                      else: fail+=1
+                  except: fail+=1
+          print(f'Pre-fetch: {ok} ok {fail} fail in {time.time()-start:.0f}s')
+          PY
+
       - name: Run unit tests
         run: python -m pytest tests/test_backtest.py tests/test_fetcher.py tests/test_fetcher_local_fallback.py -q
 
