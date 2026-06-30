@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 25
     env:
       TZ: Asia/Shanghai
-      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+      BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
       MOMENTUM_LOG_LEVEL: INFO
 
     steps:

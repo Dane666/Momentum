@@ -2,7 +2,9 @@
 """
 Momentum Notify Module - 通知与 AI 分析
 """
-from .feishu import send_feishu_msg, send_feishu_card
+from .bark import send_msg, send_card
+send_feishu_msg = send_msg        # 飞书已停服，重定向到 Bark
+send_feishu_card = send_card
 from .gemini import get_trading_advice, display_gemini_advice, build_prompt
 from .ollama import (
     get_ollama_trading_advice,

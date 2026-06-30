@@ -84,14 +84,13 @@ def analyze(df: pd.DataFrame) -> str:
     return '\n'.join(lines)
 
 
-def send_feishu(text:str):
-    from momentum import config as cfg
-    u=getattr(cfg,'FEISHU_WEBHOOK_URL','').strip()
-    if u: requests.post(u,json={'msg_type':'text','content':{'text':text}},timeout=10)
+def send_notify(text:str):
+    from momentum.notify.bark import send_bark
+    send_bark('竞价扫描', text)
 
 
 def run():
     logger.info('[Auction]')
     df=fetch_auction()
     if df is None or df.empty: return logger.error('no data')
-    rpt=analyze(df); print(rpt); send_feishu(rpt)
+    rpt=analyze(df); print(rpt); send_notify(rpt)

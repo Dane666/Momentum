@@ -125,17 +125,16 @@ def build_report(data:Dict)->str:
     return '\n'.join(lines)
 
 
-def send_feishu(text:str):
-    from momentum import config as cfg
-    u=getattr(cfg,'FEISHU_WEBHOOK_URL','').strip()
-    if u: requests.post(u,json={'msg_type':'text','content':{'text':text}},timeout=10)
+def send_notify(text:str):
+    from momentum.notify.bark import send_bark
+    send_bark('盘前早报', text)
 
 
 def run():
     logger.info('[PreMarket] fetching...')
     d=fetch_all()
     if not d: return logger.error('no data')
-    rpt=build_report(d); print(rpt); send_feishu(rpt)
+    rpt=build_report(d); print(rpt); send_notify(rpt)
 
 
 if __name__=='__main__': run()

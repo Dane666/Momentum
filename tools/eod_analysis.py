@@ -62,12 +62,9 @@ def check_positions(holdings: dict):
     return lines
 
 
-def send_feishu(text: str):
-    from momentum import config as cfg
-    url = getattr(cfg, 'FEISHU_WEBHOOK_URL', '').strip()
-    if not url:
-        return
-    requests.post(url, json={"msg_type":"text","content":{"text":text}}, timeout=10)
+def send_notify(text: str):
+    from momentum.notify.bark import send_bark
+    send_bark('盘后归档', text)
 
 
 def run():
@@ -178,7 +175,7 @@ def run():
 
     rpt = '\n'.join(lines)
     print(rpt)
-    send_feishu(rpt)
+    send_notify(rpt)
 
     # 标记已推送 (防止重复)
     import os as _os

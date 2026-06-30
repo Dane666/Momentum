@@ -10,7 +10,7 @@ jobs:
     timeout-minutes: 5
     env:
       TZ: Asia/Shanghai
-      FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+      BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

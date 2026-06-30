@@ -161,6 +161,7 @@ ENABLE_FEISHU_NOTIFICATION = _env_bool(
     "MOMENTUM_ENABLE_FEISHU_NOTIFICATION",
     _local_bool("MOMENTUM_ENABLE_FEISHU_NOTIFICATION", bool(FEISHU_WEBHOOK_URL)),
 )
+BARK_DEVICE_KEY = _env_str("BARK_DEVICE_KEY", "")  # Bark 推送 Device Key (飞书已停服)
 
 # ==================== Gemini AI 配置 ====================
 ENABLE_GEMINI_ADVICE = False         # 是否启用 Gemini AI 建议
