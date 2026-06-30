@@ -519,6 +519,16 @@ class MomentumBacktester:
         """
         from .. import config as cfg
 
+        # 混合退出模式 (MA5+MA20+ATR滚动止损)
+        if getattr(cfg, 'USE_HYBRID_EXIT', False):
+            from ..risk.exit_30m import simulate_hybrid_exit
+            if entry_price_1445 is not None and entry_price_1445 > 0:
+                ep = entry_price_1445
+            else:
+                ep = full_df['close'].iloc[t_idx]
+            atr_m = getattr(cfg, 'HYBRID_ATR_MULT', 3.5)
+            return simulate_hybrid_exit(ep, full_df, t_idx, self.hold_period, use_daily=True, atr_mult=atr_m)
+
         # 新30分钟ATR退出模式
         if getattr(cfg, 'USE_30M_EXIT', False):
             from ..risk.exit_30m import simulate_atr_exit

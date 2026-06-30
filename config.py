@@ -102,10 +102,13 @@ MIN_VOL_RATIO = 1.2          # 最小量比
 MIN_AMOUNT = _env_int("MOMENTUM_MIN_AMOUNT", 200000000)       # 最小成交额 (2亿)
 MIN_SHARPE = 1.0             # 最小夏普比率
 MAX_SECTOR_PICKS = 2         # 同行业最大持仓数 - 65天优化: 2最优
-MAX_TOTAL_PICKS = _env_int("MOMENTUM_MAX_TOTAL_PICKS", 1)     # 总选股数量上限 - 65天优化: 1最优(集中持仓)
+MAX_TOTAL_PICKS = _env_int("MOMENTUM_MAX_TOTAL_PICKS", 3)     # 总选股数量上限 - 全市场回测: MAX1=MAX3效果相同,3更安全
 MAX_TRAPPED_RATIO = 0.10      # 上方套牢盘比例上限 (0=关闭, 0.10=10%)
 ENABLE_TRAPPED_FILTER = True  # 是否启用上方套牢盘过滤 - 65天回测验证: 收益+58% 夏普+90%
 USE_30M_EXIT = _env_bool("MOMENTUM_USE_30M_EXIT", False)  # 30分钟ATR退出模式
+ATR_MULTIPLIER_30M = _env_float("MOMENTUM_ATR_MULTIPLIER", 2.2)  # ATR追踪止损乘数
+USE_HYBRID_EXIT = _env_bool("MOMENTUM_USE_HYBRID_EXIT", False)   # 混合退出: MA5+MA20+ATR3.5×止损
+HYBRID_ATR_MULT = _env_float("MOMENTUM_HYBRID_ATR_MULT", 3.5)    # 混合退出ATR乘数
 
 # ==================== 庄股识别配置 ====================
 ENABLE_MANIPULATION_FILTER = False   # 是否启用庄股过滤 (120天验证无差异，关闭)
