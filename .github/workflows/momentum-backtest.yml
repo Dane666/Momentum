@@ -87,7 +87,7 @@ jobs:
           (github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true')
         env:
           MOMENTUM_POOL_SIZE: "150"
-          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
+          MOMENTUM_LOG_FILE: backtest_full.log
           MOMENTUM_LOG_FILE: backtest_full.log
         run: python main.py --mode backtest --days 65 --periods 5,3 --no-report
 

@@ -150,7 +150,6 @@ jobs:
         env:
           MOMENTUM_CODE_LIMIT: "20"
           MOMENTUM_MAX_IO_WORKERS: "6"
-          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
           MOMENTUM_LOG_FILE: scan_smoke.log
         run: python main.py --mode scan
 
@@ -159,7 +158,6 @@ jobs:
           (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full') ||
           (github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true')
         env:
-          MOMENTUM_ENABLE_FEISHU_NOTIFICATION: "true"
           MOMENTUM_LOG_FILE: scan_prod.log
         run: python main.py --mode scan 2>&1 | tee scan_stdout.txt
 
