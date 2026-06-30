@@ -200,19 +200,22 @@ def is_etf(code: str) -> bool:
 
 def fetch_kline_from_api(code: str, start_date: str) -> Optional[pd.DataFrame]:
     """
-    获取 K 线数据 (统一使用腾讯接口，避免数据源切换导致的格式不一致)
-    
-    数据源规范 (v3 - 固定数据源):
-    - ETF: 腾讯 (稳定，无代理问题)
-    - 个股: 腾讯 (稳定，无代理问题)
-    
+    获取 K 线数据 (mootdx TCP优先, 腾讯HTTP备用)
+
     Args:
         code: 股票/ETF代码
         start_date: 开始日期 (YYYY-MM-DD)
-    
     Returns:
         标准化后的 K 线 DataFrame
     """
+    # 1. mootdx TCP (主数据源, 不封IP)
+    try:
+        from .fetcher_mootdx import fetch_kline_mootdx
+        df = fetch_kline_mootdx(code, start_date)
+        if df is not None and not df.empty:
+            return df
+    except Exception:
+        pass
     # 统一使用腾讯接口获取 K 线数据
     # 腾讯接口稳定可靠，无代理问题，字段格式一致
     return _fetch_kline_from_tencent(code, start_date)
@@ -685,7 +688,17 @@ def fetch_market_index(index_code: str = '000300', k_type: int = 1) -> Optional[
     """
     import requests
     
-    # 1. 优先使用腾讯接口获取真实历史数据
+    # 1. mootdx TCP 优先 (不封IP)
+    try:
+        from .fetcher_mootdx import fetch_index_mootdx
+        df = fetch_index_mootdx(code=index_code, count=800)
+        if df is not None and not df.empty:
+            logger.info(f"[Fetcher] 获取指数 {index_code} 成功 (mootdx): {len(df)} 天")
+            return df
+    except Exception:
+        pass
+
+    # 2. 腾讯 HTTP 备用
     try:
         # 沪深300 属于上交所
         if index_code in ('000300', '000001', '000016'):
