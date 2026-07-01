@@ -57,22 +57,20 @@ def run_backtest(
     # 使用 window_shift=1 保持回测窗口稳定（避免因每日数据更新导致窗口前移）
     result = run_sensitivity_analysis(days=days, periods=periods, window_shift=1)
 
-    # Bark 推送回测结果
-    try:
-        from momentum.notify.bark import send_bark
-        if result is not None and hasattr(result, 'iloc') and len(result) > 0:
-            r = result.iloc[0]
-            tc = int(r.get('trade_count', 0))
-            if tc > 0:
-                msg = (f"📈 回测报告 ({days}天)\n收益: {r['profit_pct']:+.2f}% | 年化: {r['annual_ret']:+.2f}%\n"
-                       f"夏普: {r['sharpe']:.2f} | 胜率: {r['win_rate']:.1f}% | 回撤: {r['max_dd']:.2f}%\n"
-                       f"交易: {tc}笔 | MAX=3 套牢盘=ON")
-            else:
-                msg = f"📈 回测报告 ({days}天)\n无有效交易产生"
-            send_bark("📈 回测报告", msg)
-    except Exception as e:
-        print(f"[Bark] Error: {e}")
-        import traceback; traceback.print_exc()
+    # Bark 推送回测结果 (仅全量≥30天, 跳过smoke)
+    if days >= 30:
+        try:
+            from momentum.notify.bark import send_bark
+            if result is not None and hasattr(result, 'iloc') and len(result) > 0:
+                r = result.iloc[0]
+                tc = int(r.get('trade_count', 0))
+                if tc > 0:
+                    msg = (f"📈 回测报告 ({days}天)\n收益: {r['profit_pct']:+.2f}% | 年化: {r['annual_ret']:+.2f}%\n"
+                           f"夏普: {r['sharpe']:.2f} | 胜率: {r['win_rate']:.1f}% | 回撤: {r['max_dd']:.2f}%\n"
+                           f"交易: {tc}笔 | MAX=3 套牢盘=ON")
+                    send_bark("📈 回测报告", msg)
+        except Exception:
+            pass
 
     # 自动生成完整报告
     if auto_report and record_trades:

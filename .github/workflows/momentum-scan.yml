@@ -195,6 +195,13 @@ jobs:
                   })
               with open('data/picks_tracking.json','w') as f: json.dump(tracking,f,ensure_ascii=False,indent=2)
               print(f'Saved {len(picks)} picks with SL/TP')
+          # Commit tracking to repo
+          import subprocess as _sp
+          _sp.run(['git','config','user.name','github-actions'])
+          _sp.run(['git','config','user.email','actions@github.com'])
+          _sp.run(['git','add','data/picks_tracking.json'])
+          r=_sp.run(['git','commit','-m','auto: add picks for '+today],capture_output=True)
+          if r.returncode==0: _sp.run(['git','push','origin','main'])
           PY
 
       - name: Upload logs
