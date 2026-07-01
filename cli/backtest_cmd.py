@@ -60,19 +60,16 @@ def run_backtest(
     # Bark 推送回测结果
     try:
         from momentum.notify.bark import send_bark
-        if result is not None and isinstance(result, dict):
-            tc = int(result.get('trade_count', 0))
+        if result is not None and hasattr(result, 'iloc') and len(result) > 0:
+            r = result.iloc[0]
+            tc = int(r.get('trade_count', 0))
             if tc > 0:
-                msg = (f"📈 回测报告 ({days}天)\n收益: {result['profit_pct']:+.2f}% | 年化: {result['annual_ret']:+.2f}%\n"
-                       f"夏普: {result['sharpe']:.2f} | 胜率: {result['win_rate']:.1f}% | 回撤: {result['max_dd']:.2f}%\n"
+                msg = (f"📈 回测报告 ({days}天)\n收益: {r['profit_pct']:+.2f}% | 年化: {r['annual_ret']:+.2f}%\n"
+                       f"夏普: {r['sharpe']:.2f} | 胜率: {r['win_rate']:.1f}% | 回撤: {r['max_dd']:.2f}%\n"
                        f"交易: {tc}笔 | MAX=3 套牢盘=ON")
             else:
-                msg = f"📈 回测报告 ({days}天)\n无有效交易产生，候选池不足或窗口过短"
-            print(f"[Bark] Sending...")
+                msg = f"📈 回测报告 ({days}天)\n无有效交易产生"
             send_bark("📈 回测报告", msg)
-            print(f"[Bark] Sent OK")
-        else:
-            print(f"[Bark] Result is None or not dict: {type(result)}")
     except Exception as e:
         print(f"[Bark] Error: {e}")
         import traceback; traceback.print_exc()
