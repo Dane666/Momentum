@@ -1,8 +1,4 @@
 name: position-monitor
-#
-# 盘中持仓监控 — A股交易时段每30分钟
-# UTC cron: 01:30=09:30CST, 05:30=13:30CST, 06:30=14:30CST
-#
 on:
   workflow_dispatch:
   schedule:
@@ -29,7 +25,8 @@ jobs:
             data/picks_tracking.json
             data/eod_last_date.txt
           key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
-          restore-keys: [state-v1-${{ runner.os }}-]
+          restore-keys: |
+            state-v1-${{ runner.os }}-
       - run: pip install -r requirements.txt && pip install mootdx>=0.11
       - name: Check trading day
         id: cal
@@ -51,7 +48,7 @@ jobs:
           m=importlib.util.module_from_spec(s);sys.modules['momentum']=m;s.loader.exec_module(m)
           from tools.position_monitor import run;run()
           PY
-      - name: Push tracking updates
+      - name: Push tracking
         if: github.event_name != 'schedule' || steps.cal.outputs.is_open == 'true'
         run: |
           git config user.name "github-actions"
