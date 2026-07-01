@@ -23,8 +23,6 @@ on:
         options:
           - full
           - smoke
-  schedule:
-    - cron: "40 6 * * 1-5"   # 14:40 CST — backup fallback
 
 concurrency:
   group: momentum-scan-${{ github.ref }}

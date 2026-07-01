@@ -1,8 +1,6 @@
 name: pre-market-report
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "30 0 * * 1-5"   # 08:30 CST Mon-Fri
 
 jobs:
   report:

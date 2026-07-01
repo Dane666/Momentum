@@ -6,8 +6,6 @@ name: auction-scan
 #
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "20 1 * * 1-5"   # 09:20 CST fallback
 
 jobs:
   auction:
