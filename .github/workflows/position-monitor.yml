@@ -6,7 +6,7 @@ name: position-monitor
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 1-3,5-6 * * 1-5"
+    - cron: "0,30 1-3,5-6 * * 1-5"
 
 jobs:
   monitor:
@@ -34,10 +34,12 @@ jobs:
       - name: Check trading day
         id: cal
         run: |
-          python3 -c "import os;from datetime import datetime;from zoneinfo import ZoneInfo
+          python3 <<'PY'
+          import os;from datetime import datetime;from zoneinfo import ZoneInfo
           import chinese_calendar as cc
           t=datetime.now(ZoneInfo('Asia/Shanghai')).date();o=cc.is_workday(t)
-          open(os.environ['GITHUB_OUTPUT'],'a').write(f'is_open={str(o).lower()}\n')"
+          open(os.environ['GITHUB_OUTPUT'],'a').write(f'is_open={str(o).lower()}\n')
+          PY
       - name: Run monitor
         if: github.event_name != 'schedule' || steps.cal.outputs.is_open == 'true'
         run: |
