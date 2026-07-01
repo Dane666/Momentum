@@ -176,15 +176,25 @@ jobs:
                       picks.append({'code':code,'name':name,'price':float(price)})
           except: pass
           if not picks: exit(0)
+          # 提取止损/止盈价
+          sl_map = {}
+          for m in re.finditer(r'(\d{6})\s+\S+[\s\S]*?止损¥([\d.]+)[\s\S]*?止盈¥([\d.]+)', text):
+              sl_map[m.group(1)] = (float(m.group(2)), float(m.group(3)))
           today=datetime.now().strftime('%Y-%m-%d')
           tracking=[]
           try:
               with open('data/picks_tracking.json','r') as f: tracking=json.load(f)
           except: pass
           if not any(p.get('date')==today for p in tracking):
-              for p in picks: tracking.append({'date':today,'code':p['code'],'name':p['name'],'price':p['price']})
+              for p in picks:
+                  sl, tp = sl_map.get(p['code'], (p['price']*0.95, p['price']*1.10))
+                  tracking.append({
+                      'date':today,'code':p['code'],'name':p['name'],
+                      'price':p['price'],'sl_price':sl,'tp_price':tp,
+                      'status':'WATCHING'
+                  })
               with open('data/picks_tracking.json','w') as f: json.dump(tracking,f,ensure_ascii=False,indent=2)
-              print(f'Saved {len(picks)} picks')
+              print(f'Saved {len(picks)} picks with SL/TP')
           PY
 
       - name: Upload logs
