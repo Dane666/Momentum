@@ -3,6 +3,9 @@
     "date": "2026-06-29",
     "code": "002427",
     "name": "尤夫股份",
-    "price": 5.18
+    "price": 5.18,
+    "status": "SL_TRIGGERED",
+    "exit_price": 4.82,
+    "pnl_pct": -6.95
   }
 ]
