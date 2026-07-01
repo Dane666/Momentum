@@ -68,11 +68,14 @@ def run_backtest(
                        f"交易: {tc}笔 | MAX=3 套牢盘=ON")
             else:
                 msg = f"📈 回测报告 ({days}天)\n无有效交易产生，候选池不足或窗口过短"
+            print(f"[Bark] Sending...")
             send_bark("📈 回测报告", msg)
+            print(f"[Bark] Sent OK")
         else:
-            send_bark("📈 回测报告", f"回测完成 ({days}天)")
+            print(f"[Bark] Result is None or not dict: {type(result)}")
     except Exception as e:
-        print(f"[Bark: {e}]")
+        print(f"[Bark] Error: {e}")
+        import traceback; traceback.print_exc()
 
     # 自动生成完整报告
     if auto_report and record_trades:
