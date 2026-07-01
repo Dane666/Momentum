@@ -60,22 +60,17 @@ def run_backtest(
     # Bark 推送回测结果
     try:
         from momentum.notify.bark import send_bark
-        import io, sys as _sys
-        buf = io.StringIO(); _old = _sys.stdout; _sys.stdout = buf
-        sessions = get_backtest_sessions(limit=1)
-        _sys.stdout = _old
-        if not sessions.empty:
-            r = sessions.iloc[0]
-            tc = int(r.get('trade_count', 0))
+        if result is not None and isinstance(result, dict):
+            tc = int(result.get('trade_count', 0))
             if tc > 0:
-                msg = (f"📈 回测报告 ({days}天)\n收益: {r['profit_pct']:+.2f}% | 年化: {r['annual_ret']:+.2f}%\n"
-                       f"夏普: {r['sharpe']:.2f} | 胜率: {r['win_rate']:.1f}% | 回撤: {r['max_dd']:.2f}%\n"
+                msg = (f"📈 回测报告 ({days}天)\n收益: {result['profit_pct']:+.2f}% | 年化: {result['annual_ret']:+.2f}%\n"
+                       f"夏普: {result['sharpe']:.2f} | 胜率: {result['win_rate']:.1f}% | 回撤: {result['max_dd']:.2f}%\n"
                        f"交易: {tc}笔 | MAX=3 套牢盘=ON")
             else:
                 msg = f"📈 回测报告 ({days}天)\n无有效交易产生，候选池不足或窗口过短"
             send_bark("📈 回测报告", msg)
         else:
-            send_bark("📈 回测报告", f"回测完成 ({days}天)\n无会话记录")
+            send_bark("📈 回测报告", f"回测完成 ({days}天)")
     except Exception as e:
         print(f"[Bark: {e}]")
 
