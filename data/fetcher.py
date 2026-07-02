@@ -560,47 +560,50 @@ def _build_quotes_from_kline_cache(codes: list) -> pd.DataFrame:
     try:
         conn = sqlite3.connect(db_path, check_same_thread=False)
         placeholders = ','.join(['?' for _ in codes])
+        p2 = tuple(codes) + tuple(codes)
+        # 取每只股票最近两天的收盘价
         query = f"""
-        SELECT k.code, k.trade_date, k.open, k.high, k.low, k.close,
-               k.volume, k.amount, k.turnover_ratio
-        FROM kline_cache k
-        INNER JOIN (
-            SELECT code, MAX(trade_date) as max_date
+        SELECT code, trade_date, close FROM (
+            SELECT code, trade_date, close,
+                   ROW_NUMBER() OVER (PARTITION BY code ORDER BY trade_date DESC) as rn
             FROM kline_cache WHERE code IN ({placeholders})
-            GROUP BY code
-        ) latest ON k.code=latest.code AND k.trade_date=latest.max_date
+        ) ranked WHERE rn <= 2
         """
-        df = pd.read_sql_query(query, conn, params=tuple(codes))
+        df2 = pd.read_sql_query(query, conn, params=p2)
         conn.close()
 
-        if df.empty:
+        if df2.empty:
             return pd.DataFrame()
 
+        # 分组: 最新一日 → latest, 次新一日 → prev
+        prev_map = {}; latest_map = {}
+        for _, r in df2.iterrows():
+            code = str(r['code']).zfill(6)
+            if code not in latest_map:
+                latest_map[code] = float(r['close']) if pd.notna(r['close']) else 0
+            elif code not in prev_map:
+                prev_map[code] = float(r['close']) if pd.notna(r['close']) else 0
+
         records = []
-        for _, row in df.iterrows():
-            code = str(row['code']).zfill(6)
-            close = float(row['close']) if pd.notna(row['close']) else 0
-            amt = float(row['amount']) if pd.notna(row['amount']) else 0
-            vol = float(row['volume']) if pd.notna(row['volume']) else 0
-            hi = float(row['high']) if pd.notna(row['high']) else close
-            lo = float(row['low']) if pd.notna(row['low']) else close
-            opn = float(row['open']) if pd.notna(row['open']) else close
-            to = float(row['turnover_ratio']) if pd.notna(row['turnover_ratio']) else 0
+        for code in latest_map:
+            close = latest_map[code]
+            prev_close = prev_map.get(code, close)
+            change_pct = ((close - prev_close) / prev_close * 100) if prev_close > 0 else 0
 
             records.append({
                 '股票代码': code,
                 '股票名称': name_map.get(code, code),
                 '最新价': close,
-                '涨跌幅': ((close - opn) / opn * 100) if opn > 0 else 0,
-                '涨跌额': close - opn if opn > 0 else 0,
-                '成交量': vol,
-                '成交额': amt * 2.0,  # K线缓存 amount=vol*close 估算偏低，×2 补偿
-                '最高': hi,
-                '最低': lo,
-                '今开': opn,
-                '昨日收盘': opn,
+                '涨跌幅': change_pct,
+                '涨跌额': close - prev_close if prev_close > 0 else 0,
+                '成交量': 0,
+                '成交额': 0,
+                '最高': close,
+                '最低': close,
+                '今开': prev_close,
+                '昨日收盘': prev_close,
                 '量比': 1.0,
-                '换手率': to,
+                '换手率': 0,
                 '总市值': mkt_cap_map.get(code, 0),
                 '_from_cache': True,
             })
