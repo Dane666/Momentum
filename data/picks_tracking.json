@@ -7,32 +7,5 @@
     "status": "SL_TRIGGERED",
     "exit_price": 4.82,
     "pnl_pct": -6.95
-  },
-  {
-    "date": "2026-07-01",
-    "code": "002921",
-    "name": "联诚精密",
-    "price": 29.72,
-    "sl_price": 28.23,
-    "tp_price": 31.8,
-    "status": "WATCHING"
-  },
-  {
-    "date": "2026-07-01",
-    "code": "002915",
-    "name": "中欣氟材",
-    "price": 22.02,
-    "sl_price": 20.92,
-    "tp_price": 24.22,
-    "status": "WATCHING"
-  },
-  {
-    "date": "2026-07-01",
-    "code": "002317",
-    "name": "众生药业",
-    "price": 26.71,
-    "sl_price": 25.37,
-    "tp_price": 28.58,
-    "status": "WATCHING"
   }
 ]
