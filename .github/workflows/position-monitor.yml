@@ -4,6 +4,7 @@ on:
   schedule:
     - cron: "0 2,3,5,6 * * 1-5"       # 10:00/11:00/13:00/14:00 CST
     - cron: "30 1,2,3,5,6 * * 1-5"    # 09:30/10:30/11:30/13:30/14:30 CST
+    - cron: "*/5 * * * *"             # TEMP: 5-min test to diagnose GH schedule delay
 
 permissions:
   contents: write
