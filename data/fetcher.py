@@ -485,9 +485,15 @@ def fetch_realtime_quotes(fs: str = '沪深A股') -> Optional[pd.DataFrame]:
         try:
             df = fetch_quotes_sina(codes)
             if df is not None and len(df) > 10:
-                df['_fake_vol_ratio'] = True
-                logger.info(f"[Fetcher] 新浪接口成功: {len(df)} 只 {fs}")
-                return df
+                # 检测非交易时间: 涨跌幅全0 → 跳过, 走K线缓存
+                if '涨跌幅' in df.columns:
+                    chg = pd.to_numeric(df['涨跌幅'], errors='coerce')
+                    if (chg.abs() > 0.01).sum() < len(df) * 0.01:
+                        logger.info(f"[Fetcher] Sina 涨跌幅全0 (非交易时间), 降级到K线缓存")
+                    else:
+                        df['_fake_vol_ratio'] = True
+                        logger.info(f"[Fetcher] 新浪接口成功: {len(df)} 只 {fs}")
+                        return df
         except Exception as e:
             logger.warning(f"[Fetcher] 新浪接口失败: {e}，切换到 efinance")
 
