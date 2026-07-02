@@ -3,9 +3,33 @@
     "date": "2026-06-29",
     "code": "002427",
     "name": "尤夫股份",
-    "price": 5.18,
-    "status": "SL_TRIGGERED",
-    "exit_price": 4.82,
-    "pnl_pct": -6.95
+    "price": 5.18
+  },
+  {
+    "date": "2026-07-02",
+    "code": "600233",
+    "name": "圆通速递",
+    "price": 18.33,
+    "sl_price": 17.41,
+    "tp_price": 20.16,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-02",
+    "code": "002326",
+    "name": "永太科技",
+    "price": 27.92,
+    "sl_price": 26.52,
+    "tp_price": 29.87,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-02",
+    "code": "002342",
+    "name": "巨力索具",
+    "price": 11.81,
+    "sl_price": 11.22,
+    "tp_price": 12.99,
+    "status": "WATCHING"
   }
 ]
