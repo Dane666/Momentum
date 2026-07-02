@@ -567,10 +567,10 @@ def _build_quotes_from_kline_cache(codes: list) -> pd.DataFrame:
         conn = sqlite3.connect(db_path, check_same_thread=False)
         placeholders = ','.join(['?' for _ in codes])
         p2 = tuple(codes) + tuple(codes)
-        # 取每只股票最近两天的收盘价
+        # 取每只股票最近两天的收盘价 (含 amount)
         query = f"""
-        SELECT code, trade_date, close FROM (
-            SELECT code, trade_date, close,
+        SELECT code, trade_date, close, amount FROM (
+            SELECT code, trade_date, close, amount,
                    ROW_NUMBER() OVER (PARTITION BY code ORDER BY trade_date DESC) as rn
             FROM kline_cache WHERE code IN ({placeholders})
         ) ranked WHERE rn <= 2
@@ -582,11 +582,12 @@ def _build_quotes_from_kline_cache(codes: list) -> pd.DataFrame:
             return pd.DataFrame()
 
         # 分组: 最新一日 → latest, 次新一日 → prev
-        prev_map = {}; latest_map = {}
+        prev_map = {}; latest_map = {}; amt_map = {}
         for _, r in df2.iterrows():
             code = str(r['code']).zfill(6)
             if code not in latest_map:
                 latest_map[code] = float(r['close']) if pd.notna(r['close']) else 0
+                amt_map[code] = float(r['amount']) * 2.0 if pd.notna(r.get('amount')) else 0
             elif code not in prev_map:
                 prev_map[code] = float(r['close']) if pd.notna(r['close']) else 0
 
@@ -603,7 +604,7 @@ def _build_quotes_from_kline_cache(codes: list) -> pd.DataFrame:
                 '涨跌幅': change_pct,
                 '涨跌额': close - prev_close if prev_close > 0 else 0,
                 '成交量': 0,
-                '成交额': 0,
+                '成交额': amt_map.get(code, 0),
                 '最高': close,
                 '最低': close,
                 '今开': prev_close,
