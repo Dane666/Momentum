@@ -117,10 +117,12 @@ jobs:
           tz = ZoneInfo("Asia/Shanghai")
           now = datetime.now(tz)
           target = now.replace(hour=14, minute=44, second=0, microsecond=0)
-          if now < target:
-              wait_sec = (target - now).total_seconds()
+          wait_sec = (target - now).total_seconds()
+          if 0 < wait_sec <= 1200:
               print(f"Pre-fetch done, waiting {wait_sec:.0f}s until 14:44:00 CST")
               time.sleep(max(0, wait_sec))
+          else:
+              print(f"Skip wait ({wait_sec:.0f}s outside 14:20-14:50 window), running now")
           print(f"Starting scan at {datetime.now(tz).strftime('%H:%M:%S')} CST")
           PY
 
