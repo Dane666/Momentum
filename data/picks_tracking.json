@@ -36,5 +36,15 @@
     "status": "SL_TRIGGERED",
     "exit_price": 9.97,
     "pnl_pct": -6.3
+  },
+  {
+    "date": "2026-07-03",
+    "code": "002057",
+    "name": "中钢天源",
+    "price": 12.79,
+    "sl_price": 12.15,
+    "tp_price": 14.07,
+    "type": "MANUAL",
+    "status": "HOLDING"
   }
 ]
