@@ -56,5 +56,15 @@
     "tp_price": 1958.0,
     "type": "MANUAL",
     "status": "HOLDING"
+  },
+  {
+    "date": "2026-07-03",
+    "code": "600519",
+    "name": "贵州茅台",
+    "price": 1777.0,
+    "sl_price": 1688.15,
+    "tp_price": 1954.7,
+    "type": "MANUAL",
+    "status": "HOLDING"
   }
 ]
