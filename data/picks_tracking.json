@@ -56,5 +56,15 @@
     "tp_price": 67.56,
     "type": "MANUAL",
     "status": "HOLDING"
+  },
+  {
+    "date": "2026-07-03",
+    "code": "600885",
+    "name": "宏发股份",
+    "price": 38.09,
+    "sl_price": 36.19,
+    "tp_price": 41.9,
+    "type": "MANUAL",
+    "status": "HOLDING"
   }
 ]
