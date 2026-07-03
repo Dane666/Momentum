@@ -36,5 +36,15 @@
     "status": "SL_TRIGGERED",
     "exit_price": 9.97,
     "pnl_pct": -6.3
+  },
+  {
+    "date": "2026-07-03",
+    "code": "600519",
+    "name": "贵州茅台",
+    "price": 1700.5,
+    "sl_price": 1615.47,
+    "tp_price": 1870.55,
+    "type": "MANUAL",
+    "status": "HOLDING"
   }
 ]
