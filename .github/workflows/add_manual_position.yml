@@ -29,4 +29,4 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add data/picks_tracking.json 2>/dev/null || true
-          if git diff --cached --quiet; then echo "No changes"; else git commit -m "Add manual position [skip ci]" && git push origin main; fi
+          if git diff --cached --quiet; then echo "No changes"; else git commit -m "Add manual position [skip ci]" && git pull --rebase origin main && git push origin main; fi

@@ -197,13 +197,23 @@ jobs:
                   })
               with open('data/picks_tracking.json','w') as f: json.dump(tracking,f,ensure_ascii=False,indent=2)
               print(f'Saved {len(picks)} picks with SL/TP')
-          # Commit tracking to repo
-          import subprocess as _sp
+          # Commit tracking to repo (with retry on push conflict from concurrent workflows like position-monitor)
+          import subprocess as _sp, time
           _sp.run(['git','config','user.name','github-actions'])
           _sp.run(['git','config','user.email','actions@github.com'])
           _sp.run(['git','add','data/picks_tracking.json'])
           r=_sp.run(['git','commit','-m','auto: add picks for '+today],capture_output=True)
-          if r.returncode==0: _sp.run(['git','push','origin','main'])
+          if r.returncode==0:
+              for attempt in range(3):
+                  _sp.run(['git','pull','--rebase','origin','main'])
+                  pr=_sp.run(['git','push','origin','main'],capture_output=True)
+                  if pr.returncode==0:
+                      print(f'Pushed picks_tracking.json (attempt {attempt+1})')
+                      break
+                  print(f'Push attempt {attempt+1} failed, retrying...')
+                  time.sleep(2)
+              else:
+                  print('ERROR: failed to push picks_tracking.json after 3 attempts')
           PY
 
       - name: Upload logs

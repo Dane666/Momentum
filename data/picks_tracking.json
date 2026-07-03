@@ -66,5 +66,32 @@
     "tp_price": 41.9,
     "type": "MANUAL",
     "status": "HOLDING"
+  },
+  {
+    "date": "2026-07-03",
+    "code": "603662",
+    "name": "柯力传感",
+    "price": 80.08,
+    "sl_price": 76.08,
+    "tp_price": 85.69,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-03",
+    "code": "603135",
+    "name": "中重科技",
+    "price": 14.73,
+    "sl_price": 13.99,
+    "tp_price": 15.91,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-03",
+    "code": "603728",
+    "name": "鸣志电器",
+    "price": 67.93,
+    "sl_price": 64.53,
+    "tp_price": 74.72,
+    "status": "WATCHING"
   }
 ]
