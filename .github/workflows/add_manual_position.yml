@@ -1,0 +1,32 @@
+name: add-manual-position
+#
+# 手动录入持仓 — 手机端 Webhook → repository_dispatch 触发
+#
+on:
+  repository_dispatch:
+    types: [add_holding]
+
+permissions:
+  contents: write
+
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      TZ: Asia/Shanghai
+      BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - name: Add manual position
+        run: python add_manual_position.py "${{ github.event.client_payload.code }}" "${{ github.event.client_payload.price }}"
+      - name: Push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/picks_tracking.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "No changes"; else git commit -m "Add manual position [skip ci]" && git push origin main; fi
