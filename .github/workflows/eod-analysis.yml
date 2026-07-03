@@ -31,7 +31,6 @@ jobs:
         with:
           path: |
             qlib_pro_v16.db
-            data/picks_tracking.json
             data/eod_last_date.txt
           key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
           restore-keys: |

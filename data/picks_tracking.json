@@ -3,7 +3,10 @@
     "date": "2026-06-29",
     "code": "002427",
     "name": "尤夫股份",
-    "price": 5.18
+    "price": 5.18,
+    "sl_price": 4.92,
+    "tp_price": 5.7,
+    "status": "WATCHING"
   },
   {
     "date": "2026-07-02",

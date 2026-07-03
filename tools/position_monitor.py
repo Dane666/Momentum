@@ -8,7 +8,19 @@ TRACK_FILE = 'data/picks_tracking.json'
 
 def load():
     try:
-        with open(TRACK_FILE) as f: return json.load(f)
+        with open(TRACK_FILE) as f: tracking = json.load(f)
+        changed = False
+        for p in tracking:
+            if 'status' not in p:
+                p['status'] = 'WATCHING'; changed = True
+            if 'sl_price' not in p:
+                p['sl_price'] = round(p['price'] * 0.95, 2); changed = True
+            if 'tp_price' not in p:
+                p['tp_price'] = round(p['price'] * 1.10, 2); changed = True
+        if changed:
+            save(tracking)
+            logger.info("Migrated old-format records")
+        return tracking
     except: return []
 
 def save(data):
