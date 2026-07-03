@@ -46,5 +46,15 @@
     "tp_price": 14.07,
     "type": "MANUAL",
     "status": "HOLDING"
+  },
+  {
+    "date": "2026-07-03",
+    "code": "002156",
+    "name": "通富微电",
+    "price": 61.42,
+    "sl_price": 58.35,
+    "tp_price": 67.56,
+    "type": "MANUAL",
+    "status": "HOLDING"
   }
 ]
