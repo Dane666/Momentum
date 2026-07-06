@@ -6,7 +6,8 @@
     "price": 5.18,
     "sl_price": 4.92,
     "tp_price": 5.7,
-    "status": "WATCHING"
+    "status": "WATCHING",
+    "type": "STRATEGY"
   },
   {
     "date": "2026-07-02",
@@ -15,7 +16,8 @@
     "price": 34.65,
     "sl_price": 32.92,
     "tp_price": 38.12,
-    "status": "WATCHING"
+    "status": "WATCHING",
+    "type": "STRATEGY"
   },
   {
     "date": "2026-07-02",
@@ -24,7 +26,8 @@
     "price": 37.69,
     "sl_price": 35.81,
     "tp_price": 40.33,
-    "status": "WATCHING"
+    "status": "WATCHING",
+    "type": "STRATEGY"
   },
   {
     "date": "2026-07-02",
@@ -35,7 +38,8 @@
     "tp_price": 11.7,
     "status": "SL_TRIGGERED",
     "exit_price": 9.97,
-    "pnl_pct": -6.3
+    "pnl_pct": -6.3,
+    "type": "STRATEGY"
   },
   {
     "date": "2026-07-03",
@@ -74,7 +78,8 @@
     "price": 80.08,
     "sl_price": 76.08,
     "tp_price": 85.69,
-    "status": "WATCHING"
+    "status": "WATCHING",
+    "type": "STRATEGY"
   },
   {
     "date": "2026-07-03",
@@ -83,7 +88,8 @@
     "price": 14.73,
     "sl_price": 13.99,
     "tp_price": 15.91,
-    "status": "WATCHING"
+    "status": "WATCHING",
+    "type": "STRATEGY"
   },
   {
     "date": "2026-07-03",
@@ -92,6 +98,7 @@
     "price": 67.93,
     "sl_price": 64.53,
     "tp_price": 74.72,
-    "status": "WATCHING"
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
