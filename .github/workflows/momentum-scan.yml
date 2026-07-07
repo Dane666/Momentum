@@ -196,6 +196,32 @@ jobs:
                   })
               with open('data/picks_tracking.json','w') as f: json.dump(tracking,f,ensure_ascii=False,indent=2)
               print(f'Saved {len(picks)} picks with SL/TP')
+          # Sync new picks to stock_picks table in SQLite
+          try:
+              import sqlite3
+              db_path = os.environ.get('MOMENTUM_DB_PATH', 'qlib_pro_v16.db')
+              conn = sqlite3.connect(db_path)
+              cursor = conn.cursor()
+              cursor.execute('''CREATE TABLE IF NOT EXISTS stock_picks (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, code TEXT, name TEXT,
+                  price REAL, status TEXT, sl_price REAL, tp_price REAL, type TEXT,
+                  exit_price REAL, pnl_pct REAL, trigger_type TEXT, trigger_time TEXT,
+                  pnl_ratio REAL, track_status TEXT DEFAULT 'TRACKING',
+                  track_count INTEGER DEFAULT 0, day1_pnl REAL, day2_pnl REAL,
+                  day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0)''')
+              for p in picks:
+                  cursor.execute('SELECT id FROM stock_picks WHERE date=? AND code=?', (today, p['code']))
+                  if cursor.fetchone(): continue
+                  sl, tp = sl_map.get(p['code'], (p['price']*0.95, p['price']*1.10))
+                  cursor.execute('''INSERT INTO stock_picks
+                      (date,code,name,price,status,sl_price,tp_price,type,track_status,track_count,max_pnl_3d)
+                      VALUES (?,?,?,?,?,?,?,?,?,?,?)''',
+                      (today, p['code'], p['name'], p['price'], 'WATCHING', sl, tp,
+                       'STRATEGY', 'TRACKING', 0, 0.0))
+              conn.commit(); conn.close()
+              print(f'Synced {len(picks)} picks to stock_picks table')
+          except Exception as e: print(f'DB sync skipped: {e}')
+
           # Commit tracking to repo (with retry on push conflict from concurrent workflows like position-monitor)
           import subprocess as _sp, time
           _sp.run(['git','config','user.name','github-actions'])
@@ -213,6 +239,65 @@ jobs:
                   time.sleep(2)
               else:
                   print('ERROR: failed to push picks_tracking.json after 3 attempts')
+          PY
+
+      - name: Push scan + tracking report
+        if: >
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full') ||
+          (github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true')
+        env:
+          BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
+        run: |
+          python <<'PY'
+          import json, os, requests
+          from datetime import datetime
+
+          def bark_push(title, body):
+              key = os.environ.get('BARK_DEVICE_KEY','').strip()
+              if not key: return
+              if key.startswith('http'):
+                  parts = key.rstrip('/').split('/')
+                  key = parts[-1] if parts[-1] else (parts[-2] if len(parts)>1 else key)
+              requests.post('https://api.day.app/push',
+                  json={'device_key':key,'title':title,'body':body[:3800],'group':'Momentum'},
+                  timeout=10)
+
+          # Scan picks
+          picks = []
+          try:
+              with open('data/picks_tracking.json') as f: tracking = json.load(f)
+              today = datetime.now().strftime('%Y-%m-%d')
+              picks = [p for p in tracking if p['date'] == today]
+          except: pass
+
+          lines = [f'🔍 尾盘选股 | {today}']
+          for pk in picks:
+              lines.append(f"  {pk['code']} {pk['name']}: ¥{pk['price']:.2f}")
+
+          # Tracking report from DB
+          try:
+              import sqlite3
+              conn = sqlite3.connect(os.environ.get('MOMENTUM_DB_PATH','qlib_pro_v16.db'))
+              cur = conn.cursor()
+              cur.execute("SELECT code,name,date,price,track_count,track_status,day1_pnl,day2_pnl,day3_pnl,max_pnl_3d FROM stock_picks WHERE track_count>0 ORDER BY date DESC LIMIT 8")
+              rows = cur.fetchall()
+              conn.close()
+              if rows:
+                  lines.append('\n📈 选股跟踪 (D0-D3):')
+                  for r in rows:
+                      cd,nm,dt,pr,cn,st,d1,d2,d3,mx = r
+                      pnl_s = ''
+                      if d1 is not None: pnl_s += f' T+1:{d1:+.1f}%'
+                      if d2 is not None: pnl_s += f' T+2:{d2:+.1f}%'
+                      if d3 is not None: pnl_s += f' T+3:{d3:+.1f}%'
+                      mx_s = f' 3D高:{mx:+.1f}%' if mx else ''
+                      done = ' ✅' if st=='FINISHED' else ''
+                      lines.append(f'  {dt} {cd} {nm} ¥{pr:.2f}{done}')
+                      lines.append(f'     {pnl_s}{mx_s}')
+          except: pass
+
+          bark_push(f'尾盘选股 {today}', '\n'.join(lines))
+          print('\n'.join(lines))
           PY
 
       - name: Upload logs
