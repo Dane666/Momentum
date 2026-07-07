@@ -79,7 +79,12 @@
     "sl_price": 58.35,
     "tp_price": 67.56,
     "type": "MANUAL",
-    "status": "HOLDING"
+    "status": "TRIGGERED",
+    "exit_price": 69.74,
+    "pnl_pct": 13.55,
+    "trigger_type": "TP",
+    "trigger_time": "2026-07-07 10:31:21",
+    "pnl_ratio": 13.55
   },
   {
     "date": "2026-07-03",
