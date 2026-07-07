@@ -31,6 +31,20 @@ def _get_db():
     return sqlite3.connect(DB_PATH)
 
 
+def _init_tables():
+    """确保 stock_picks 表存在 (兼容旧缓存 DB 无此表)."""
+    conn = _get_db()
+    conn.execute('''CREATE TABLE IF NOT EXISTS stock_picks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, code TEXT, name TEXT,
+        price REAL, status TEXT, sl_price REAL, tp_price REAL, type TEXT,
+        exit_price REAL, pnl_pct REAL, trigger_type TEXT, trigger_time TEXT,
+        pnl_ratio REAL, track_status TEXT DEFAULT 'TRACKING',
+        track_count INTEGER DEFAULT 0, day1_pnl REAL, day2_pnl REAL,
+        day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0)''')
+    conn.commit()
+    conn.close()
+
+
 def _trading_days_after(start_date: str, max_days: int = 3):
     """返回 start_date 之后的交易日列表 (最多 max_days 个)."""
     try:
@@ -260,6 +274,9 @@ def run():
         list[str]: 报告文本行 (可直接拼接到 Bark 推送).
     """
     logger.info("[Tracker] Starting stock picks D0-D3 tracking...")
+
+    # 0. 确保表结构存在 (兼容旧缓存 DB)
+    _init_tables()
 
     # 1. 增量同步 picks_tracking.json → stock_picks 表
     sync_picks_to_db()
