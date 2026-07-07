@@ -229,8 +229,41 @@ def update_tracking_stocks():
     return updated
 
 
+def _display_width(s: str) -> int:
+    """计算字符串显示宽度 (CJK/全角字符按 2 列宽)."""
+    w = 0
+    for c in str(s):
+        cp = ord(c)
+        if (0x1100 <= cp <= 0x115F or 0x2329 <= cp <= 0x232A or
+            0x2E80 <= cp <= 0xA4CF or 0xA960 <= cp <= 0xA97C or
+            0xAC00 <= cp <= 0xD7A3 or 0xF900 <= cp <= 0xFAFF or
+            0xFE10 <= cp <= 0xFE19 or 0xFE30 <= cp <= 0xFE6F or
+            0xFF01 <= cp <= 0xFF60 or 0xFFE0 <= cp <= 0xFFE6 or
+            0x1F300 <= cp <= 0x1F64F or 0x1F680 <= cp <= 0x1F6FF or
+            0x2600 <= cp <= 0x26FF or 0x2700 <= cp <= 0x27BF):
+            w += 2
+        else:
+            w += 1
+    return w
+
+
+def _pad(s: str, width: int) -> str:
+    """填充字符串到指定显示宽度."""
+    dw = _display_width(str(s))
+    if dw >= width:
+        return str(s)
+    return str(s) + ' ' * (width - dw)
+
+
+def _pct(v, width=6):
+    """格式化百分比 (None → '-' 填充到指定宽度)."""
+    if v is None:
+        return _pad('  -  ', width)
+    return _pad(f'{v:+.1f}%', width)
+
+
 def generate_report():
-    """生成 Bark 兼容的文本报告."""
+    """生成紧凑 Unicode 表格文本报告 (Bark 友好)."""
     conn = _get_db()
     cursor = conn.cursor()
     cursor.execute(
@@ -246,23 +279,28 @@ def generate_report():
     if not rows:
         return []
 
-    lines = ['📈 选股跟踪 (D0-D3):', '─' * 40]
+    SEP = '─' * 46
+    lines = ['📊 策略表现监控日报', SEP,
+             '代码     名称       T+1    T+2    T+3   3D最高',
+             SEP]
+
+    up_count = 0
     for r in rows:
         code, name, date, price, count, status, d1, d2, d3, mx = r
+        done = ' ✅' if status == 'FINISHED' else '  '
+        mx_val = mx if mx and mx != 0 else None
 
-        pnl_str = ''
-        if d1 is not None:
-            pnl_str += f' T+1: {d1:+.1f}%'
-        if d2 is not None:
-            pnl_str += f' T+2: {d2:+.1f}%'
-        if d3 is not None:
-            pnl_str += f' T+3: {d3:+.1f}%'
+        if mx_val and mx_val > 0:
+            up_count += 1
 
-        max_str = f' 3D最高: {mx:+.1f}%' if mx else ''
-        done = ' ✅' if status == 'FINISHED' else ''
+        line = (f'{_pad(code, 8)}{_pad(name, 9)}'
+                f'{_pct(d1)}{_pct(d2)}{_pct(d3)}{_pct(mx_val)}{done}')
+        lines.append(line)
 
-        lines.append(f'  {date} {code} {name} ¥{price:.2f}{done}')
-        lines.append(f'     {pnl_str}{max_str}')
+    total = len(rows)
+    rate = up_count / total * 100 if total > 0 else 0
+    lines.append(SEP)
+    lines.append(f'💡 3D最高为正比例: {up_count}/{total} ({rate:.0f}%)')
 
     return lines
 

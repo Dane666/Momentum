@@ -277,23 +277,43 @@ jobs:
           # Tracking report from DB
           try:
               import sqlite3
+              def _dw(s):
+                  w=0
+                  for c in str(s):
+                      cp=ord(c)
+                      if (0x1100<=cp<=0x115F or 0x2E80<=cp<=0xA4CF or
+                          0xAC00<=cp<=0xD7A3 or 0xF900<=cp<=0xFAFF or
+                          0xFF01<=cp<=0xFF60): w+=2
+                      else: w+=1
+                  return w
+              def _pd(s,w):
+                  d=_dw(str(s))
+                  return str(s)+' '*(w-d) if d<w else str(s)
+              def _p(v,w=6):
+                  if v is None: return _pd('  -  ',w)
+                  return _pd(f'{v:+.1f}%',w)
+
               conn = sqlite3.connect(os.environ.get('MOMENTUM_DB_PATH','qlib_pro_v16.db'))
               cur = conn.cursor()
-              cur.execute("SELECT code,name,date,price,track_count,track_status,day1_pnl,day2_pnl,day3_pnl,max_pnl_3d FROM stock_picks WHERE track_count>0 ORDER BY date DESC LIMIT 8")
+              cur.execute("SELECT code,name,date,price,track_count,track_status,day1_pnl,day2_pnl,day3_pnl,max_pnl_3d FROM stock_picks WHERE track_count>0 ORDER BY date DESC LIMIT 12")
               rows = cur.fetchall()
               conn.close()
               if rows:
-                  lines.append('\n📈 选股跟踪 (D0-D3):')
+                  sep='─'*46
+                  lines.append('\n📊 策略表现监控日报')
+                  lines.append(sep)
+                  lines.append('代码     名称       T+1    T+2    T+3   3D最高')
+                  lines.append(sep)
+                  up=0
                   for r in rows:
-                      cd,nm,dt,pr,cn,st,d1,d2,d3,mx = r
-                      pnl_s = ''
-                      if d1 is not None: pnl_s += f' T+1:{d1:+.1f}%'
-                      if d2 is not None: pnl_s += f' T+2:{d2:+.1f}%'
-                      if d3 is not None: pnl_s += f' T+3:{d3:+.1f}%'
-                      mx_s = f' 3D高:{mx:+.1f}%' if mx else ''
-                      done = ' ✅' if st=='FINISHED' else ''
-                      lines.append(f'  {dt} {cd} {nm} ¥{pr:.2f}{done}')
-                      lines.append(f'     {pnl_s}{mx_s}')
+                      cd,nm,dt,pr,cn,st,d1,d2,d3,mx=r
+                      done=' ✅' if st=='FINISHED' else '  '
+                      mx_v=mx if mx and mx!=0 else None
+                      if mx_v and mx_v>0: up+=1
+                      lines.append(f'{_pd(cd,8)}{_pd(nm,9)}{_p(d1)}{_p(d2)}{_p(d3)}{_p(mx_v)}{done}')
+                  lines.append(sep)
+                  t=len(rows)
+                  lines.append(f'💡 3D最高为正比例: {up}/{t} ({up/t*100:.0f}%)')
           except: pass
 
           bark_push(f'尾盘选股 {today}', '\n'.join(lines))
