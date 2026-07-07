@@ -7,15 +7,20 @@ on:
     branches: [main]
     paths:
       - "tools/eod_analysis.py"
+      - "tools/stock_picks_tracker.py"
+      - "data/db.py"
       - ".github/workflows/eod-analysis.yml"
   workflow_dispatch:
   schedule:
     - cron: "0 8 * * 1-5"   # 16:00 CST
 
+permissions:
+  contents: write
+
 jobs:
   eod:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       TZ: Asia/Shanghai
       BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
@@ -60,3 +65,12 @@ jobs:
           m=importlib.util.module_from_spec(spec);sys.modules['momentum']=m;spec.loader.exec_module(m)
           from tools.eod_analysis import run; run()
           PY
+      - name: Commit DB changes
+        if: >
+          github.event_name != 'push' &&
+          (github.event_name != 'schedule' || steps.calendar.outputs.is_open == 'true')
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add qlib_pro_v16.db 2>/dev/null || true
+          if git diff --cached --quiet; then echo "No DB changes"; else git commit -m "auto: update stock_picks tracking [skip ci]" && git pull --rebase origin main && git push origin main; fi

@@ -157,6 +157,30 @@ def init_db():
             FOREIGN KEY (session_id) REFERENCES backtest_sessions(session_id)
         )''')
 
+        # 选股后验跟踪表 - D0-D3 跟踪
+        c.execute('''CREATE TABLE IF NOT EXISTS stock_picks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT,
+            code TEXT,
+            name TEXT,
+            price REAL,
+            status TEXT,
+            sl_price REAL,
+            tp_price REAL,
+            type TEXT,
+            exit_price REAL,
+            pnl_pct REAL,
+            trigger_type TEXT,
+            trigger_time TEXT,
+            pnl_ratio REAL,
+            track_status TEXT DEFAULT 'TRACKING',
+            track_count INTEGER DEFAULT 0,
+            day1_pnl REAL,
+            day2_pnl REAL,
+            day3_pnl REAL,
+            max_pnl_3d REAL DEFAULT 0.0
+        )''')
+
         # 回测持仓快照表 - 记录每日持仓状态
         c.execute('''CREATE TABLE IF NOT EXISTS backtest_positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
