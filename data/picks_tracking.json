@@ -94,7 +94,12 @@
     "sl_price": 36.19,
     "tp_price": 41.9,
     "type": "MANUAL",
-    "status": "HOLDING"
+    "status": "TRIGGERED",
+    "exit_price": 35.48,
+    "pnl_pct": -6.85,
+    "trigger_type": "SL",
+    "trigger_time": "2026-07-08 10:01:22",
+    "pnl_ratio": -6.85
   },
   {
     "date": "2026-07-03",
@@ -148,8 +153,13 @@
     "price": 38.28,
     "sl_price": 36.37,
     "tp_price": 40.96,
-    "status": "WATCHING",
-    "type": "STRATEGY"
+    "status": "TRIGGERED",
+    "type": "STRATEGY",
+    "exit_price": 34.76,
+    "pnl_pct": -9.2,
+    "trigger_type": "SL",
+    "trigger_time": "2026-07-08 10:01:23",
+    "pnl_ratio": -9.2
   },
   {
     "date": "2026-07-06",
@@ -158,8 +168,13 @@
     "price": 54.59,
     "sl_price": 51.86,
     "tp_price": 58.41,
-    "status": "WATCHING",
-    "type": "STRATEGY"
+    "status": "TRIGGERED",
+    "type": "STRATEGY",
+    "exit_price": 51.06,
+    "pnl_pct": -6.47,
+    "trigger_type": "SL",
+    "trigger_time": "2026-07-08 10:01:23",
+    "pnl_ratio": -6.47
   },
   {
     "date": "2026-07-06",
