@@ -235,5 +235,32 @@
     "trigger_type": "SL",
     "trigger_time": "2026-07-09 09:31:17",
     "pnl_ratio": -7.0
+  },
+  {
+    "date": "2026-07-09",
+    "code": "002371",
+    "name": "北方华创",
+    "price": 871.49,
+    "sl_price": 827.92,
+    "tp_price": 958.64,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-09",
+    "code": "600246",
+    "name": "万通发展",
+    "price": 20.88,
+    "sl_price": 19.84,
+    "tp_price": 22.34,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-09",
+    "code": "603501",
+    "name": "豪威集团",
+    "price": 107.4,
+    "sl_price": 102.03,
+    "tp_price": 114.92,
+    "status": "WATCHING"
   }
 ]
