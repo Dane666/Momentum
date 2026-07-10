@@ -270,5 +270,32 @@
     "tp_price": 114.92,
     "status": "WATCHING",
     "type": "STRATEGY"
+  },
+  {
+    "date": "2026-07-10",
+    "code": "603183",
+    "name": "建研院",
+    "price": 4.47,
+    "sl_price": 4.25,
+    "tp_price": 4.78,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-10",
+    "code": "002976",
+    "name": "瑞玛精密",
+    "price": 26.82,
+    "sl_price": 25.48,
+    "tp_price": 29.5,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-10",
+    "code": "603087",
+    "name": "甘李药业",
+    "price": 66.7,
+    "sl_price": 63.37,
+    "tp_price": 73.37,
+    "status": "WATCHING"
   }
 ]
