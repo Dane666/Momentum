@@ -315,5 +315,32 @@
     "tp_price": 73.37,
     "status": "WATCHING",
     "type": "STRATEGY"
+  },
+  {
+    "date": "2026-07-13",
+    "code": "603893",
+    "name": "瑞芯微",
+    "price": 217.37,
+    "sl_price": 206.5,
+    "tp_price": 232.59,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-13",
+    "code": "002546",
+    "name": "新联电子",
+    "price": 8.17,
+    "sl_price": 7.76,
+    "tp_price": 8.99,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-13",
+    "code": "600488",
+    "name": "津药药业",
+    "price": 5.97,
+    "sl_price": 5.67,
+    "tp_price": 6.39,
+    "status": "WATCHING"
   }
 ]
