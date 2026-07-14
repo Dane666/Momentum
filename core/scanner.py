@@ -109,6 +109,17 @@ class MarketScanner:
         #     logger.warning(f"🚫 市场宽度不足，进入空仓防御")
         #     return pd.DataFrame(), ""
 
+        # ========== Phase 2.5: 市场择时闸口 ==========
+        if getattr(cfg, 'ENABLE_REGIME_FILTER', False):
+            from ..factors.market import calc_market_regime
+            regime_index = getattr(cfg, 'REGIME_INDEX', '000001')
+            regime_window = getattr(cfg, 'REGIME_MA_WINDOW', 20)
+
+            if not calc_market_regime(index_code=regime_index, ma_window=regime_window):
+                shield_msg = "市场空头 (proxy < MA20), 今日空仓观望"
+                logger.warning(f"[择时] {shield_msg}")
+                return pd.DataFrame(), shield_msg
+
         # ========== Phase 3: 候选筛选与因子计算 ==========
         filter_stats = self._filter_candidates(df_main, cfg)
         candidates = filter_stats.pop('_candidates')

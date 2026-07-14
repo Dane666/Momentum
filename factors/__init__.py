@@ -22,6 +22,7 @@ from .sentiment import (
 from .market import (
     get_market_breadth_pro,
     get_hot_sectors,
+    calc_market_regime,
 )
 from .quant_factors import (
     QuantFactors,
@@ -45,6 +46,7 @@ __all__ = [
     # 市场因子
     'get_market_breadth_pro',
     'get_hot_sectors',
+    'calc_market_regime',
     # 量化因子 (庄股识别)
     'QuantFactors',
     'calc_momentum_quality',

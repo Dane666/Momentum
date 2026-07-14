@@ -10,8 +10,29 @@
 import json
 import logging
 import os
+import sys
 import sqlite3
 from datetime import datetime, timedelta
+from pathlib import Path
+
+# 引导 momentum 包别名 (兼容直接运行和 Actions 环境)
+_PROJ = Path(__file__).resolve().parent.parent
+_sys_parent = str(_PROJ.parent)
+if _sys_parent not in sys.path:
+    sys.path.insert(0, _sys_parent)
+_sys_grandparent = str(_PROJ.parent.parent)
+if _sys_grandparent not in sys.path:
+    sys.path.insert(0, _sys_grandparent)
+try:
+    import momentum as _m  # noqa: F401
+except ImportError:
+    import importlib.util
+    _init_file = _PROJ / '__init__.py'
+    _spec = importlib.util.spec_from_file_location('momentum', _init_file, submodule_search_locations=[str(_PROJ)])
+    if _spec and _spec.loader:
+        _mod = importlib.util.module_from_spec(_spec)
+        sys.modules['momentum'] = _mod
+        _spec.loader.exec_module(_mod)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger('stock_picks_tracker')
@@ -40,7 +61,16 @@ def _init_tables():
         exit_price REAL, pnl_pct REAL, trigger_type TEXT, trigger_time TEXT,
         pnl_ratio REAL, track_status TEXT DEFAULT 'TRACKING',
         track_count INTEGER DEFAULT 0, day1_pnl REAL, day2_pnl REAL,
-        day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0)''')
+        day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0,
+        sl_triggered INTEGER DEFAULT 0,
+        sl_recovery REAL)''')
+    # 兼容旧表: 新增列 (SQLite 不支持 ADD COLUMN IF NOT EXISTS, 用 try-except 兜底)
+    for col, col_type in [('sl_triggered', 'INTEGER DEFAULT 0'), ('sl_recovery', 'REAL')]:
+        try:
+            conn.execute(f'ALTER TABLE stock_picks ADD COLUMN {col} {col_type}')
+        except sqlite3.OperationalError:
+            pass  # 列已存在
+    conn.commit()
     conn.commit()
     conn.close()
 
@@ -168,9 +198,7 @@ def update_tracking_stocks():
                 from momentum.data import load_or_fetch_kline, fetch_kline_from_api
                 df = load_or_fetch_kline(str(code), fetch_kline_from_api)
             except Exception:
-                from data.cache import load_or_fetch_kline
-                from data.fetcher import fetch_kline_from_api
-                df = load_or_fetch_kline(str(code), fetch_kline_from_api)
+                df = None
 
             if df is None or df.empty:
                 logger.debug(f"[Tracker] No K-line data for {code}")
@@ -186,15 +214,23 @@ def update_tracking_stocks():
 
             max_high_pnl = current_max
             day1_pnl = day2_pnl = day3_pnl = None
+            sl_triggered = 0
+            sl_recovery = None
 
             for i in range(min(len(df), 3)):
                 row_data = df.iloc[i]
                 high_val = float(row_data['high'])
+                low_val = float(row_data['low'])
                 close_val = float(row_data['close'])
 
                 high_pnl = (high_val - base_price) / base_price * 100
                 if high_pnl > max_high_pnl:
                     max_high_pnl = high_pnl
+
+                # 检测是否触发 -5% 止损 (盘中最低价触及)
+                low_pnl = (low_val - base_price) / base_price * 100
+                if low_pnl <= -5.0:
+                    sl_triggered = 1
 
                 close_pnl = (close_val - base_price) / base_price * 100
                 if i == 0:
@@ -204,18 +240,25 @@ def update_tracking_stocks():
                 elif i == 2:
                     day3_pnl = round(close_pnl, 2)
 
+            # 计算止损后恢复: 触发过止损且最终收盘价高于买入价时为"洗盘后涨"
+            if sl_triggered:
+                sl_recovery = round(max_high_pnl, 2)
+
             new_count = len(df)
             status = 'FINISHED' if new_count >= 3 else 'TRACKING'
 
             cursor.execute('''
                 UPDATE stock_picks
-                SET track_count=?, track_status=?, day1_pnl=?, day2_pnl=?, day3_pnl=?, max_pnl_3d=?
+                SET track_count=?, track_status=?, day1_pnl=?, day2_pnl=?, day3_pnl=?, max_pnl_3d=?,
+                    sl_triggered=?, sl_recovery=?
                 WHERE id=?
-            ''', (new_count, status, day1_pnl, day2_pnl, day3_pnl, round(max_high_pnl, 2), db_id))
+            ''', (new_count, status, day1_pnl, day2_pnl, day3_pnl, round(max_high_pnl, 2),
+                  sl_triggered, sl_recovery, db_id))
             updated += 1
             logger.debug(
                 f"[Tracker] {code} {pick_date}: count={new_count} "
-                f"day1={day1_pnl}% day2={day2_pnl}% day3={day3_pnl}% max={max_high_pnl:.2f}%"
+                f"day1={day1_pnl}% day2={day2_pnl}% day3={day3_pnl}% max={max_high_pnl:.2f}% "
+                f"sl={sl_triggered} rec={sl_recovery}"
             )
 
         except Exception as e:
@@ -268,7 +311,8 @@ def generate_report():
     cursor = conn.cursor()
     cursor.execute(
         '''SELECT code, name, date, price, track_count, track_status,
-                  day1_pnl, day2_pnl, day3_pnl, max_pnl_3d
+                  day1_pnl, day2_pnl, day3_pnl, max_pnl_3d,
+                  sl_triggered, sl_recovery
            FROM stock_picks
            WHERE track_count > 0
            ORDER BY date DESC, code'''
@@ -279,28 +323,43 @@ def generate_report():
     if not rows:
         return []
 
-    SEP = '─' * 46
+    SEP = '─' * 53
     lines = ['📊 策略表现监控日报', SEP,
-             '代码     名称       T+1    T+2    T+3   3D最高',
+             '代码     名称       T+1    T+2    T+3   3D最高  止损',
              SEP]
 
     up_count = 0
+    sl_count = 0
+    sl_recover_count = 0
     for r in rows:
-        code, name, date, price, count, status, d1, d2, d3, mx = r
+        code, name, date, price, count, status, d1, d2, d3, mx, sl, sl_rec = r
         done = ' ✅' if status == 'FINISHED' else '  '
         mx_val = mx if mx and mx != 0 else None
 
         if mx_val and mx_val > 0:
             up_count += 1
 
+        # 止损状态
+        if sl:
+            sl_count += 1
+            if sl_rec is not None and sl_rec > 0:
+                sl_recover_count += 1
+                sl_mark = ' SL↑'
+            else:
+                sl_mark = ' SL✗'
+        else:
+            sl_mark = '  - '
+
         line = (f'{_pad(code, 8)}{_pad(name, 9)}'
-                f'{_pct(d1)}{_pct(d2)}{_pct(d3)}{_pct(mx_val)}{done}')
+                f'{_pct(d1)}{_pct(d2)}{_pct(d3)}{_pct(mx_val)}{_pad(sl_mark, 5)}{done}')
         lines.append(line)
 
     total = len(rows)
     rate = up_count / total * 100 if total > 0 else 0
     lines.append(SEP)
     lines.append(f'💡 3D最高为正比例: {up_count}/{total} ({rate:.0f}%)')
+    if sl_count > 0:
+        lines.append(f'🛡 止损触发: {sl_count}/{total} | 洗盘后涨: {sl_recover_count}/{sl_count}')
 
     return lines
 

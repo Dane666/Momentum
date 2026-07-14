@@ -983,7 +983,31 @@ class MomentumBacktester:
         
         logger.info(f"换仓次数: {len(rebalance_dates)}, 每次最多持有 {self.max_total_picks} 只")
 
+        # ========== 市场择时: 预计算每日 regime (回测) ==========
+        regime_map = {}
+        if getattr(cfg, 'ENABLE_REGIME_FILTER', False) and bench is not None and not bench.empty:
+            regime_window = getattr(cfg, 'REGIME_MA_WINDOW', 20)
+            if 'close' in bench.columns and len(bench) > regime_window:
+                bench_copy = bench.set_index('trade_date').sort_index()
+                bench_closes = pd.to_numeric(bench_copy['close'], errors='coerce')
+                bench_ma = bench_closes.rolling(regime_window).mean()
+                for d in bench_copy.index:
+                    cv = bench_closes.get(d)
+                    mv = bench_ma.get(d)
+                    if pd.notna(cv) and pd.notna(mv):
+                        regime_map[d] = cv >= mv
+            logger.info(f"[择时] 预计算 {len(regime_map)} 日 regime 信号")
+
         for i, t_date in enumerate(tqdm(rebalance_dates, desc=f"Hold={self.hold_period}")):
+            # ---- 市场择时闸口 (回测) ----
+            if getattr(cfg, 'ENABLE_REGIME_FILTER', False) and regime_map:
+                regime_ok = regime_map.get(t_date, True)
+                if not regime_ok:
+                    for _ in range(min(self.hold_period, len(test_dates) - i * self.hold_period)):
+                        equity_curve.append(equity_curve[-1])
+                        daily_stats.append({'date': t_date, 'ret': 0.0, 'win_rate': 0.0, 'picks': 0})
+                    continue
+
             # 【关键】获取当天成交额排名前N的股票作为候选池
             top_codes = self._get_daily_top_stocks(t_date, top_n=self.pool_size)
             

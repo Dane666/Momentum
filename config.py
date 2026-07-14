@@ -123,6 +123,13 @@ MARKET_BREADTH_DEFENSE = 0.22  # 空仓防御阈值
 MARKET_AMOUNT_LOW = 800000000000   # 缩量市阈值 (8000亿)
 MARKET_AMOUNT_HIGH = 2000000000000 # 爆量市阈值 (2万亿)
 
+# ==================== 市场择时 (Regime Filter) ====================
+# proxy ≥ MA20 → 多头,允许选股买入
+# proxy < MA20 → 空头,今日不开新仓 (已有持仓继续按退出规则持有)
+ENABLE_REGIME_FILTER = _env_bool("MOMENTUM_ENABLE_REGIME_FILTER", True)
+REGIME_MA_WINDOW = _env_int("MOMENTUM_REGIME_MA_WINDOW", 20)  # MA 窗口 (回测参数,勿随意修改)
+REGIME_INDEX = _env_str("MOMENTUM_REGIME_INDEX", "000001")   # 代理指数 (000001=上证, 000300=沪深300)
+
 # ==================== NLP权重 ====================
 ENABLE_NLP_ANALYSIS = True       # 是否启用 Ollama NLP 分析
 OLLAMA_MODEL = "qwen2.5:3b"      # Ollama 模型名称 (原: qwen3:8b, 3b速度更快)

@@ -153,6 +153,102 @@ def get_market_trend_state(index_code: str = '000300') -> dict:
         return {}
 
 
+def calc_market_regime(index_code: str = '000001', ma_window: int = 20) -> bool:
+    """
+    市场择时闸口: 判断是否多头 (proxy >= MA20)
+
+    用于 14:44–14:45 选股时刻的最终判定。
+    - True  → 多头,允许选股买入
+    - False → 空头,今日不开新仓 (已有持仓继续按原退出规则持有)
+
+    Args:
+        index_code: 代理指数代码 (默认 000001=上证指数)
+        ma_window: MA 窗口 (默认 20, 回测参数勿随意修改)
+
+    Returns:
+        bool: True if bull regime (allow trading), False if bear
+    """
+    import pandas as pd
+    from ..data import fetch_market_index
+
+    # ── 1. 获取历史日线, 计算 MA20 ──
+    df_hist = None
+    try:
+        df_hist = fetch_market_index(index_code)
+    except Exception:
+        pass
+
+    if df_hist is None or df_hist.empty:
+        logger.warning("[Regime] 无法获取指数历史数据, 默认允许多头 (不阻塞)")
+        return True
+
+    closes = pd.to_numeric(df_hist['close'], errors='coerce').dropna()
+    if len(closes) < ma_window:
+        logger.warning(f"[Regime] 数据不足 ({len(closes)} < {ma_window}), 默认允许")
+        return True
+
+    ma20_val = closes.rolling(ma_window).mean().iloc[-1]
+
+    # ── 2. 获取指数实时价格 ──
+    proxy_val = _fetch_index_realtime(index_code)
+
+    if proxy_val is None:
+        # 降级: 使用最近一个交易日的收盘价
+        proxy_val = closes.iloc[-1]
+        logger.info(f"[Regime] 实时指数不可用, 降级为最近收盘价 {proxy_val:.2f}")
+
+    # ── 3. 判定 ──
+    regime_ok = proxy_val >= ma20_val
+
+    emoji = "+"  # + for bull, - for bear (avoid emoji encoding issues)
+    label = "多头" if regime_ok else "空头"
+    logger.info(
+        f"[Regime] {emoji} {label} | proxy={proxy_val:.2f} | "
+        f"MA{ma_window}={ma20_val:.2f} | "
+        f"diff={proxy_val - ma20_val:+.2f} ({(proxy_val / ma20_val - 1) * 100:+.2f}%)"
+    )
+
+    return regime_ok
+
+
+def _fetch_index_realtime(index_code: str = '000001'):
+    """通过新浪接口获取指数实时价格"""
+    try:
+        if index_code.startswith(('60', '68', '5')):
+            prefix = 'sh'
+        elif index_code.startswith(('00', '30')):
+            prefix = 'sz'
+        elif index_code == '000001':
+            prefix = 'sh'  # 上证指数
+        elif index_code == '000300':
+            prefix = 'sh'  # 沪深300
+        elif index_code == '000016':
+            prefix = 'sh'  # 上证50
+        elif index_code in ('399001', '399006'):
+            prefix = 'sz'  # 深证成指/创业板指
+        else:
+            prefix = 'sh'
+
+        import requests
+        url = f'https://hq.sinajs.cn/list={prefix}{index_code}'
+        headers = {'Referer': 'https://finance.sina.com.cn'}
+        resp = requests.get(url, headers=headers, timeout=5)
+        resp.encoding = 'gb2312'
+        text = resp.text
+
+        if '="' in text:
+            parts = text.split('="')[1].split(',')
+            if len(parts) > 3:
+                price = float(parts[3])
+                if price > 0:
+                    logger.info(f"[Regime] 实时指数 {index_code} = {price:.2f}")
+                    return price
+    except Exception as e:
+        logger.debug(f"[Regime] 实时指数获取失败: {e}")
+
+    return None
+
+
 def get_dxy_status() -> tuple:
     """
     获取美元指数实时行情并判定趋势
