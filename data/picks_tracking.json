@@ -273,8 +273,13 @@
     "price": 107.4,
     "sl_price": 102.03,
     "tp_price": 114.92,
-    "status": "WATCHING",
-    "type": "STRATEGY"
+    "status": "TRIGGERED",
+    "type": "STRATEGY",
+    "exit_price": 101.6,
+    "pnl_pct": -5.4,
+    "trigger_type": "SL",
+    "trigger_time": "2026-07-14 10:01:17",
+    "pnl_ratio": -5.4
   },
   {
     "date": "2026-07-10",
