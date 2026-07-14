@@ -323,7 +323,8 @@
     "price": 217.37,
     "sl_price": 206.5,
     "tp_price": 232.59,
-    "status": "WATCHING"
+    "status": "WATCHING",
+    "type": "STRATEGY"
   },
   {
     "date": "2026-07-13",
@@ -332,7 +333,8 @@
     "price": 8.17,
     "sl_price": 7.76,
     "tp_price": 8.99,
-    "status": "WATCHING"
+    "status": "WATCHING",
+    "type": "STRATEGY"
   },
   {
     "date": "2026-07-13",
@@ -341,6 +343,7 @@
     "price": 5.97,
     "sl_price": 5.67,
     "tp_price": 6.39,
-    "status": "WATCHING"
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
