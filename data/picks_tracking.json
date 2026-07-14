@@ -355,5 +355,32 @@
     "trigger_type": "SL",
     "trigger_time": "2026-07-14 09:31:13",
     "pnl_ratio": -5.36
+  },
+  {
+    "date": "2026-07-14",
+    "code": "002851",
+    "name": "麦格米特",
+    "price": 171.76,
+    "sl_price": 163.17,
+    "tp_price": 188.94,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-14",
+    "code": "003030",
+    "name": "祖名股份",
+    "price": 25.93,
+    "sl_price": 24.63,
+    "tp_price": 28.52,
+    "status": "WATCHING"
+  },
+  {
+    "date": "2026-07-14",
+    "code": "003001",
+    "name": "中岩大地",
+    "price": 15.99,
+    "sl_price": 15.19,
+    "tp_price": 17.11,
+    "status": "WATCHING"
   }
 ]
