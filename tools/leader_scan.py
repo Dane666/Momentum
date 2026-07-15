@@ -7,8 +7,22 @@ import json, logging, os, sys
 from datetime import datetime
 from pathlib import Path
 
+# Bootstrap momentum package (兼容直接运行和 Actions 环境)
 _PROJ = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(_PROJ.parent))
+_sys_parent = str(_PROJ.parent)
+if _sys_parent not in sys.path:
+    sys.path.insert(0, _sys_parent)
+try:
+    import momentum as _m  # noqa: F401
+except ImportError:
+    import importlib.util
+    _init_file = _PROJ / '__init__.py'
+    _spec = importlib.util.spec_from_file_location('momentum', _init_file, submodule_search_locations=[str(_PROJ)])
+    if _spec and _spec.loader:
+        _mod = importlib.util.module_from_spec(_spec)
+        sys.modules['momentum'] = _mod
+        _spec.loader.exec_module(_mod)
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger('leader_scan')
 
