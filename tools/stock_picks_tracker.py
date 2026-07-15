@@ -298,21 +298,26 @@ def _pad(s: str, width: int) -> str:
     return str(s) + ' ' * (width - dw)
 
 
-def _pct(v, width=6):
-    """格式化百分比 (None → '-' 填充到指定宽度)."""
-    if v is None:
-        return _pad('  -  ', width)
-    return _pad(f'{v:+.1f}%', width)
-
-
 def generate_report():
-    """生成紧凑 Unicode 表格文本报告 (Bark 友好)."""
+    """生成优化排版报告 — 去除代码字段, 增加类型标识, 单独卡片推送."""
+
+    def _pad_str(s, width):
+        """中英文混排填充到指定显示宽度."""
+        w = _display_width(str(s))
+        return str(s) + ' ' * (width - w) if w < width else str(s)
+
+    def _pct_fmt(v, width=7):
+        """格式化百分比 (None → '  -   ')."""
+        if v is None:
+            return _pad_str('  -   ', width)
+        return _pad_str(f'{v:+.1f}%', width)
+
     conn = _get_db()
     cursor = conn.cursor()
     cursor.execute(
         '''SELECT code, name, date, price, track_count, track_status,
                   day1_pnl, day2_pnl, day3_pnl, max_pnl_3d,
-                  sl_triggered, sl_recovery
+                  sl_triggered, sl_recovery, type
            FROM stock_picks
            WHERE track_count > 0
            ORDER BY date DESC, code'''
@@ -323,43 +328,51 @@ def generate_report():
     if not rows:
         return []
 
-    SEP = '─' * 53
+    # 类型标识映射
+    TYPE_ICON = {'STRATEGY': '🎯', 'MANUAL': '📋'}
+
+    SEP = '━' * 56
     lines = ['📊 策略表现监控日报', SEP,
-             '代码     名称       T+1    T+2    T+3   3D最高  止损',
+             f'{_pad_str("名称", 16)}{_pad_str("标识", 4)}{_pad_str("T+1", 8)}{_pad_str("T+2", 8)}{_pad_str("T+3", 8)}{_pad_str("3D最高", 8)}{_pad_str("止损", 6)}状态',
              SEP]
 
     up_count = 0
     sl_count = 0
     sl_recover_count = 0
+    total = 0
     for r in rows:
-        code, name, date, price, count, status, d1, d2, d3, mx, sl, sl_rec = r
-        done = ' ✅' if status == 'FINISHED' else '  '
+        code, name, date, price, count, status, d1, d2, d3, mx, sl, sl_rec, ptype = r
+        total += 1
+        done = ' ✅' if status == 'FINISHED' else '    '
         mx_val = mx if mx and mx != 0 else None
 
         if mx_val and mx_val > 0:
             up_count += 1
+
+        # 类型图标
+        icon = TYPE_ICON.get(ptype, '📌')
 
         # 止损状态
         if sl:
             sl_count += 1
             if sl_rec is not None and sl_rec > 0:
                 sl_recover_count += 1
-                sl_mark = ' SL↑'
+                sl_mark = ' 📈↑'
             else:
-                sl_mark = ' SL✗'
+                sl_mark = ' 📉✗'
         else:
-            sl_mark = '  - '
+            sl_mark = '   - '
 
-        line = (f'{_pad(code, 8)}{_pad(name, 9)}'
-                f'{_pct(d1)}{_pct(d2)}{_pct(d3)}{_pct(mx_val)}{_pad(sl_mark, 5)}{done}')
+        line = (f'{_pad_str(name, 16)}{_pad_str(icon, 4)}'
+                f'{_pct_fmt(d1)}{_pct_fmt(d2)}{_pct_fmt(d3)}{_pct_fmt(mx_val)}{_pad_str(sl_mark, 6)}{done}')
         lines.append(line)
 
-    total = len(rows)
     rate = up_count / total * 100 if total > 0 else 0
     lines.append(SEP)
-    lines.append(f'💡 3D最高为正比例: {up_count}/{total} ({rate:.0f}%)')
+    lines.append(f'💹 3D最高为正: {up_count}/{total} ({rate:.0f}%)')
     if sl_count > 0:
-        lines.append(f'🛡 止损触发: {sl_count}/{total} | 洗盘后涨: {sl_recover_count}/{sl_count}')
+        lines.append(f'🛡 止损触发: {sl_count}/{total}  📈 洗盘后涨: {sl_recover_count}/{sl_count}')
+    lines.append(f'🎯 策略选股 ｜ 📋 模拟选股')
 
     return lines
 

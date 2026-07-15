@@ -289,31 +289,33 @@ jobs:
               def _pd(s,w):
                   d=_dw(str(s))
                   return str(s)+' '*(w-d) if d<w else str(s)
-              def _p(v,w=6):
-                  if v is None: return _pd('  -  ',w)
+              def _p(v,w=7):
+                  if v is None: return _pd('  -   ',w)
                   return _pd(f'{v:+.1f}%',w)
 
               conn = sqlite3.connect(os.environ.get('MOMENTUM_DB_PATH','qlib_pro_v16.db'))
               cur = conn.cursor()
-              cur.execute("SELECT code,name,date,price,track_count,track_status,day1_pnl,day2_pnl,day3_pnl,max_pnl_3d FROM stock_picks WHERE track_count>0 ORDER BY date DESC LIMIT 12")
+              cur.execute("SELECT code,name,date,price,track_count,track_status,day1_pnl,day2_pnl,day3_pnl,max_pnl_3d,type FROM stock_picks WHERE track_count>0 ORDER BY date DESC LIMIT 12")
               rows = cur.fetchall()
               conn.close()
               if rows:
-                  sep='─'*46
-                  lines.append('\n📊 策略表现监控日报')
-                  lines.append(sep)
-                  lines.append('代码     名称       T+1    T+2    T+3   3D最高')
-                  lines.append(sep)
-                  up=0
+                  icons={'STRATEGY':'🎯','MANUAL':'📋'}
+                  sep='━'*56
+                  t_lines=['📊 策略表现监控日报',sep,
+                           f'{_pd("名称",16)}{_pd("标识",4)}{_pd("T+1",8)}{_pd("T+2",8)}{_pd("T+3",8)}{_pd("3D最高",8)}{_pd("止损",6)}状态',sep]
+                  up=0;sl=0;slr=0
                   for r in rows:
-                      cd,nm,dt,pr,cn,st,d1,d2,d3,mx=r
-                      done=' ✅' if st=='FINISHED' else '  '
+                      cd,nm,dt,pr,cn,st,d1,d2,d3,mx,pt=r
+                      done=' ✅' if st=='FINISHED' else '    '
                       mx_v=mx if mx and mx!=0 else None
                       if mx_v and mx_v>0: up+=1
-                      lines.append(f'{_pd(cd,8)}{_pd(nm,9)}{_p(d1)}{_p(d2)}{_p(d3)}{_p(mx_v)}{done}')
-                  lines.append(sep)
+                      icon=icons.get(pt,'📌')
+                      t_lines.append(f'{_pd(nm,16)}{_pd(icon,4)}{_p(d1)}{_p(d2)}{_p(d3)}{_p(mx_v)}{_pd("   - ",6)}{done}')
+                  t_lines.append(sep)
                   t=len(rows)
-                  lines.append(f'💡 3D最高为正比例: {up}/{t} ({up/t*100:.0f}%)')
+                  t_lines.append(f'💹 3D最高为正: {up}/{t} ({up/t*100:.0f}%)')
+                  t_lines.append('🎯 策略选股 | 📋 模拟选股')
+                  bark_push('策略表现监控日报', '\n'.join(t_lines))
           except: pass
 
           bark_push(f'尾盘选股 {today}', '\n'.join(lines))

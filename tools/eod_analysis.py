@@ -144,12 +144,15 @@ def run():
     except Exception:
         pass
 
-    # 选股跟踪: D0-D3 后验
+    # 选股跟踪: D0-D3 后验 (单独卡片推送)
     try:
         from tools.stock_picks_tracker import run as run_tracker
         track_lines = run_tracker()
         if track_lines:
-            lines.extend(track_lines)
+            track_rpt = '\n'.join(track_lines)
+            print(track_rpt)
+            from momentum.notify.bark import send_bark
+            send_bark('策略表现监控日报', track_rpt)
     except Exception as e:
         logger.warning(f"[EOD] stock_picks_tracker failed: {e}")
 
