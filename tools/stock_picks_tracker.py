@@ -329,7 +329,7 @@ def generate_report():
         return []
 
     # 类型标识映射
-    TYPE_ICON = {'STRATEGY': '🎯', 'MANUAL': '📋'}
+    TYPE_ICON = {'STRATEGY': '🎯', 'MANUAL': '📋', 'LEADER': '🐉'}
 
     SEP = '━' * 56
     lines = ['📊 策略表现监控日报', SEP,
@@ -372,7 +372,7 @@ def generate_report():
     lines.append(f'💹 3D最高为正: {up_count}/{total} ({rate:.0f}%)')
     if sl_count > 0:
         lines.append(f'🛡 止损触发: {sl_count}/{total}  📈 洗盘后涨: {sl_recover_count}/{sl_count}')
-    lines.append(f'🎯 策略选股 ｜ 📋 模拟选股')
+    lines.append(f'🎯 策略选股 ｜ 🐉 龙头策略 ｜ 📋 模拟选股')
 
     return lines
 

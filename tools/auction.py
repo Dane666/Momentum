@@ -24,7 +24,7 @@ def fetch_auction():
         codes = [c for c in fetch_all_stock_codes() if c.startswith(('60','00'))]
         df = fetch_quotes_sina(codes[:800])
         if df is not None and len(df)>100: return df
-    except: pass
+    except Exception: pass
     return None
 
 
@@ -32,7 +32,7 @@ def get_sector(code: str) -> str:
     try:
         from momentum.data import fetch_stock_concept
         return fetch_stock_concept(code) or ''
-    except: return ''
+    except Exception: return ''
 
 
 def analyze(df: pd.DataFrame) -> str:
@@ -44,6 +44,9 @@ def analyze(df: pd.DataFrame) -> str:
     high_o=(chg>0).sum(); low_o=(chg<0).sum()
 
     now=datetime.now().strftime('%H:%M:%S')
+    # MA60 闸口检查
+    is_ma60_bull, ma60_msg, ma60_detail = check_ma60()
+
     lines=[f'🔔 集合竞价全景 | {now}',
            f'全市场: {total}只 | 高开: {high_o} | 低开: {low_o}',
            f'高开率: {high_o/total*100:.1f}%']
@@ -51,6 +54,16 @@ def analyze(df: pd.DataFrame) -> str:
     elif low_o/total>0.7: lines.append('📉 情绪: ❄️ 弱势')
     elif high_o>low_o: lines.append('📊 情绪: 😊 偏多')
     else: lines.append('📊 情绪: 😟 偏空')
+
+    # MA60 多空判定
+    if not is_ma60_bull and ma60_detail:
+        diff = ma60_detail.get('diff_pct', 0)
+        lines.append(f'⚠️ MA60闸口: 大盘跌破60日线 ({ma60_detail.get("close",0):.0f}/{ma60_detail.get("ma60",0):.0f} | {diff:+.1f}%)')
+        lines.append('🛑 不适合交易 — 建议空仓观望')
+    elif ma60_detail:
+        diff = ma60_detail.get('diff_pct', 0)
+        lines.append(f'✅ MA60闸口: 大盘站上60日线 (+{diff:.1f}%) — 适合择机交易')
+
     lines.append('─'*40)
 
     # 涨停开盘 Top10 + 板块识别
@@ -82,6 +95,17 @@ def analyze(df: pd.DataFrame) -> str:
 
     lines.append(f'\n⏰ 14:44 尾盘扫描见')
     return '\n'.join(lines)
+
+
+def check_ma60():
+    """检查大盘是否站上 MA60 (开盘前判定: T-1收盘 vs MA60[T-1])."""
+    try:
+        from momentum.factors.market import calc_ma60_gate_open
+        is_bull, msg, detail = calc_ma60_gate_open('000001')
+        return is_bull, msg, detail
+    except Exception as e:
+        logger.warning(f"MA60检查失败: {e}")
+        return True, "MA60检查失败", {}
 
 
 def send_notify(text:str):

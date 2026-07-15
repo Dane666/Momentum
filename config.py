@@ -95,6 +95,17 @@ TAKE_PROFIT_PCT = 0.10       # 固定止盈百分比 - 120天优化: 10%最优
 BIAS_PROFIT_LIMIT = 0.20     # 乖离率止盈阈值
 USE_ADAPTIVE_EXIT = True     # 自适应止损 - 120天优化: True夏普1.72 vs False 0.34
 
+# ==================== 龙头策略配置 ====================
+# 龙头策略: 热门行业(资金流入 Top-K)内涨幅最强的 N 只龙头股
+# 对标 opt_study/harness_c_ma60.py + harness_c_ma60_timing.py open 分支
+LEADER_STRATEGY_ENABLED = _env_bool("MOMENTUM_LEADER_ENABLED", True)
+LEADER_TOP_K_SECTORS = _env_int("MOMENTUM_LEADER_TOP_K", 8)   # 热门行业数
+LEADER_TOP_N_PICKS = _env_int("MOMENTUM_LEADER_TOP_N", 3)     # 龙头选股数
+LEADER_HOLD_PERIOD = _env_int("MOMENTUM_LEADER_HOLD", 3)      # 持仓天数
+LEADER_MA_WINDOW = _env_int("MOMENTUM_LEADER_MA_WINDOW", 60)  # MA60 闸口
+LEADER_MIN_SECTOR_STOCKS = _env_int("MOMENTUM_LEADER_MIN_SECTOR_STOCKS", 4)
+LEADER_MIN_CHANGE_PCT = _env_float("MOMENTUM_LEADER_MIN_CHANGE_PCT", 2.0)
+
 # ==================== 选股阈值 ====================
 MIN_CHANGE_PCT = 4.0         # 最小涨幅%
 MAX_CHANGE_PCT = 9.2         # 最大涨幅%

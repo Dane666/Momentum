@@ -249,6 +249,63 @@ def _fetch_index_realtime(index_code: str = '000001'):
     return None
 
 
+def calc_ma60_gate_open(index_code: str = '000001') -> tuple:
+    """
+    MA60 闸口 - 开盘前判定 (使用 T-1 收盘 vs MA60[T-1])
+    对标 opt_study/harness_c_ma60_timing.py 的 "open" 分支
+
+    逻辑: gate[T] = (T-1收盘 站上 MA60[T-1])
+    无前视偏差, 可在交易日开盘前/盘中随时判定。
+
+    Args:
+        index_code: 代理指数代码 (默认 000001=上证指数)
+
+    Returns:
+        tuple: (is_bull: bool, msg: str, detail: dict)
+        - is_bull: True=站上MA60(可做), False=跌破MA60(警告)
+        - msg: 判定消息
+        - detail: {close, ma60, diff_pct, data_points}
+    """
+    import pandas as pd
+    from ..data import fetch_market_index
+
+    try:
+        df_hist = fetch_market_index(index_code)
+    except Exception:
+        logger.warning("[MA60-Gate] 数据获取异常, 默认允许")
+        return True, "MA60数据获取失败, 默认允许", {}
+
+    if df_hist is None or df_hist.empty:
+        logger.warning("[MA60-Gate] 数据为空, 默认允许")
+        return True, "MA60数据为空, 默认允许", {}
+
+    closes = pd.to_numeric(df_hist['close'], errors='coerce').dropna()
+    if len(closes) < 60:
+        logger.warning(f"[MA60-Gate] 数据不足 ({len(closes)} < 60), 默认允许")
+        return True, f"数据不足 ({len(closes)} < 60), 默认允许", {}
+
+    ma60_val = float(closes.rolling(60).mean().iloc[-1])
+    prev_close = float(closes.iloc[-1])
+
+    is_bull = prev_close >= ma60_val
+    diff_pct = (prev_close / ma60_val - 1) * 100
+
+    detail = {
+        'close': round(prev_close, 2),
+        'ma60': round(ma60_val, 2),
+        'diff_pct': round(diff_pct, 2),
+        'data_points': len(closes),
+    }
+
+    if is_bull:
+        msg = f"站上MA60 (T-1收盘 {prev_close:.2f} >= MA60 {ma60_val:.2f}, +{diff_pct:.2f}%)"
+    else:
+        msg = f"跌破MA60 (T-1收盘 {prev_close:.2f} < MA60 {ma60_val:.2f}, {diff_pct:.2f}%)"
+
+    logger.info(f"[MA60-Gate] {'[多头]' if is_bull else '[空头]'} {msg}")
+    return is_bull, msg, detail
+
+
 def get_dxy_status() -> tuple:
     """
     获取美元指数实时行情并判定趋势
