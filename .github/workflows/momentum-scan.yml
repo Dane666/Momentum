@@ -160,18 +160,18 @@ jobs:
           MOMENTUM_LOG_FILE: scan_prod.log
         run: python main.py --mode scan 2>&1 | tee scan_stdout.txt
 
-      - name: Leader strategy scan
+      - name: C-Tail sneak attack scan
         if: >
           (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full') ||
           (github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true')
         env:
           BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
         run: |
-          python -c "from tools.leader_scan import run; run()"
+          python -c "from tools.c_tail_scan import run; run()"
           git config user.name github-actions
           git config user.email actions@github.com
           git add data/picks_tracking.json
-          git diff --cached --quiet || (git commit -m "auto: add leader picks" && git pull --rebase origin main && git push origin main)
+          git diff --cached --quiet || (git commit -m "auto: add C-tail picks" && git pull --rebase origin main && git push origin main)
 
       - name: Save picks to tracking
         if: >
@@ -199,7 +199,7 @@ jobs:
           try:
               with open('data/picks_tracking.json','r') as f: tracking=json.load(f)
           except: pass
-          if not any(p.get('date')==today and p.get('type') != 'LEADER' for p in tracking):
+          if not any(p.get('date')==today and p.get('type') in ('STRATEGY', None) for p in tracking):
               for p in picks:
                   sl, tp = sl_map.get(p['code'], (p['price']*0.95, p['price']*1.10))
                   tracking.append({
@@ -313,7 +313,7 @@ jobs:
               rows = cur.fetchall()
               conn.close()
               if rows:
-                  icons={'STRATEGY':'🎯','MANUAL':'📋','LEADER':'🐉'}
+                  icons={'STRATEGY':'🎯','MANUAL':'📋','C_TAIL':'🎯'}
                   sep='━'*56
                   t_lines=['📊 策略表现监控日报',sep,
                            f'{_pd("名称",16)}{_pd("标识",4)}{_pd("T+1",8)}{_pd("T+2",8)}{_pd("T+3",8)}{_pd("3D最高",8)}{_pd("止损",6)}状态',sep]
@@ -328,7 +328,7 @@ jobs:
                   t_lines.append(sep)
                   t=len(rows)
                   t_lines.append(f'💹 3D最高为正: {up}/{t} ({up/t*100:.0f}%)')
-                  t_lines.append('🎯 策略选股 | 🐉 龙头策略 | 📋 模拟选股')
+                  t_lines.append('🎯 策略选股 | 📋 模拟选股')
                   bark_push('策略表现监控日报', '\n'.join(t_lines))
           except: pass
 
