@@ -398,7 +398,12 @@
     "price": 15.99,
     "sl_price": 15.19,
     "tp_price": 17.11,
-    "status": "WATCHING",
-    "type": "STRATEGY"
+    "status": "TRIGGERED",
+    "type": "STRATEGY",
+    "exit_price": 17.12,
+    "pnl_pct": 7.07,
+    "trigger_type": "TP",
+    "trigger_time": "2026-07-16 10:31:20",
+    "pnl_ratio": 7.07
   }
 ]
