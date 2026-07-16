@@ -37,9 +37,10 @@ def _get_sector(code: str) -> str:
 
 
 def fetch_market_data() -> Optional[pd.DataFrame]:
+    """全A实时行情, 复用项目数据管道(efinance → Sina 降级)."""
     try:
-        import efinance as ef
-        df = ef.stock.get_realtime_quotes(fs='沪深A股')
+        from ..data import fetch_realtime_quotes
+        df = fetch_realtime_quotes(fs='沪深A股')
         if df is not None and not df.empty:
             for c in ['涨跌幅', '成交额', '最新价']:
                 if c in df.columns:
@@ -49,7 +50,7 @@ def fetch_market_data() -> Optional[pd.DataFrame]:
                     df[c] = pd.to_numeric(df[c], errors='coerce')
             return df
     except Exception as e:
-        logger.warning(f"efinance: {e}")
+        logger.warning(f"实时行情: {e}")
     return None
 
 

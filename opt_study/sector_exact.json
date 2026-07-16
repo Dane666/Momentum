@@ -1,0 +1,83 @@
+[
+  {
+    "bucket": "1",
+    "hold": 5,
+    "avg_profit": 12.48,
+    "avg_sharpe": 0.717,
+    "avg_win_rate": 54.31,
+    "avg_max_dd": 17.86,
+    "avg_trades": 14.8,
+    "main": {
+      "profit_pct": 12.7,
+      "sharpe": 0.682,
+      "win_rate": 52.94,
+      "max_dd": 17.86,
+      "trade_count": 17,
+      "final_nav": 1.127
+    }
+  },
+  {
+    "bucket": "2",
+    "hold": 5,
+    "avg_profit": 5.5,
+    "avg_sharpe": 0.554,
+    "avg_win_rate": 58.34,
+    "avg_max_dd": 4.8,
+    "avg_trades": 3.0,
+    "main": {
+      "profit_pct": 3.18,
+      "sharpe": 0.324,
+      "win_rate": 50.0,
+      "max_dd": 4.8,
+      "trade_count": 4,
+      "final_nav": 1.0318
+    }
+  },
+  {
+    "bucket": "ge3",
+    "hold": 5,
+    "avg_profit": -1.81,
+    "avg_sharpe": -1.004,
+    "avg_win_rate": 0.0,
+    "avg_max_dd": 1.81,
+    "avg_trades": 1.0,
+    "main": {
+      "profit_pct": -1.81,
+      "sharpe": -1.004,
+      "win_rate": 0.0,
+      "max_dd": 1.81,
+      "trade_count": 1,
+      "final_nav": 0.9819
+    }
+  },
+  {
+    "bucket": "1",
+    "hold": 3,
+    "avg_profit": 10.12,
+    "avg_sharpe": 0.529,
+    "avg_win_rate": 51.28,
+    "avg_max_dd": 15.22,
+    "avg_trades": 24.2,
+    "main": {}
+  },
+  {
+    "bucket": "2",
+    "hold": 3,
+    "avg_profit": 3.79,
+    "avg_sharpe": 0.367,
+    "avg_win_rate": 48.86,
+    "avg_max_dd": 6.63,
+    "avg_trades": 7.2,
+    "main": {}
+  },
+  {
+    "bucket": "ge3",
+    "hold": 3,
+    "avg_profit": -0.29,
+    "avg_sharpe": -0.083,
+    "avg_win_rate": 33.33,
+    "avg_max_dd": 1.75,
+    "avg_trades": 1.8,
+    "main": {}
+  }
+]

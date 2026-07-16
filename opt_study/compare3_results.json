@@ -1,0 +1,285 @@
+{
+  "meta": {
+    "universe": 3113,
+    "calendar_start": "2024-06-03",
+    "calendar_end": "2026-07-14",
+    "slippage": 0.008,
+    "top_k": 8,
+    "window_shifts": [
+      0,
+      20,
+      40,
+      60
+    ],
+    "note": "A=多因子框架(≥2亿+套牢盘≤0.10+sharpe>1.0+自适应退出)+热门行业闸口+择时; B/C=热门行业龙头(当日涨幅前N)买&持有,无原框架过滤。"
+  },
+  "results": [
+    {
+      "strategy": "A",
+      "name": "多因子+热门闸口+择时",
+      "N": 1,
+      "hold": 5,
+      "avg_profit": 14.02,
+      "avg_annual": 14.14,
+      "avg_sharpe": 0.803,
+      "avg_win_rate": 55.36,
+      "avg_max_dd": 13.72,
+      "avg_trades": 13.5,
+      "main": {
+        "profit_pct": 17.09,
+        "annual_ret": 17.24,
+        "sharpe": 0.95,
+        "win_rate": 57.14,
+        "max_dd": 13.72,
+        "trade_count": 14,
+        "final_nav": 1.1709
+      }
+    },
+    {
+      "strategy": "A",
+      "name": "多因子+热门闸口+择时",
+      "N": 2,
+      "hold": 5,
+      "avg_profit": 9.31,
+      "avg_annual": 9.39,
+      "avg_sharpe": 0.586,
+      "avg_win_rate": 57.45,
+      "avg_max_dd": 13.72,
+      "avg_trades": 16.5,
+      "main": {
+        "profit_pct": 12.26,
+        "annual_ret": 12.36,
+        "sharpe": 0.746,
+        "win_rate": 58.82,
+        "max_dd": 13.72,
+        "trade_count": 17,
+        "final_nav": 1.1226
+      }
+    },
+    {
+      "strategy": "A",
+      "name": "多因子+热门闸口+择时",
+      "N": 3,
+      "hold": 5,
+      "avg_profit": 6.83,
+      "avg_annual": 6.9,
+      "avg_sharpe": 0.453,
+      "avg_win_rate": 54.17,
+      "avg_max_dd": 13.72,
+      "avg_trades": 17.5,
+      "main": {
+        "profit_pct": 9.71,
+        "annual_ret": 9.8,
+        "sharpe": 0.617,
+        "win_rate": 55.56,
+        "max_dd": 13.72,
+        "trade_count": 18,
+        "final_nav": 1.0971
+      }
+    },
+    {
+      "strategy": "B",
+      "name": "龙头+择时(破MA20空仓)",
+      "N": 1,
+      "hold": 5,
+      "avg_profit": -11.54,
+      "avg_annual": -11.63,
+      "avg_sharpe": 0.218,
+      "avg_win_rate": 38.44,
+      "avg_max_dd": 54.64,
+      "avg_trades": 34.5,
+      "main": {
+        "profit_pct": -2.39,
+        "annual_ret": -2.41,
+        "sharpe": 0.305,
+        "win_rate": 40.62,
+        "max_dd": 51.55,
+        "trade_count": 32,
+        "final_nav": 0.9761
+      }
+    },
+    {
+      "strategy": "B",
+      "name": "龙头+择时(破MA20空仓)",
+      "N": 1,
+      "hold": 3,
+      "avg_profit": 28.67,
+      "avg_annual": 29.0,
+      "avg_sharpe": 0.618,
+      "avg_win_rate": 44.99,
+      "avg_max_dd": 50.84,
+      "avg_trades": 60.2,
+      "main": {}
+    },
+    {
+      "strategy": "B",
+      "name": "龙头+择时(破MA20空仓)",
+      "N": 2,
+      "hold": 5,
+      "avg_profit": -29.61,
+      "avg_annual": -29.8,
+      "avg_sharpe": -0.218,
+      "avg_win_rate": 40.2,
+      "avg_max_dd": 49.25,
+      "avg_trades": 69.0,
+      "main": {
+        "profit_pct": -33.48,
+        "annual_ret": -33.7,
+        "sharpe": -0.347,
+        "win_rate": 39.06,
+        "max_dd": 56.08,
+        "trade_count": 64,
+        "final_nav": 0.6652
+      }
+    },
+    {
+      "strategy": "B",
+      "name": "龙头+择时(破MA20空仓)",
+      "N": 2,
+      "hold": 3,
+      "avg_profit": 66.98,
+      "avg_annual": 67.8,
+      "avg_sharpe": 0.941,
+      "avg_win_rate": 48.48,
+      "avg_max_dd": 37.3,
+      "avg_trades": 120.5,
+      "main": {}
+    },
+    {
+      "strategy": "B",
+      "name": "龙头+择时(破MA20空仓)",
+      "N": 3,
+      "hold": 5,
+      "avg_profit": 15.02,
+      "avg_annual": 15.15,
+      "avg_sharpe": 0.492,
+      "avg_win_rate": 39.83,
+      "avg_max_dd": 35.88,
+      "avg_trades": 103.5,
+      "main": {
+        "profit_pct": 2.65,
+        "annual_ret": 2.67,
+        "sharpe": 0.299,
+        "win_rate": 38.54,
+        "max_dd": 39.91,
+        "trade_count": 96,
+        "final_nav": 1.0265
+      }
+    },
+    {
+      "strategy": "B",
+      "name": "龙头+择时(破MA20空仓)",
+      "N": 3,
+      "hold": 3,
+      "avg_profit": 128.23,
+      "avg_annual": 129.78,
+      "avg_sharpe": 1.7,
+      "avg_win_rate": 51.31,
+      "avg_max_dd": 23.95,
+      "avg_trades": 180.8,
+      "main": {}
+    },
+    {
+      "strategy": "C",
+      "name": "龙头(无择时)",
+      "N": 1,
+      "hold": 5,
+      "avg_profit": 19.92,
+      "avg_annual": 20.12,
+      "avg_sharpe": 0.631,
+      "avg_win_rate": 41.0,
+      "avg_max_dd": 59.87,
+      "avg_trades": 50.0,
+      "main": {
+        "profit_pct": -16.64,
+        "annual_ret": -16.76,
+        "sharpe": 0.291,
+        "win_rate": 42.0,
+        "max_dd": 59.87,
+        "trade_count": 50,
+        "final_nav": 0.8336
+      }
+    },
+    {
+      "strategy": "C",
+      "name": "龙头(无择时)",
+      "N": 1,
+      "hold": 3,
+      "avg_profit": 125.25,
+      "avg_annual": 126.9,
+      "avg_sharpe": 1.185,
+      "avg_win_rate": 47.45,
+      "avg_max_dd": 56.17,
+      "avg_trades": 83.8,
+      "main": {}
+    },
+    {
+      "strategy": "C",
+      "name": "龙头(无择时)",
+      "N": 2,
+      "hold": 5,
+      "avg_profit": 6.25,
+      "avg_annual": 6.35,
+      "avg_sharpe": 0.405,
+      "avg_win_rate": 42.75,
+      "avg_max_dd": 45.45,
+      "avg_trades": 100.0,
+      "main": {
+        "profit_pct": -30.67,
+        "annual_ret": -30.87,
+        "sharpe": -0.082,
+        "win_rate": 41.0,
+        "max_dd": 59.44,
+        "trade_count": 100,
+        "final_nav": 0.6933
+      }
+    },
+    {
+      "strategy": "C",
+      "name": "龙头(无择时)",
+      "N": 2,
+      "hold": 3,
+      "avg_profit": 159.4,
+      "avg_annual": 161.64,
+      "avg_sharpe": 1.474,
+      "avg_win_rate": 49.24,
+      "avg_max_dd": 39.45,
+      "avg_trades": 167.5,
+      "main": {}
+    },
+    {
+      "strategy": "C",
+      "name": "龙头(无择时)",
+      "N": 3,
+      "hold": 5,
+      "avg_profit": 47.12,
+      "avg_annual": 47.6,
+      "avg_sharpe": 0.876,
+      "avg_win_rate": 42.5,
+      "avg_max_dd": 38.6,
+      "avg_trades": 150.0,
+      "main": {
+        "profit_pct": 14.88,
+        "annual_ret": 15.01,
+        "sharpe": 0.536,
+        "win_rate": 41.33,
+        "max_dd": 40.33,
+        "trade_count": 150,
+        "final_nav": 1.1488
+      }
+    },
+    {
+      "strategy": "C",
+      "name": "龙头(无择时)",
+      "N": 3,
+      "hold": 3,
+      "avg_profit": 243.66,
+      "avg_annual": 247.21,
+      "avg_sharpe": 2.114,
+      "avg_win_rate": 51.28,
+      "avg_max_dd": 22.35,
+      "avg_trades": 251.5,
+      "main": {}
+    }
+  ]
+}

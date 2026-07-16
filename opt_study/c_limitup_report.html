@@ -1,0 +1,132 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>龙头策略·涨停买不进现实约束分析</title>
+<style>
+*{box-sizing:border-box} body{font-family:-apple-system,"PingFang SC",Segoe UI,sans-serif;
+background:#f5f7fa;color:#222;margin:0;padding:28px}
+.wrap{max-width:1240px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} .sub{color:#667;font-size:13px;margin-bottom:18px}
+.card{background:#fff;border-radius:12px;padding:20px 22px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h2{font-size:16px;margin:0 0 12px;color:#1a4}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:6px 8px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap}
+th{background:#fafbfc;color:#555;font-weight:600}
+td:nth-child(2),td:nth-child(5),td:nth-child(6),td:nth-child(13),td:nth-child(14){text-align:left}
+.act{font-weight:700} tr.buy .act{color:#c0392b} tr.sell .act{color:#27ae60}
+tr.wait .act{color:#888} tr.limit .act{color:#e67e22}
+.kpi{display:flex;gap:12px;flex-wrap:wrap} .kpi div{flex:1;min-width:150px;background:#fff3e0;border-radius:8px;padding:12px 14px}
+.kpi b{display:block;font-size:20px;color:#d35400} .kpi span{font-size:12px;color:#888}
+.note{font-size:13.5px;line-height:1.8;color:#444} .note code{background:#eef;padding:1px 6px;border-radius:4px}
+.alert{background:#fdecea;border-left:4px solid #e74c3c;padding:12px 16px;border-radius:8px;
+font-size:14px;line-height:1.8;color:#922;margin-bottom:18px}
+.tag{display:inline-block;background:#e8f5e9;color:#1b7;padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px}
+tr.fake{background:#fdecea} tr.real{background:#e8f5e9}
+</style></head><body><div class="wrap">
+<h1>龙头策略 · "涨停买不进" 现实约束分析</h1>
+<div class="sub">初始资金 ¥100,000.0 · N=3 · 持3天 · 回测区间 2024-06-03~2026-07-15 ·
+涨停判定: 主板10%/双创20%, 收盘封板(收盘≈最高且达涨停线)视为14:45买不进</div>
+
+<div class="alert">
+<b>⚠️ 颠覆性结论: 龙头策略原回测收益是"虚假"的。</b><br>
+选股逻辑专挑<b>当日涨幅最强的热门行业龙头</b>, 而这些票尾盘 14:45 时绝大多数已<b>涨停封死、散户根本排不进</b>。
+原回测(harness_c_ma60 等)直接用<b>收盘价成交、不检查涨停板</b>, 等于假设"以涨停价买进了根本买不进的票",
+把收益严重高估。一旦加入"涨停买不进"的现实约束, 真实可执行的收益<b>趋近于零甚至为负</b>。
+此前所有"龙头策略 +MA60 最优 +183%~+322%"的结论, 其前提(收盘价能买进价)不成立, 需重新审视。
+</div>
+
+<div class="card">
+<h2>一、涨停买不进 · 量化统计</h2>
+<div class="kpi">
+<div><b>95.2%</b><span>始终在场 Top3龙头 涨停封板率</span></div>
+<div><b>93.9%</b><span>MA60开门 Top3龙头 涨停封板率</span></div>
+<div><b>97.6%</b><span>始终在场 首选(第1名)买不进日占比</span></div>
+<div><b>96.7%</b><span>MA60开门 首选(第1名)买不进日占比</span></div>
+</div>
+<table style="margin-top:14px">
+<tr><th>口径</th><th>信号日</th><th>Top3样本</th><th>涨停封板率</th><th>接近涨停率</th>
+<th>首选买不进日</th><th>当天有封板龙头日</th><th>当天Top3全封板日</th></tr>
+<tr><td>始终在场</td><td>84</td><td>252</td>
+<td><b>95.2%</b></td><td>96.0%</td>
+<td><b>97.6%</b></td><td>97.6%</td><td>91.7%</td></tr>
+<tr><td>MA60开门</td><td>60</td><td>180</td>
+<td><b>93.9%</b></td><td>95.0%</td>
+<td><b>96.7%</b></td><td>96.7%</td><td>90.0%</td></tr>
+</table>
+<p class="note" style="margin-top:10px">解读: 龙头策略"选当日涨幅最强"的本质, 决定了选出的几乎都是涨停封板票。
+<b>97.6% 的信号日, 你最想买的第1名龙头已经涨停封死</b>——这不是个别现象, 是策略结构性的流动性和前视陷阱。</p>
+</div>
+
+<div class="card">
+<h2>二、修正回测: 考虑"涨停买不进"后收益变多少</h2>
+<table>
+<tr><th>方案</th><th>期末净值</th><th>总收益</th><th>夏普</th><th>最大回撤</th><th>涨停跳过槽次</th><th>性质</th></tr>
+<tr class="fake"><td>无闸口 baseline(原口径, 无视涨停)</td><td>390,041</td>
+<td>+290.04%</td><td>2.365</td><td>38.83%</td>
+<td>0</td><td>❌ 虚假(买买不进的涨停板)</td></tr>
+<tr class="fake"><td>MA60开门 baseline(原口径)</td><td>422,641</td>
+<td>+322.64%</td><td>2.894</td><td>36.54%</td>
+<td>0</td><td>❌ 虚假</td></tr>
+<tr><td>MA60开门 skip(封板该槽空置)</td><td>104,855</td>
+<td>+4.85%</td><td>0.528</td><td>7.62%</td>
+<td>169</td><td>基本空仓, 极少交易</td></tr>
+<tr class="real"><td>MA60开门 next(顺延非封板候选)</td><td>96,908</td>
+<td>-3.09%</td><td>0.023</td><td>17.84%</td>
+<td>0</td><td>✅ 现实能买到(次强龙头)</td></tr>
+</table>
+<p class="note" style="margin-top:10px">
+<b>skip(封板就空着该槽)</b>: 收益从 +322.6% 暴跌到 <b>+4.8%</b>——因为 95% 的候选都封板, 你几乎天天空仓, 只在少数非封板日勉强交易。<br>
+<b>next(顺延到没封板的次强龙头)</b>: 反而 <b>-3.1%</b>——能买到的"非封板候选"其实是相对弱势股, 真正的 α 恰好在那些你买不到的封板龙头里。<br>
+<b>结论: 龙头策略的 alpha 几乎完全建立在"买到涨停板"上, 而涨停板买不到。真实可执行的收益趋近于零。</b></p>
+</div>
+
+<div class="card">
+<h2>三、文字逻辑 · 请你核对</h2>
+<p class="note">
+<span class="tag">逻辑链</span>
+<ol style="margin:8px 0 0 18px;line-height:1.9">
+<li><b>选股目标=当日涨幅最强</b>。龙头策略 topn_leaders 按 day_ret(当日涨幅)降序取前 N 名。涨幅最强 ⇔ 当天已大涨 → 自然逼近涨停。</li>
+<li><b>14:45 选股时, 涨停板已封死</b>。A股涨停板一旦封单, 14:45 之后散户几乎无法成交(排队轮不到)。我们用"收盘封板(收盘≈最高且达涨停线)"作为代理——收盘封说明尾盘已封, 14:45 基本买不进。这是日线数据下最宽松的"买不进"定义, 实际比例只会更高(部分票 14:45 已封、尾盘未开)。</li>
+<li><b>原回测未检查此约束</b>。harness_c_ma60 等用 <code>entry_fill = close*(1+SLIP)</code> 直接按收盘价成交, 等于假设能买到涨停板 → 收益虚假高估。</li>
+<li><b>修正后收益崩塌</b>。skip 模式(封板空置)只剩 +4.8%(几乎没交易); next 模式(改买次强非封板)反而 -3.1%。说明 alpha 在"买不到的封板龙头"里。</li>
+</ol>
+<b>请你重点检查以下逻辑漏洞:</b>
+<ul style="margin:6px 0 0 18px;line-height1.9">
+<li>① <b>涨停判定口径</b>: 我用"收盘涨停封板"代理 14:45 状态。若你有分钟级数据, 可改用"14:45 实时价是否已达涨停且封单"精确判定, 结论可能更严苛(买不进比例更高)。</li>
+<li>② <b>板块涨停幅度</b>: 我按代码前缀(30/688=20%, 其余=10%)区分, 未处理 ST(5%)与北交所(30%)。样本里龙头多为热门行业主板/双创, 影响极小, 但需知此近似。</li>
+<li>③ <b>"顺延次强"是否现实</b>: next 模式假设 14:45 你能识别封板并改选次强非封板龙头。现实中可行(看实时涨幅), 但日线回测用收盘判定, 已是最乐观假设; 即便如此仍 -3.1%, 说明策略本身在现实约束下不赚钱。</li>
+<li>④ <b>前视偏差再确认</b>: 原回测用"当日涨幅"排序选股, 而当日涨幅要收盘才知道。严格说 14:45 选股应基于"14:45 实时涨幅", 但这只会让"选出的票更可能是涨停"——不改变"买不进"结论, 反而加强。</li>
+</ul>
+</p>
+</div>
+
+<div class="card">
+<h2>四、逐笔样例 · 涨停跳过(skip版, 看哪些买不进)</h2>
+<table><thead><tr><th>序号</th><th>日期</th><th>动作</th><th>槽</th><th>代码</th><th>行业</th>
+<th>成交价</th><th>股数</th><th>成交额</th><th>收益%</th><th>盈亏元</th><th>账户净值</th>
+<th>大盘MA60</th><th>备注</th></tr></thead><tbody><tr class="limit"><td>1</td><td>2025-07-01</td><td class="act">涨停跳过</td><td>1</td><td>2940</td><td>创新药</td><td>40.601</td><td>0</td><td>0.0</td><td></td><td></td><td>100,000</td><td>站上</td><td>涨停封板, 14:45买不进, 本槽空置</td></tr><tr class="limit"><td>2</td><td>2025-07-01</td><td class="act">涨停跳过</td><td>2</td><td>2165</td><td>环氧丙烷</td><td>10.11</td><td>0</td><td>0.0</td><td></td><td></td><td>100,000</td><td>站上</td><td>涨停封板, 14:45买不进, 本槽空置</td></tr><tr class="limit"><td>3</td><td>2025-07-01</td><td class="act">涨停跳过</td><td>3</td><td>2384</td><td>共封装光学(CPO)</td><td>41.55</td><td>0</td><td>0.0</td><td></td><td></td><td>100,000</td><td>站上</td><td>涨停封板, 14:45买不进, 本槽空置</td></tr><tr class="buy"><td>4</td><td>2025-07-04</td><td class="act">买入</td><td>1</td><td>2558</td><td>电子竞技</td><td>25.193</td><td>1300</td><td>32750.83</td><td></td><td></td><td>99,740</td><td>站上</td><td>持有至2025-07-09到期</td></tr><tr class="buy"><td>5</td><td>2025-07-04</td><td class="act">买入</td><td>2</td><td>2130</td><td>海峡两岸</td><td>24.504</td><td>1300</td><td>31855.82</td><td></td><td></td><td>99,487</td><td>站上</td><td>持有至2025-07-09到期</td></tr><tr class="buy"><td>6</td><td>2025-07-04</td><td class="act">买入</td><td>3</td><td>2555</td><td>电子竞技</td><td>18.227</td><td>1800</td><td>32807.98</td><td></td><td></td><td>99,227</td><td>站上</td><td>持有至2025-07-09到期</td></tr><tr class="sell"><td>7</td><td>2025-07-09</td><td class="act">卖出</td><td>1</td><td>2558</td><td>电子竞技</td><td>25.845</td><td>1300</td><td>33597.95</td><td>2.59%</td><td>847</td><td>135,771</td><td>站上</td><td>到期</td></tr><tr class="sell"><td>8</td><td>2025-07-09</td><td class="act">卖出</td><td>2</td><td>2130</td><td>海峡两岸</td><td>25.643</td><td>1300</td><td>33336.16</td><td>4.65%</td><td>1480</td><td>135,654</td><td>站上</td><td>到期</td></tr><tr class="sell"><td>9</td><td>2025-07-09</td><td class="act">卖出</td><td>3</td><td>2555</td><td>电子竞技</td><td>18.334</td><td>1800</td><td>33001.46</td><td>0.59%</td><td>193</td><td>135,789</td><td>站上</td><td>到期</td></tr><tr class="limit"><td>10</td><td>2025-07-09</td><td class="act">涨停跳过</td><td>1</td><td>514</td><td>物业管理</td><td>6.24</td><td>0</td><td>0.0</td><td></td><td></td><td>102,521</td><td>站上</td><td>涨停封板, 14:45买不进, 本槽空置</td></tr><tr class="limit"><td>11</td><td>2025-07-09</td><td class="act">涨停跳过</td><td>2</td><td>2269</td><td>三胎概念</td><td>2.09</td><td>0</td><td>0.0</td><td></td><td></td><td>102,521</td><td>站上</td><td>涨停封板, 14:45买不进, 本槽空置</td></tr><tr class="limit"><td>12</td><td>2025-07-09</td><td class="act">涨停跳过</td><td>3</td><td>2520</td><td>工业母机</td><td>7.41</td><td>0</td><td>0.0</td><td></td><td></td><td>102,521</td><td>站上</td><td>涨停封板, 14:45买不进, 本槽空置</td></tr><tr class="limit"><td>13</td><td>2025-07-14</td><td class="act">涨停跳过</td><td>1</td><td>2552</td><td>PCB概念</td><td>16.81</td><td>0</td><td>0.0</td><td></td><td></td><td>102,521</td><td>站上</td><td>涨停封板, 14:45买不进, 本槽空置</td></tr><tr class="limit"><td>14</td><td>2025-07-14</td><td class="act">涨停跳过</td><td>2</td><td>600173</td><td>金属铅</td><td>7.55</td><td>0</td><td>0.0</td><td></td><td></td><td>102,521</td><td>站上</td><td>涨停封板, 14:45买不进, 本槽空置</td></tr></tbody></table>
+</div>
+
+<div class="card">
+<h2>五、逐笔样例 · 现实可买(next版, 顺延非封板候选)</h2>
+<table><thead><tr><th>序号</th><th>日期</th><th>动作</th><th>槽</th><th>代码</th><th>行业</th>
+<th>成交价</th><th>股数</th><th>成交额</th><th>收益%</th><th>盈亏元</th><th>账户净值</th>
+<th>大盘MA60</th><th>备注</th></tr></thead><tbody><tr class="buy"><td>1</td><td>2025-07-01</td><td class="act">买入</td><td>1</td><td>2550</td><td>仿制药一致性评价</td><td>9.082</td><td>3600</td><td>32695.49</td><td></td><td></td><td>99,741</td><td>站上</td><td>持有至2025-07-04到期 [顺延非封板候选]</td></tr><tr class="buy"><td>2</td><td>2025-07-01</td><td class="act">买入</td><td>2</td><td>600105</td><td>共封装光学(CPO)</td><td>8.694</td><td>3800</td><td>33037.2</td><td></td><td></td><td>99,478</td><td>站上</td><td>持有至2025-07-04到期 [顺延非封板候选]</td></tr><tr class="buy"><td>3</td><td>2025-07-01</td><td class="act">买入</td><td>3</td><td>605599</td><td>高股息精选</td><td>17.569</td><td>1800</td><td>31624.99</td><td></td><td></td><td>99,227</td><td>站上</td><td>持有至2025-07-04到期 [顺延非封板候选]</td></tr><tr class="sell"><td>4</td><td>2025-07-04</td><td class="act">卖出</td><td>1</td><td>2550</td><td>仿制药一致性评价</td><td>9.126</td><td>3600</td><td>32855.04</td><td>0.49%</td><td>160</td><td>132,594</td><td>站上</td><td>到期</td></tr><tr class="sell"><td>5</td><td>2025-07-04</td><td class="act">卖出</td><td>2</td><td>600105</td><td>共封装光学(CPO)</td><td>8.625</td><td>3800</td><td>32776.67</td><td>-0.79%</td><td>-261</td><td>132,365</td><td>站上</td><td>到期</td></tr><tr class="sell"><td>6</td><td>2025-07-04</td><td class="act">卖出</td><td>3</td><td>605599</td><td>高股息精选</td><td>16.636</td><td>1800</td><td>29944.51</td><td>-5.31%</td><td>-1680</td><td>128,405</td><td>站上</td><td>到期</td></tr><tr class="buy"><td>7</td><td>2025-07-04</td><td class="act">买入</td><td>1</td><td>2558</td><td>电子竞技</td><td>25.193</td><td>1300</td><td>32750.83</td><td></td><td></td><td>97,959</td><td>站上</td><td>持有至2025-07-09到期 [顺延非封板候选]</td></tr><tr class="buy"><td>8</td><td>2025-07-04</td><td class="act">买入</td><td>2</td><td>2130</td><td>海峡两岸</td><td>24.504</td><td>1300</td><td>31855.82</td><td></td><td></td><td>97,706</td><td>站上</td><td>持有至2025-07-09到期 [顺延非封板候选]</td></tr><tr class="buy"><td>9</td><td>2025-07-04</td><td class="act">买入</td><td>3</td><td>2555</td><td>电子竞技</td><td>18.227</td><td>1700</td><td>30985.32</td><td></td><td></td><td>97,460</td><td>站上</td><td>持有至2025-07-09到期 [顺延非封板候选]</td></tr><tr class="sell"><td>10</td><td>2025-07-09</td><td class="act">卖出</td><td>1</td><td>2558</td><td>电子竞技</td><td>25.845</td><td>1300</td><td>33597.95</td><td>2.59%</td><td>847</td><td>134,005</td><td>站上</td><td>到期</td></tr><tr class="sell"><td>11</td><td>2025-07-09</td><td class="act">卖出</td><td>2</td><td>2130</td><td>海峡两岸</td><td>25.643</td><td>1300</td><td>33336.16</td><td>4.65%</td><td>1480</td><td>133,888</td><td>站上</td><td>到期</td></tr><tr class="sell"><td>12</td><td>2025-07-09</td><td class="act">卖出</td><td>3</td><td>2555</td><td>电子竞技</td><td>18.334</td><td>1700</td><td>31168.04</td><td>0.59%</td><td>183</td><td>132,148</td><td>站上</td><td>到期</td></tr><tr class="buy"><td>13</td><td>2025-07-09</td><td class="act">买入</td><td>1</td><td>2384</td><td>共封装光学(CPO)</td><td>46.791</td><td>700</td><td>32753.95</td><td></td><td></td><td>100,469</td><td>站上</td><td>持有至2025-07-14到期 [顺延非封板候选]</td></tr><tr class="buy"><td>14</td><td>2025-07-09</td><td class="act">买入</td><td>2</td><td>1267</td><td>共封装光学(CPO)</td><td>11.894</td><td>2900</td><td>34493.76</td><td></td><td></td><td>100,195</td><td>站上</td><td>持有至2025-07-14到期 [顺延非封板候选]</td></tr></tbody></table>
+<p class="note" style="margin-top:10px">完整逐笔见 <code>c_tradelog_N3_hold3_ma60_limitup_skip.csv</code>(被跳过的封板票)
+与 <code>c_tradelog_N3_hold3_ma60_limitup_next.csv</code>(现实能买到的次强龙头)。</p>
+</div>
+
+<div class="card">
+<h2>六、结论与可行方向</h2>
+<p class="note">
+<b>结论</b>: 龙头策略(14:45 选当日涨幅最强、持3天)在"收盘价能买进"假设下有 +183%~+322% 收益, 但这是虚假的——
+95% 的候选票涨停封板、买不进。真实可执行的收益趋近于零(next 模式 -3.1%)。
+此前报告里"龙头 + MA60 最优"的结论因此需打折扣, 它衡量的是"如果能买到涨停板会怎样", 而非"实盘能赚多少"。<br><br>
+<b>若想在实盘落地, 可考虑的方向(需另行回测):</b>
+<ul style="margin:6px 0 0 18px;line-height:1.9">
+<li>(a) <b>改选"强但未封板"的票</b>: 在热门行业里挑当日涨幅第 N 名之后、未触及涨停的强势股(主动避开流动性陷阱), 本质是另一套选股逻辑, 需重新验证 alpha。</li>
+<li>(b) <b>T+1 开盘追入</b>: 当日涨停买不进, 次日开盘挂单追。但次日常高开低走, 且改变了"持3天"的计时起点, 需重测。</li>
+<li>(c) <b>盘前/早盘选股</b>: 用早盘(如 10:00)涨幅与板块强度提前布局, 避开尾盘涨停封板, 但引入盘中波动与前视新问题。</li>
+<li>(d) <b>回归多因子动量框架</b>: 原动量策略(套牢盘过滤+自适应止盈止损)本就分散选股、不专挑涨停, 流动性陷阱小得多——结合此前"动量加 MA60 反而更差"的结论, 动量策略或许比"纯龙头"更贴近实盘。</li>
+</ul>
+</p>
+</div>
+</div></body></html>

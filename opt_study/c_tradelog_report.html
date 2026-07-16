@@ -1,0 +1,80 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>C方案逐笔操作记录 · 10万本金</title>
+<style>
+*{box-sizing:border-box} body{font-family:-apple-system,"PingFang SC",Segoe UI,sans-serif;
+background:#f5f7fa;color:#222;margin:0;padding:28px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px} .sub{color:#667;font-size:13px;margin-bottom:20px}
+.card{background:#fff;border-radius:12px;padding:20px 22px;margin-bottom:18px;
+box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h2{font-size:16px;margin:0 0 12px;color:#1a4}
+.kpi{display:flex;gap:12px;flex-wrap:wrap}
+.kpi div{flex:1;min-width:120px;background:#f0f6ff;border-radius:8px;padding:12px 14px}
+.kpi b{display:block;font-size:20px;color:#156} .kpi span{font-size:12px;color:#667}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:6px 8px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap}
+th{background:#fafbfc;color:#555;position:sticky;top:0;font-weight:600}
+td:nth-child(2),td:nth-child(5),td:nth-child(6),td:nth-child(13){text-align:left}
+.act{font-weight:700} tr.buy .act{color:#c0392b} tr.sell .act{color:#27ae60}
+.note{font-size:13px;line-height:1.7;color:#444}
+.note code{background:#eef;padding:1px 5px;border-radius:4px}
+.tag{display:inline-block;background:#e8f5e9;color:#1b7;padding:2px 10px;border-radius:20px;font-size:12px;margin-right:8px}
+</style></head><body><div class="wrap">
+<h1>C 方案(热门行业龙头 · 无择时)逐笔操作记录</h1>
+<div class="sub">初始资金 ¥100,000 · 3 个独立仓位槽 · 无止损止盈 · 仅持有 3 个交易日到期离场 ·
+回测区间 2024-06-03 ~ 2026-07-14(最后 250 交易日)</div>
+
+<div class="card">
+<h2>一、三个槽位的 3 只股票,是同一行业吗?</h2>
+<p class="note">结论:<b>基本不是同一行业,而是天然跨行业分散</b>。</p>
+<p class="note">选股函数 <code>topn_leaders</code> 的逻辑是:在<b>所有热门行业</b>里,按当日涨幅取前 3 名,
+对"同一行业最多几只"没有任何限制。与多因子 A 方案(用 <code>max_sector</code> 显式限制每行业上限)不同,
+C 方案没有行业上限。但实际统计 84 个信号日:</p>
+<p class="note"><span class="tag">三只同行业 仅 2 天</span>
+<span class="tag">跨行业 82 天</span>
+——绝大多数交易日,涨幅前三的龙头恰好落在不同热门行业,所以 N=3 天然起到了分散作用;只有极个别日子会撞到同行业。</p>
+</div>
+
+<div class="card">
+<h2>二、没有止损止盈,什么时候卖?什么时候能买?</h2>
+<p class="note">本方案中<b>唯一的卖出条件 = 持有满 3 个交易日(按个股自身交易日算)</b>,到期当日以收盘价(减卖滑点)离场,标记"到期"。
+没有任何止盈、也没有止损,是纯粹的"买入—持有—轮动"。</p>
+<p class="note"><b>买入条件:</b>每 3 个交易日是一个"信号日"。3 个仓位槽各自独立运作——
+只有当某个槽位<b>当前为空仓</b>(上一笔已卖出、现金已回笼)时,才在该信号日买入"热门行业龙头中第 k 名"
+(槽1买涨幅第1,槽2买第2,槽3买第3)。</p>
+<p class="note">因为持仓期正好 = 调仓间隔,所以节奏是干净的:信号日当天先检查到期卖出(释放槽位与现金),
+随即同一日买入下一批龙头,<b>卖出回笼的现金当天即可用于下一笔买入</b>,槽位之间互不影响、互不挤占。</p>
+</div>
+
+<div class="card">
+<h2>三、10 万本金 · 收益汇总</h2>
+<div class="kpi">
+<div><b>¥316,730</b><span>hold=3 期末净值(起点¥100,000)</span></div>
+<div><b>216.7%</b><span>hold=3 总收益</span></div>
+<div><b>48.4%</b><span>hold=3 胜率(250笔)</span></div>
+<div><b>2.10</b><span>hold=3 夏普</span></div>
+<div><b>30.7%</b><span>hold=3 最大回撤</span></div>
+</div>
+<table style="margin-top:14px"><tr><th>参数</th><th>期末净值</th><th>总收益</th><th>年化</th>
+<th>夏普</th><th>胜率</th><th>最大回撤</th><th>交易笔数</th></tr>
+<tr><td>持有3天(推荐)</td><td>316,730</td><td>216.73%</td>
+<td>215.29%</td><td>2.10</td><td>48.40%</td>
+<td>30.69%</td><td>250</td></tr>
+<tr><td>持有5天</td><td>108,281</td><td>8.28%</td>
+<td>8.18%</td><td>0.42</td><td>41.22%</td>
+<td>44.99%</td><td>148</td></tr></table>
+<p class="note" style="margin-top:10px">注:与上一轮"无止损最优 +283%"略有差异(这里 +216.73%),
+原因是本表新增了 <b>A 股整手约束(买入股数向下取整到 100 股)</b>,会滞留少量零股现金,产生轻微摩擦。
+模型其余完全一致(买/卖滑点 0.8%,无独立佣金)。实盘还应额外计入佣金(约万2.5)与卖出印花税(千0.5)。</p>
+</div>
+
+<div class="card">
+<h2>四、逐笔操作记录(前 40 条样例 · 完整 500 条见 CSV)</h2>
+<table><thead><tr><th>序号</th><th>日期</th><th>动作</th><th>槽</th><th>代码</th>
+<th>行业</th><th>成交价</th><th>股数</th><th>成交额</th><th>收益%</th><th>盈亏元</th>
+<th>账户净值</th><th>备注</th></tr></thead><tbody><tr class="buy"><td>1</td><td>2025-06-30</td><td class="act">买入</td><td>1</td><td>2263</td><td>PET铜箔</td><td>4.163</td><td>8,000</td><td>33,304</td><td></td><td></td><td>99,736</td><td>持有至2025-07-03到期</td></tr><tr class="buy"><td>2</td><td>2025-06-30</td><td class="act">买入</td><td>2</td><td>605389</td><td>减速器</td><td>43.989</td><td>700</td><td>30,792</td><td></td><td></td><td>99,491</td><td>持有至2025-07-03到期</td></tr><tr class="buy"><td>3</td><td>2025-06-30</td><td class="act">买入</td><td>3</td><td>2558</td><td>电子竞技</td><td>23.59</td><td>1,400</td><td>33,026</td><td></td><td></td><td>99,229</td><td>持有至2025-07-03到期</td></tr><tr class="sell"><td>4</td><td>2025-07-03</td><td class="act">卖出</td><td>1</td><td>2263</td><td>PET铜箔</td><td>4.276</td><td>8,000</td><td>34,204</td><td>2.70%</td><td>900</td><td>133,263</td><td>到期</td></tr><tr class="sell"><td>5</td><td>2025-07-03</td><td class="act">卖出</td><td>2</td><td>605389</td><td>减速器</td><td>37.488</td><td>700</td><td>26,241</td><td>-14.78%</td><td>-4551</td><td>122,050</td><td>到期</td></tr><tr class="sell"><td>6</td><td>2025-07-03</td><td class="act">卖出</td><td>3</td><td>2558</td><td>电子竞技</td><td>22.72</td><td>1,400</td><td>31,808</td><td>-3.69%</td><td>-1219</td><td>127,194</td><td>到期</td></tr><tr class="buy"><td>7</td><td>2025-07-03</td><td class="act">买入</td><td>1</td><td>600601</td><td>PCB概念</td><td>5.635</td><td>6,000</td><td>33,808</td><td></td><td></td><td>94,862</td><td>持有至2025-07-08到期</td></tr><tr class="buy"><td>8</td><td>2025-07-03</td><td class="act">买入</td><td>2</td><td>2636</td><td>PCB概念</td><td>10.392</td><td>2,700</td><td>28,060</td><td></td><td></td><td>94,639</td><td>持有至2025-07-08到期</td></tr><tr class="buy"><td>9</td><td>2025-07-03</td><td class="act">买入</td><td>3</td><td>2938</td><td>同花顺果指数</td><td>36.026</td><td>800</td><td>28,821</td><td></td><td></td><td>94,410</td><td>持有至2025-07-08到期</td></tr><tr class="sell"><td>10</td><td>2025-07-08</td><td class="act">卖出</td><td>1</td><td>600601</td><td>PCB概念</td><td>5.734</td><td>6,000</td><td>34,403</td><td>1.76%</td><td>594</td><td>137,121</td><td>到期</td></tr><tr class="sell"><td>11</td><td>2025-07-08</td><td class="act">卖出</td><td>2</td><td>2636</td><td>PCB概念</td><td>13.61</td><td>2,700</td><td>36,748</td><td>30.96%</td><td>8688</td><td>142,564</td><td>到期</td></tr><tr class="sell"><td>12</td><td>2025-07-08</td><td class="act">卖出</td><td>3</td><td>2938</td><td>同花顺果指数</td><td>38.986</td><td>800</td><td>31,188</td><td>8.22%</td><td>2368</td><td>138,220</td><td>到期</td></tr><tr class="buy"><td>13</td><td>2025-07-08</td><td class="act">买入</td><td>1</td><td>2552</td><td>PCB概念</td><td>16.229</td><td>2,100</td><td>34,080</td><td></td><td></td><td>106,510</td><td>持有至2025-07-11到期</td></tr><tr class="buy"><td>14</td><td>2025-07-08</td><td class="act">买入</td><td>2</td><td>617</td><td>信托概念</td><td>8.664</td><td>4,300</td><td>37,254</td><td></td><td></td><td>106,214</td><td>持有至2025-07-11到期</td></tr><tr class="buy"><td>15</td><td>2025-07-08</td><td class="act">买入</td><td>3</td><td>2636</td><td>PCB概念</td><td>13.83</td><td>2,400</td><td>33,191</td><td></td><td></td><td>105,951</td><td>持有至2025-07-11到期</td></tr><tr class="sell"><td>16</td><td>2025-07-11</td><td class="act">卖出</td><td>1</td><td>2552</td><td>PCB概念</td><td>15.138</td><td>2,100</td><td>31,790</td><td>-6.72%</td><td>-2291</td><td>143,063</td><td>到期</td></tr><tr class="sell"><td>17</td><td>2025-07-11</td><td class="act">卖出</td><td>2</td><td>617</td><td>信托概念</td><td>9.528</td><td>4,300</td><td>40,971</td><td>9.98%</td><td>3717</td><td>152,676</td><td>到期</td></tr><tr class="sell"><td>18</td><td>2025-07-11</td><td class="act">卖出</td><td>3</td><td>2636</td><td>PCB概念</td><td>13.531</td><td>2,400</td><td>32,474</td><td>-2.16%</td><td>-717</td><td>140,225</td><td>到期</td></tr><tr class="buy"><td>19</td><td>2025-07-11</td><td class="act">买入</td><td>1</td><td>605389</td><td>减速器</td><td>41.943</td><td>700</td><td>29,360</td><td></td><td></td><td>107,256</td><td>持有至2025-07-16到期</td></tr><tr class="buy"><td>20</td><td>2025-07-11</td><td class="act">买入</td><td>2</td><td>2896</td><td>减速器</td><td>61.932</td><td>600</td><td>37,159</td><td></td><td></td><td>106,961</td><td>持有至2025-07-16到期</td></tr><tr class="buy"><td>21</td><td>2025-07-11</td><td class="act">买入</td><td>3</td><td>2645</td><td>稀土永磁</td><td>10.534</td><td>3,200</td><td>33,708</td><td></td><td></td><td>106,693</td><td>持有至2025-07-16到期</td></tr><tr class="sell"><td>22</td><td>2025-07-16</td><td class="act">卖出</td><td>1</td><td>605389</td><td>减速器</td><td>38.46</td><td>700</td><td>26,922</td><td>-8.30%</td><td>-2438</td><td>142,483</td><td>到期</td></tr><tr class="sell"><td>23</td><td>2025-07-16</td><td class="act">卖出</td><td>2</td><td>2896</td><td>减速器</td><td>70.333</td><td>600</td><td>42,200</td><td>13.57%</td><td>5041</td><td>159,404</td><td>到期</td></tr><tr class="sell"><td>24</td><td>2025-07-16</td><td class="act">卖出</td><td>3</td><td>2645</td><td>稀土永磁</td><td>13.809</td><td>3,200</td><td>44,188</td><td>31.09%</td><td>10480</td><td>165,116</td><td>到期</td></tr><tr class="buy"><td>25</td><td>2025-07-16</td><td class="act">买入</td><td>1</td><td>2755</td><td>创新药</td><td>24.021</td><td>1,200</td><td>28,825</td><td></td><td></td><td>120,343</td><td>持有至2025-07-21到期</td></tr><tr class="buy"><td>26</td><td>2025-07-16</td><td class="act">买入</td><td>2</td><td>2017</td><td>数字货币</td><td>18.386</td><td>2,500</td><td>45,965</td><td></td><td></td><td>119,978</td><td>持有至2025-07-21到期</td></tr><tr class="buy"><td>27</td><td>2025-07-16</td><td class="act">买入</td><td>3</td><td>513</td><td>生物疫苗</td><td>42.81</td><td>1,000</td><td>42,810</td><td></td><td></td><td>119,638</td><td>持有至2025-07-21到期</td></tr><tr class="sell"><td>28</td><td>2025-07-21</td><td class="act">卖出</td><td>1</td><td>2755</td><td>创新药</td><td>26.784</td><td>1,200</td><td>32,141</td><td>11.50%</td><td>3316</td><td>155,253</td><td>到期</td></tr><tr class="sell"><td>29</td><td>2025-07-21</td><td class="act">卖出</td><td>2</td><td>2017</td><td>数字货币</td><td>20.167</td><td>2,500</td><td>50,418</td><td>9.69%</td><td>4454</td><td>177,897</td><td>到期</td></tr><tr class="sell"><td>30</td><td>2025-07-21</td><td class="act">卖出</td><td>3</td><td>513</td><td>生物疫苗</td><td>40.464</td><td>1,000</td><td>40,464</td><td>-5.48%</td><td>-2346</td><td>166,785</td><td>到期</td></tr><tr class="buy"><td>31</td><td>2025-07-21</td><td class="act">买入</td><td>1</td><td>400</td><td>电力物联网</td><td>23.861</td><td>1,400</td><td>33,406</td><td></td><td></td><td>125,730</td><td>持有至2025-07-24到期</td></tr><tr class="buy"><td>32</td><td>2025-07-21</td><td class="act">买入</td><td>2</td><td>2080</td><td>PCB概念</td><td>28.668</td><td>1,700</td><td>48,735</td><td></td><td></td><td>125,343</td><td>持有至2025-07-24到期</td></tr><tr class="buy"><td>33</td><td>2025-07-21</td><td class="act">买入</td><td>3</td><td>2896</td><td>减速器</td><td>88.986</td><td>400</td><td>35,594</td><td></td><td></td><td>125,061</td><td>持有至2025-07-24到期</td></tr><tr class="sell"><td>34</td><td>2025-07-24</td><td class="act">卖出</td><td>1</td><td>400</td><td>电力物联网</td><td>23.135</td><td>1,400</td><td>32,390</td><td>-3.04%</td><td>-1016</td><td>154,324</td><td>到期</td></tr><tr class="sell"><td>35</td><td>2025-07-24</td><td class="act">卖出</td><td>2</td><td>2080</td><td>PCB概念</td><td>28.034</td><td>1,700</td><td>47,658</td><td>-2.21%</td><td>-1077</td><td>170,113</td><td>到期</td></tr><tr class="sell"><td>36</td><td>2025-07-24</td><td class="act">卖出</td><td>3</td><td>2896</td><td>减速器</td><td>83.001</td><td>400</td><td>33,200</td><td>-6.73%</td><td>-2394</td><td>154,976</td><td>到期</td></tr><tr class="buy"><td>37</td><td>2025-07-24</td><td class="act">买入</td><td>1</td><td>572</td><td>海南自贸区</td><td>4.959</td><td>6,500</td><td>32,236</td><td></td><td></td><td>121,252</td><td>持有至2025-07-29到期</td></tr><tr class="buy"><td>38</td><td>2025-07-24</td><td class="act">买入</td><td>2</td><td>600010</td><td>稀土永磁</td><td>2.54</td><td>19,500</td><td>49,533</td><td></td><td></td><td>120,859</td><td>持有至2025-07-29到期</td></tr><tr class="buy"><td>39</td><td>2025-07-24</td><td class="act">买入</td><td>3</td><td>2240</td><td>盐湖提锂</td><td>16.027</td><td>2,400</td><td>38,465</td><td></td><td></td><td>120,553</td><td>持有至2025-07-29到期</td></tr><tr class="sell"><td>40</td><td>2025-07-29</td><td class="act">卖出</td><td>1</td><td>572</td><td>海南自贸区</td><td>4.464</td><td>6,500</td><td>29,016</td><td>-9.99%</td><td>-3220</td><td>147,463</td><td>到期</td></tr></tbody></table>
+<p class="note" style="margin-top:10px">完整记录见附件 <code>c_tradelog_N3_hold3.csv</code>(持有3天,共 500 条)
+与 <code>c_tradelog_N3_hold5.csv</code>(持有5天)。可用 Excel 打开,按"槽位/行业/日期"筛选复盘。</p>
+</div>
+</div></body></html>

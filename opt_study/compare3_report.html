@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三策略回测对比报告</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1a1d24;--sub:#5b6270;--line:#e6e8ec;
+--up:#e03131;--down:#2f9e44;--accent:#1c7ed6;--gold:#f08c00;--hl:#fff4e6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;line-height:1.6}
+.wrap{max-width:1000px;margin:0 auto;padding:30px 18px 60px}
+header h1{font-size:23px;margin:0 0 6px}
+header .sub{color:var(--sub);font-size:14px}
+.meta-bar{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:12px;color:var(--sub)}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:16px 0;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+h2{font-size:18px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:4px;height:18px;background:var(--accent);border-radius:2px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--line)}
+th{font-size:11.5px;color:var(--sub);font-weight:600;background:#fafbfc}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:var(--up)}.down{color:var(--down)}
+.badge-win{background:var(--up);color:#fff;font-size:9.5px;padding:1px 6px;border-radius:6px;margin-left:4px}
+tr.grp td{background:#f3f5f8;font-size:13px;padding:6px 9px}
+.callout{background:var(--hl);border:1px solid #ffe0b2;border-radius:10px;padding:13px 15px;margin:12px 0;font-size:13.5px}
+.callout b{color:var(--gold)}
+.callout2{background:#f1f8ff;border:1px solid #c5ddf7;border-radius:10px;padding:13px 15px;margin:12px 0;font-size:13.5px}
+.note{color:var(--sub);font-size:12.5px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi .lab{font-size:12px;color:var(--sub)}.kpi .val{font-size:21px;font-weight:700;margin-top:2px}
+.kpi .val.up{color:var(--up)}.kpi .val.down{color:var(--down)}
+.foot{color:var(--sub);font-size:12px;text-align:center;margin-top:22px}
+@media(max-width:680px){.kpis{grid-template-columns:1fr}}
+</style></head>
+<body><div class="wrap">
+<header><h1>三策略回测对比:1/2/3 只股 · 胜率与收益</h1>
+<div class="sub">A 多因子框架+热门闸口+择时 · B 龙头+择时(破MA20空仓) · C 龙头(无择时) — 热门行业按板块资金净流入排名</div>
+<div class="meta-bar">
+<span class="chip">区间 2024-06-03~2026-07-14</span>
+<span class="chip">股票 3113 只</span>
+<span class="chip">窗口 [0, 20, 40, 60]</span>
+<span class="chip">滑点 0.8%(双边)</span>
+<span class="chip">热门 top_k=8</span>
+</div></header>
+
+<section>
+<h2>核心结论</h2>
+<div class="callout2"><b>① 胜率冠军 = 策略 A(多因子框架+热门闸口+择时)</b><br>
+胜率 <b class="up">57.5%</b>(N=2, 持有5天), 8窗口均值胜率全部 54–57%, 远超龙头法的 38–51%。
+回撤仅 <b>13.7%</b>(全配置最低), 收益为正(+6.8%~+14.0%)。这是"想赢更多次、且风险可控"的最优解。</div>
+<div class="callout"><b>② 收益冠军 = 策略 C(龙头无择时, 持有3天, N=3)</b><br>
+收益 <b class="up">+244%</b>、夏普 2.11、胜率 51.3%、回撤 22.4%。
+但代价是 <b>252 笔高频交易</b> 且为<b>无止损买&持有</b>(N=1 时回撤高达 56%)。属于"高收益、胜率仅五成、需强风控"的打法。</div>
+<div class="callout2" style="background:#fde8e8;border-color:#f5b5b5"><b>③ 策略 B(龙头+择时)被双向压制 — 不推荐</b><br>
+加 MA20 择时闸口后, 龙头的胜率没超过 A(仍 38–51%), 收益却被砍到只有 C 的一半左右
+(C N=3 h=3 收益 +244% → B 同配置 +128%)。
+原因: 龙头是短动量, 日级 MA20 太粗, 闸口频繁误杀好买点(震仓)。
+<b>择时闸口对"持5天的框架(A)"有用, 对"持3天的龙头"反而添乱。</b></div>
+<div class="kpis">
+<div class="kpi"><div class="lab">最高胜率 (A)</div><div class="val up">57.5%</div><div class="note">多因子+热门闸口+择时 N=2 h=5</div></div>
+<div class="kpi"><div class="lab">最高收益 (C)</div><div class="val up">+244%</div><div class="note">龙头(无择时) N=3 h=3</div></div>
+<div class="kpi"><div class="lab">最低回撤 (A)</div><div class="val">13.7%</div><div class="note">框架+闸口+择时 全N一致</div></div>
+</div>
+</section>
+
+<section>
+<h2>全部配置一览(8窗口均值)</h2>
+<table><thead><tr><th>策略</th><th class='num'>N(只)</th><th class='num'>持有</th><th class='num'>均收益</th><th class='num'>均胜率</th><th class='num'>均夏普</th><th class='num'>均回撤</th><th class='num'>均交易</th></tr></thead><tbody><tr class='grp'><td colspan='8'><b>A 多因子+热门闸口+择时</b></td></tr><tr><td class="num ">—</td><td class="num ">1</td><td class="num ">5天</td><td class="num up">+14.02%</td><td class="num up">55.36%</td><td class="num ">0.80</td><td class="num ">13.72%</td><td class="num ">13.5</td></tr><tr><td class="num ">—</td><td class="num ">2</td><td class="num ">5天</td><td class="num up">+9.31%</td><td class="num up">57.45%</td><span class="badge-win">最佳</span><td class="num ">0.59</td><td class="num ">13.72%</td><td class="num ">16.5</td></tr><tr><td class="num ">—</td><td class="num ">3</td><td class="num ">5天</td><td class="num up">+6.83%</td><td class="num up">54.17%</td><td class="num ">0.45</td><td class="num ">13.72%</td><td class="num ">17.5</td></tr><tr class='grp'><td colspan='8'><b>B 龙头+择时(破MA20空仓)</b></td></tr><tr><td class="num ">—</td><td class="num ">1</td><td class="num ">3天</td><td class="num up">+28.67%</td><td class="num up">44.99%</td><td class="num ">0.62</td><td class="num down">50.84%</td><td class="num ">60.2</td></tr><tr><td class="num ">—</td><td class="num ">1</td><td class="num ">5天</td><td class="num down">-11.54%</td><td class="num up">38.44%</td><td class="num ">0.22</td><td class="num down">54.64%</td><td class="num ">34.5</td></tr><tr><td class="num ">—</td><td class="num ">2</td><td class="num ">3天</td><td class="num up">+66.98%</td><td class="num up">48.48%</td><td class="num ">0.94</td><td class="num down">37.30%</td><td class="num ">120.5</td></tr><tr><td class="num ">—</td><td class="num ">2</td><td class="num ">5天</td><td class="num down">-29.61%</td><td class="num up">40.20%</td><td class="num ">-0.22</td><td class="num down">49.25%</td><td class="num ">69.0</td></tr><tr><td class="num ">—</td><td class="num ">3</td><td class="num ">3天</td><td class="num up">+128.23%</td><td class="num up">51.31%</td><td class="num ">1.70</td><td class="num ">23.95%</td><td class="num ">180.8</td></tr><tr><td class="num ">—</td><td class="num ">3</td><td class="num ">5天</td><td class="num up">+15.02%</td><td class="num up">39.83%</td><td class="num ">0.49</td><td class="num down">35.88%</td><td class="num ">103.5</td></tr><tr class='grp'><td colspan='8'><b>C 龙头(无择时)</b></td></tr><tr><td class="num ">—</td><td class="num ">1</td><td class="num ">3天</td><td class="num up">+125.25%</td><td class="num up">47.45%</td><td class="num ">1.19</td><td class="num down">56.17%</td><td class="num ">83.8</td></tr><tr><td class="num ">—</td><td class="num ">1</td><td class="num ">5天</td><td class="num up">+19.92%</td><td class="num up">41.00%</td><td class="num ">0.63</td><td class="num down">59.87%</td><td class="num ">50.0</td></tr><tr><td class="num ">—</td><td class="num ">2</td><td class="num ">3天</td><td class="num up">+159.40%</td><td class="num up">49.24%</td><td class="num ">1.47</td><td class="num down">39.45%</td><td class="num ">167.5</td></tr><tr><td class="num ">—</td><td class="num ">2</td><td class="num ">5天</td><td class="num up">+6.25%</td><td class="num up">42.75%</td><td class="num ">0.41</td><td class="num down">45.45%</td><td class="num ">100.0</td></tr><tr><td class="num ">—</td><td class="num ">3</td><td class="num ">3天</td><td class="num up">+243.66%</td><span class="badge-win">最佳</span><td class="num up">51.28%</td><td class="num ">2.11</td><td class="num ">22.35%</td><td class="num ">251.5</td></tr><tr><td class="num ">—</td><td class="num ">3</td><td class="num ">5天</td><td class="num up">+47.12%</td><td class="num up">42.50%</td><td class="num ">0.88</td><td class="num down">38.60%</td><td class="num ">150.0</td></tr></tbody></table>
+<p class="note">红=A(框架) · 橙=B(龙头+择时) · 蓝=C(龙头)。持有栏 "h=5/3" 为持有天数。龙头法含 5天与3天两档(3天为其优势区间)。</p>
+</section>
+
+<section>
+<h2>胜率对比</h2>
+<svg viewBox="0 0 860 270" width="100%" style="max-width:860px" xmlns="http://www.w3.org/2000/svg">
+<line x1="48" y1="200.0" x2="844" y2="200.0" stroke="#eef0f3"/>
+<text x="42" y="204.0" text-anchor="end" font-size="11" fill="#8b93a1">0%</text>
+<line x1="48" y1="163.6" x2="844" y2="163.6" stroke="#eef0f3"/>
+<text x="42" y="167.6" text-anchor="end" font-size="11" fill="#8b93a1">12%</text>
+<line x1="48" y1="127.2" x2="844" y2="127.2" stroke="#eef0f3"/>
+<text x="42" y="131.2" text-anchor="end" font-size="11" fill="#8b93a1">24%</text>
+<line x1="48" y1="90.8" x2="844" y2="90.8" stroke="#eef0f3"/>
+<text x="42" y="94.8" text-anchor="end" font-size="11" fill="#8b93a1">36%</text>
+<line x1="48" y1="54.4" x2="844" y2="54.4" stroke="#eef0f3"/>
+<text x="42" y="58.4" text-anchor="end" font-size="11" fill="#8b93a1">48%</text>
+<line x1="48" y1="18.0" x2="844" y2="18.0" stroke="#eef0f3"/>
+<text x="42" y="22.0" text-anchor="end" font-size="11" fill="#8b93a1">60%</text>
+<rect x="58.1" y="32.1" width="32.9" height="167.9" rx="3" fill="#e03131"/>
+<text x="74.5" y="27.1" text-anchor="middle" font-size="11.5" font-weight="700" fill="#e03131">55.4</text>
+<text x="74.5" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">A框架</text>
+<text x="74.5" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=1 h=5</text>
+<rect x="111.1" y="25.7" width="32.9" height="174.3" rx="3" fill="#e03131"/>
+<text x="127.6" y="20.7" text-anchor="middle" font-size="11.5" font-weight="700" fill="#e03131">57.5</text>
+<text x="127.6" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">A框架</text>
+<text x="127.6" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=2 h=5</text>
+<rect x="164.2" y="35.7" width="32.9" height="164.3" rx="3" fill="#e03131"/>
+<text x="180.7" y="30.7" text-anchor="middle" font-size="11.5" font-weight="700" fill="#e03131">54.2</text>
+<text x="180.7" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">A框架</text>
+<text x="180.7" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=3 h=5</text>
+<rect x="217.3" y="83.4" width="32.9" height="116.6" rx="3" fill="#f08c00"/>
+<text x="233.7" y="78.4" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">38.4</text>
+<text x="233.7" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="233.7" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=1 h=5</text>
+<rect x="270.3" y="63.5" width="32.9" height="136.5" rx="3" fill="#f08c00"/>
+<text x="286.8" y="58.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">45.0</text>
+<text x="286.8" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="286.8" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=1 h=3</text>
+<rect x="323.4" y="78.1" width="32.9" height="121.9" rx="3" fill="#f08c00"/>
+<text x="339.9" y="73.1" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">40.2</text>
+<text x="339.9" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="339.9" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=2 h=5</text>
+<rect x="376.5" y="52.9" width="32.9" height="147.1" rx="3" fill="#f08c00"/>
+<text x="392.9" y="47.9" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">48.5</text>
+<text x="392.9" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="392.9" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=2 h=3</text>
+<rect x="429.5" y="79.2" width="32.9" height="120.8" rx="3" fill="#f08c00"/>
+<text x="446.0" y="74.2" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">39.8</text>
+<text x="446.0" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="446.0" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=3 h=5</text>
+<rect x="482.6" y="44.4" width="32.9" height="155.6" rx="3" fill="#f08c00"/>
+<text x="499.1" y="39.4" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">51.3</text>
+<text x="499.1" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="499.1" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=3 h=3</text>
+<rect x="535.7" y="75.6" width="32.9" height="124.4" rx="3" fill="#1c7ed6"/>
+<text x="552.1" y="70.6" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">41.0</text>
+<text x="552.1" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="552.1" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=1 h=5</text>
+<rect x="588.7" y="56.1" width="32.9" height="143.9" rx="3" fill="#1c7ed6"/>
+<text x="605.2" y="51.1" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">47.5</text>
+<text x="605.2" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="605.2" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=1 h=3</text>
+<rect x="641.8" y="70.3" width="32.9" height="129.7" rx="3" fill="#1c7ed6"/>
+<text x="658.3" y="65.3" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">42.8</text>
+<text x="658.3" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="658.3" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=2 h=5</text>
+<rect x="694.9" y="50.6" width="32.9" height="149.4" rx="3" fill="#1c7ed6"/>
+<text x="711.3" y="45.6" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">49.2</text>
+<text x="711.3" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="711.3" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=2 h=3</text>
+<rect x="747.9" y="71.1" width="32.9" height="128.9" rx="3" fill="#1c7ed6"/>
+<text x="764.4" y="66.1" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">42.5</text>
+<text x="764.4" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="764.4" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=3 h=5</text>
+<rect x="801.0" y="44.5" width="32.9" height="155.5" rx="3" fill="#1c7ed6"/>
+<text x="817.5" y="39.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">51.3</text>
+<text x="817.5" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="817.5" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=3 h=3</text>
+</svg>
+<p class="note">A 全配置稳居 54–57% 一线(红), 龙头法(B/C)多在 38–51% 波动。可见"框架严选+热门闸口+择时"对胜率的提升最扎实。</p>
+</section>
+
+<section>
+<h2>收益对比</h2>
+<svg viewBox="0 0 860 270" width="100%" style="max-width:860px" xmlns="http://www.w3.org/2000/svg">
+<line x1="48" y1="200.0" x2="844" y2="200.0" stroke="#eef0f3"/>
+<text x="42" y="204.0" text-anchor="end" font-size="11" fill="#8b93a1">0%</text>
+<line x1="48" y1="163.6" x2="844" y2="163.6" stroke="#eef0f3"/>
+<text x="42" y="167.6" text-anchor="end" font-size="11" fill="#8b93a1">52%</text>
+<line x1="48" y1="127.2" x2="844" y2="127.2" stroke="#eef0f3"/>
+<text x="42" y="131.2" text-anchor="end" font-size="11" fill="#8b93a1">104%</text>
+<line x1="48" y1="90.8" x2="844" y2="90.8" stroke="#eef0f3"/>
+<text x="42" y="94.8" text-anchor="end" font-size="11" fill="#8b93a1">156%</text>
+<line x1="48" y1="54.4" x2="844" y2="54.4" stroke="#eef0f3"/>
+<text x="42" y="58.4" text-anchor="end" font-size="11" fill="#8b93a1">208%</text>
+<line x1="48" y1="18.0" x2="844" y2="18.0" stroke="#eef0f3"/>
+<text x="42" y="22.0" text-anchor="end" font-size="11" fill="#8b93a1">260%</text>
+<rect x="58.1" y="190.2" width="32.9" height="9.8" rx="3" fill="#e03131"/>
+<text x="74.5" y="185.2" text-anchor="middle" font-size="11.5" font-weight="700" fill="#e03131">14.0</text>
+<text x="74.5" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">A框架</text>
+<text x="74.5" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=1 h=5</text>
+<rect x="111.1" y="193.5" width="32.9" height="6.5" rx="3" fill="#e03131"/>
+<text x="127.6" y="188.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#e03131">9.3</text>
+<text x="127.6" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">A框架</text>
+<text x="127.6" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=2 h=5</text>
+<rect x="164.2" y="195.2" width="32.9" height="4.8" rx="3" fill="#e03131"/>
+<text x="180.7" y="190.2" text-anchor="middle" font-size="11.5" font-weight="700" fill="#e03131">6.8</text>
+<text x="180.7" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">A框架</text>
+<text x="180.7" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=3 h=5</text>
+<rect x="217.3" y="208.1" width="32.9" height=-8.1 rx="3" fill="#f08c00"/>
+<text x="233.7" y="214.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">-11.5</text>
+<text x="233.7" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="233.7" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=1 h=5</text>
+<rect x="270.3" y="179.9" width="32.9" height="20.1" rx="3" fill="#f08c00"/>
+<text x="286.8" y="174.9" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">28.7</text>
+<text x="286.8" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="286.8" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=1 h=3</text>
+<rect x="323.4" y="220.7" width="32.9" height=-20.7 rx="3" fill="#f08c00"/>
+<text x="339.9" y="214.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">-29.6</text>
+<text x="339.9" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="339.9" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=2 h=5</text>
+<rect x="376.5" y="153.1" width="32.9" height="46.9" rx="3" fill="#f08c00"/>
+<text x="392.9" y="148.1" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">67.0</text>
+<text x="392.9" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="392.9" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=2 h=3</text>
+<rect x="429.5" y="189.5" width="32.9" height="10.5" rx="3" fill="#f08c00"/>
+<text x="446.0" y="184.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">15.0</text>
+<text x="446.0" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="446.0" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=3 h=5</text>
+<rect x="482.6" y="110.2" width="32.9" height="89.8" rx="3" fill="#f08c00"/>
+<text x="499.1" y="105.2" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f08c00">128.2</text>
+<text x="499.1" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">B龙头+择</text>
+<text x="499.1" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=3 h=3</text>
+<rect x="535.7" y="186.1" width="32.9" height="13.9" rx="3" fill="#1c7ed6"/>
+<text x="552.1" y="181.1" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">19.9</text>
+<text x="552.1" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="552.1" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=1 h=5</text>
+<rect x="588.7" y="112.3" width="32.9" height="87.7" rx="3" fill="#1c7ed6"/>
+<text x="605.2" y="107.3" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">125.2</text>
+<text x="605.2" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="605.2" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=1 h=3</text>
+<rect x="641.8" y="195.6" width="32.9" height="4.4" rx="3" fill="#1c7ed6"/>
+<text x="658.3" y="190.6" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">6.2</text>
+<text x="658.3" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="658.3" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=2 h=5</text>
+<rect x="694.9" y="88.4" width="32.9" height="111.6" rx="3" fill="#1c7ed6"/>
+<text x="711.3" y="83.4" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">159.4</text>
+<text x="711.3" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="711.3" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=2 h=3</text>
+<rect x="747.9" y="167.0" width="32.9" height="33.0" rx="3" fill="#1c7ed6"/>
+<text x="764.4" y="162.0" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">47.1</text>
+<text x="764.4" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="764.4" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=3 h=5</text>
+<rect x="801.0" y="29.4" width="32.9" height="170.6" rx="3" fill="#1c7ed6"/>
+<text x="817.5" y="24.4" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1c7ed6">243.7</text>
+<text x="817.5" y="218.0" text-anchor="middle" font-size="10.5" fill="#5b6270">龙头</text>
+<text x="817.5" y="231.0" text-anchor="middle" font-size="10.5" fill="#5b6270">N=3 h=3</text>
+</svg>
+<p class="note">龙头法(C, 蓝)在 3天持有下收益极高(尤其 N=3 的 +244%), 但这是<b>无止损、高换手</b>的结果; A(红)收益稳健为正。B(橙)被择时闸口拖累, 收益明显低于 C。</p>
+</section>
+
+<section>
+<h2>逐策略解读与落地建议</h2>
+<div class="callout2"><b>A · 多因子框架 + 热门闸口 + 择时</b><br>
+= 原框架全口径(≥2亿成交额 + 套牢盘≤0.10 + sharpe>1.0 + 自适应止盈止损), 选股前加"仅限热门行业"闸口(复用你的择时开关同位置), 再叠加市场破MA20空仓。<br>
+• N=1: 收益 +14.0% / 胜率 55.4% / 回撤 13.7%<br>
+• N=2: 收益 +9.3% / 胜率 57.5%(全场最高) / 回撤 13.7%<br>
+<b>建议:</b> 想"少操心、高胜率、低回撤"就选它; N=2 胜率最高, N=1 收益最高。</div>
+<div class="callout"><b>C · 热门行业龙头(无择时)</b><br>
+= 14:45 选热门行业(资金净流入 top-8)内当日涨幅前 N 的龙头, 买&持有。<br>
+• N=3 / 持有3天: 收益 +244% / 胜率 51.3% / 夏普 2.11 / 回撤 22.4% / 252笔。<br>
+<b>建议:</b> 追求极致收益可选, 但<b>务必另加止损/仓位管理</b>(无退出规则时 N=1 回撤达 56%); 且高频换手对执行/滑点敏感, 实盘小资金验证。</div>
+<div class="callout2" style="background:#fde8e8;border-color:#f5b5b5"><b>B · 龙头 + 择时(破MA20空仓) — 不建议</b><br>
+理论上"龙头强势 + 大盘保护"最完美, 实测却两头不靠: 择时闸口对短动量龙头是负贡献(误杀+震仓), 既没拿到 A 的胜率, 也没拿到 C 的收益。若坚持龙头路线, 直接用 C 并自带止损即可, 不必叠 MA20 闸口。</div>
+</section>
+
+<section>
+<h2>口径与注意</h2>
+<ul style="margin:8px 0;padding-left:20px;font-size:13px">
+<li><b>热门行业</b>: 按板块当日<b>主力资金净流入</b>排名 top-8(逐股 成交额×(2×收盘−最高−最低)/(最高−最低) 汇总)。</li>
+<li><b>退出机制差异(如实标注)</b>: A 用原框架 <code>ExitRuleEngine</code>(自适应止盈止损); B/C 用简单买&持有(无原框架的流动性/套牢盘过滤), 故 B/C 的"高收益"含未风控的尾部风险。</li>
+<li><b>14:45 价</b>以当日收盘近似(库内无14:45缓存); 实盘以真实14:45价下单, 结果可能略异。</li>
+<li>全部回测离线读取 <code>qlib_pro_v16.db</code>, 未修改任何原有业务文件; 8 个稳健性窗口(持仓5/3 × 偏移0/20/40/60)取均值。</li>
+</ul>
+</section>
+
+<div class="foot">离线回测 · 复用原策略 config/AlphaModel/ExitRuleEngine 口径 · 数据源 qlib_pro_v16.db · 未修改任何原有文件</div>
+</div></body></html>
