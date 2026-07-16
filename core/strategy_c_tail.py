@@ -139,6 +139,7 @@ def run_c_scan(top_k: int = 8, top_n: int = 3) -> Tuple[List[Dict], List, str, b
 
     df_all['code_str'] = df_all['股票代码'].astype(str)
     df_all['_amt'] = pd.to_numeric(df_all['成交额'], errors='coerce').fillna(0)
+    # Only look up sector for top-200 by turnover; fallback to board prefix for rest
     top200 = df_all.nlargest(200, '_amt')['code_str'].tolist()
     code_sector = {}
     for c in top200:
@@ -147,7 +148,12 @@ def run_c_scan(top_k: int = 8, top_n: int = 3) -> Tuple[List[Dict], List, str, b
     for _, r in df_all.iterrows():
         c = str(r['股票代码'])
         if c not in code_sector:
-            code_sector[c] = _get_sector(c)
+            p = c[:2]
+            if p == '60': code_sector[c] = '上海主板'
+            elif p == '68': code_sector[c] = '科创板'
+            elif p == '00': code_sector[c] = '深圳主板'
+            elif p == '30': code_sector[c] = '创业板'
+            else: code_sector[c] = '其它'
 
     hot = calc_sector_heat(df_all, code_sector, 4)
     ranked = sorted(hot.items(), key=lambda x: -x[1])[:top_k]
