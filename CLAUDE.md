@@ -29,7 +29,7 @@ tools/           → 盘前早报、竞价扫描、盘后分析
 
 | 文件 | 触发 | 时间 |
 |------|------|------|
-| momentum-scan.yml | cron-job.org | 14:25→14:44 |
+| momentum-scan.yml | cron-job.org | 14:25→14:45 (含低位绩优股扫描) |
 | pre-market.yml | schedule | 08:30 |
 | auction-scan.yml | cron-job.org | 09:25 |
 | eod-analysis.yml | schedule | 16:00 |

@@ -10,6 +10,7 @@
 | 09:25 | 竞价扫描 | 情绪判断、涨停板块主线(封单≥3确认) | 📱 |
 | 09:40-14:40 | 持仓监控 | 7条退出规则(止盈/止损/MA5破位) | 📱 |
 | 14:44 | 尾盘选股 | 动量扫描、套牢盘过滤、自适应止损 | 📱 |
+| 14:45 | 低位绩优股 | 深度超跌+绩优筛选(复用超跌绩优策略)、Bark推送 | 📱 |
 | 16:00 | 盘后归档 | 涨停/龙虎榜/机构动向/选股跟踪(D0-D3) | 📱 |
 | 周五 | 周度回测 | 65天多周期回测 | 📱 |
 
@@ -45,7 +46,7 @@
 | pre-market.yml | GitHub cron | 08:30 |
 | auction-scan.yml | cron-job.org | 09:25 |
 | position-monitor.yml | GitHub cron | 09:40-14:40 |
-| momentum-scan.yml | cron-job.org | 14:25→14:44 |
+| momentum-scan.yml | cron-job.org | 14:25→14:45 (含低位绩优股) |
 | eod-analysis.yml | GitHub cron | 16:00 |
 | momentum-backtest.yml | GitHub cron | 周五 15:05 |
 

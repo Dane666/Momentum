@@ -31,7 +31,7 @@ concurrency:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     env:
       TZ: Asia/Shanghai
       BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
@@ -105,6 +105,11 @@ jobs:
           elapsed = time.time() - start
           print(f"Pre-fetch done: {ok} ok, {fail} fail in {elapsed:.0f}s")
           PY
+
+      - name: Pre-fetch K-line for low-quality universe (warm cache)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: |
+          python -c "from tools.low_quality_scan import warm_cache; warm_cache()"
 
       - name: Wait for 14:44 scan window
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -254,6 +259,19 @@ jobs:
               else:
                   print('ERROR: failed to push picks_tracking.json after 3 attempts')
           PY
+
+      - name: Low-position quality scan (低位绩优股)
+        if: >
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full') ||
+          (github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true')
+        env:
+          BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
+        run: |
+          python -c "from tools.low_quality_scan import run; run(prefetch=False)"
+          git config user.name github-actions
+          git config user.email actions@github.com
+          git add data/picks_tracking.json
+          git diff --cached --quiet || (git commit -m "auto: add low-quality picks" && git pull --rebase origin main && git push origin main)
 
       - name: Push scan + tracking report
         if: >

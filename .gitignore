@@ -19,3 +19,4 @@ config.local.json
 opt_study/__pycache__/
 opt_study/_*.pkl
 opt_study/*.log
+data/stock_names.json
