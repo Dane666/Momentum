@@ -37,9 +37,9 @@ jobs:
           path: |
             qlib_pro_v16.db
             opt_study/oos_tracker.json
-          key: fv-state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
           restore-keys: |
-            fv-state-v1-${{ runner.os }}-
+            state-v1-${{ runner.os }}-
 
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
