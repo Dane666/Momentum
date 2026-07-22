@@ -1,5 +1,8 @@
 name: momentum-backtest
 
+# 合并说明: 原 forward-validation.yml(超跌绩优前向/OOS验证)已并入本工作流,
+# 作为独立 job `oversold-quality-validation` 运行 —— 与动量回测并行、互不阻塞,
+# 即使回测因网络失败, 前向验证仍会跑出策略收益率. 原 forward-validation.yml 已删除.
 on:
   push:
     branches: [main]
@@ -26,8 +29,20 @@ on:
         required: false
         default: "65"
         type: string
+      forward_validation:
+        description: Also run 超跌绩优前向/OOS验证 (merge from forward-validation.yml)
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
   schedule:
-    - cron: "5 7 * * 5"   # 周五 15:05 CST — 收盘后跑
+    - cron: "5 7 * * 5"     # 周五 15:05 CST — 周度动量回测
+    - cron: "0 8 1 * *"     # 每月1日 16:00 CST — 含超跌绩优前向验证
+
+permissions:
+  contents: write
 
 concurrency:
   group: momentum-backtest-${{ github.ref }}
@@ -41,7 +56,6 @@ jobs:
       TZ: Asia/Shanghai
       BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
       MOMENTUM_LOG_LEVEL: INFO
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -135,3 +149,105 @@ jobs:
           path: |
             *.log
             reports/**
+
+  # ─────────────────────────────────────────────────────────────
+  #  超跌绩优反弹 · 前向/OOS 验证 (原 forward-validation.yml 合并于此)
+  #  与动量回测并行、独立运行; 不依赖实时网络(只读缓存 K线 + 基本面CSV),
+  #  故即使在境外 Runner 上也能稳定产出策略收益率.
+  # ─────────────────────────────────────────────────────────────
+  oversold-quality-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    if: >-
+      github.event.schedule == '0 8 1 * *' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.forward_validation == 'true')
+    env:
+      TZ: Asia/Shanghai
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Restore state cache (DB + tracker)
+        uses: actions/cache@v4
+        with:
+          path: |
+            qlib_pro_v16.db
+            opt_study/oos_tracker.json
+          key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          restore-keys: |
+            state-v1-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Import fundamentals & sector cache into DB (if missing)
+        # fundamentals / stock_sector_cache 不在 CI 缓存里(仅本地构建), 这里从提交的 CSV 导入,
+        # 使"绩优"过滤在 CI 中可用. 表已存在则跳过(幂等). 失败不阻断验证.
+        continue-on-error: true
+        run: |
+          python <<'PY'
+          import sqlite3, csv, os
+          DB = "qlib_pro_v16.db"
+          if not os.path.exists(DB):
+              print("DB 不存在: 前向验证将产出'数据未就绪'说明"); raise SystemExit(0)
+          con = sqlite3.connect(DB)
+          def num(x): return float(x) if (x not in ('', None)) else None
+          try:
+              con.execute("""CREATE TABLE IF NOT EXISTS fundamentals (
+                  code TEXT, period_end TEXT, avail_from TEXT, roe REAL, net_profit_yoy REAL,
+                  revenue_yoy REAL, eps REAL, eps_annualized REAL, bvps REAL, industry TEXT,
+                  PRIMARY KEY(code, period_end))""")
+              with open('data/fundamentals.csv', newline='', encoding='utf-8') as f:
+                  rd = csv.DictReader(f)
+                  recs = [(r['code'], r['period_end'], r['avail_from'], num(r['roe']),
+                           num(r['net_profit_yoy']), num(r['revenue_yoy']), num(r['eps']),
+                           num(r['eps_annualized']), num(r['bvps']), (r.get('industry') or None)) for r in rd]
+              con.executemany("INSERT OR REPLACE INTO fundamentals VALUES (?,?,?,?,?,?,?,?,?,?)", recs)
+              print(f"fundamentals 导入 {len(recs)} 行")
+          except Exception as e:
+              print("fundamentals 导入跳过:", e)
+          try:
+              con.execute("CREATE TABLE IF NOT EXISTS stock_sector_cache (code TEXT, sector TEXT, update_time TEXT)")
+              with open('data/stock_sector_cache.csv', newline='', encoding='utf-8') as f:
+                  rd = csv.DictReader(f)
+                  recs2 = [(r['code'], r['sector'], r['update_time']) for r in rd]
+              con.executemany("INSERT OR REPLACE INTO stock_sector_cache VALUES (?,?,?)", recs2)
+              print(f"stock_sector_cache 导入 {len(recs2)} 行")
+          except Exception as e:
+              print("stock_sector_cache 导入跳过:", e)
+          con.commit(); con.close()
+          PY
+
+      - name: 前向验证 (validate --mode auto)
+        run: python opt_study/forward_validation.py validate --mode auto
+
+      - name: 当前候选观察清单 (watchlist)
+        run: python opt_study/forward_validation.py watchlist --lookback 10
+
+      - name: Upload forward-validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oversold-quality-forward-validation
+          path: |
+            opt_study/forward_validation_report.html
+            opt_study/forward_validation_trades.csv
+            opt_study/forward_validation_metrics.json
+            opt_study/live_watchlist.html
+            opt_study/live_watchlist.csv
+            opt_study/oos_tracker.json
+
+      - name: Push tracker back to repo
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add opt_study/oos_tracker.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "No tracker changes"; else git commit -m "auto: update oos_tracker (merged into momentum-backtest)" && git pull --rebase origin main && git push origin main; fi

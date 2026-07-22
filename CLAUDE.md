@@ -33,7 +33,7 @@ tools/           → 盘前早报、竞价扫描、盘后分析
 | pre-market.yml | schedule | 08:30 |
 | auction-scan.yml | cron-job.org | 09:25 |
 | eod-analysis.yml | schedule | 16:00 |
-| momentum-backtest.yml | schedule/Fri | 15:05 |
+| momentum-backtest.yml | schedule/Fri + 每月1日 | 15:05(动量) / 16:00(超跌绩优前向验证) |
 
 ## 本地开发
 

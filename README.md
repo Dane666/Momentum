@@ -48,7 +48,7 @@
 | position-monitor.yml | GitHub cron | 09:40-14:40 |
 | momentum-scan.yml | cron-job.org | 14:25→14:45 (含低位绩优股) |
 | eod-analysis.yml | GitHub cron | 16:00 |
-| momentum-backtest.yml | GitHub cron | 周五 15:05 |
+| momentum-backtest.yml | GitHub cron | 周五 15:05(动量回测) + 每月1日 16:00(含超跌绩优前向验证) |
 
 ## 外部 Cron (cron-job.org)
 
