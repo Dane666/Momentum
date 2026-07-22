@@ -157,7 +157,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────
   oversold-quality-validation:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 55
     if: >-
       github.event.schedule == '0 8 1 * *' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.forward_validation == 'true')
@@ -186,6 +186,33 @@ jobs:
 
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Warm broad kline universe (full market, for OOS validation)
+        # CI 缓存只含 momentum-scan 每日预热的 ~200 只, 不足以做全市场超跌扫描.
+        # 这里抓取全市场非ST A股完整历史入 DB, 使前向验证能看到真实全样本
+        # (境外 Runner 网络受限时尽力而为, 失败不阻断验证).
+        continue-on-error: true
+        run: |
+          python <<'PY'
+          import sys,os,time;from pathlib import Path;p=Path('.').resolve()
+          sys.path.insert(0,str(p.parent))
+          import importlib.util
+          s=importlib.util.spec_from_file_location('momentum',p/'__init__.py',submodule_search_locations=[str(p)])
+          m=importlib.util.module_from_spec(s);sys.modules['momentum']=m;s.loader.exec_module(m)
+          from momentum.data import load_or_fetch_kline,fetch_all_stock_codes,fetch_kline_from_api,init_db
+          from momentum import config as cfg;from concurrent.futures import ThreadPoolExecutor,as_completed
+          init_db()
+          codes=[c for c in fetch_all_stock_codes() if 'ST' not in c]
+          print(f'Warming {len(codes)} non-ST A-share codes (full history)...');start=time.time();ok=fail=0
+          with ThreadPoolExecutor(max_workers=30) as pool:
+              fx={pool.submit(load_or_fetch_kline,c,fetch_kline_from_api,cfg.KLINE_START_DATE):c for c in codes}
+              for f in as_completed(fx):
+                  try:
+                      if f.result(timeout=20) is not None: ok+=1
+                      else: fail+=1
+                  except: fail+=1
+          print(f'Warm done: {ok} ok {fail} fail in {time.time()-start:.0f}s')
+          PY
 
       - name: Import fundamentals & sector cache into DB (if missing)
         # fundamentals / stock_sector_cache 不在 CI 缓存里(仅本地构建), 这里从提交的 CSV 导入,

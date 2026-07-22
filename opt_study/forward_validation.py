@@ -320,6 +320,10 @@ def cmd_validate(args):
     in_end = args.in_sample_end or IN_SAMPLE_END
 
     ctx, cal, fmap = load_all()
+    universe = len(ctx)
+    print(f"K线覆盖全市场标的数={universe}", flush=True)
+    if universe < 1500:
+        print(f"WARN: K线覆盖仅 {universe} 只(全市场约5000只), 前向验证结果为子集估计, 非全市场口径.", flush=True)
     full_end = str(cal[-1])[:10]
     data_min = str(cal[0])[:10]
     data_max = full_end
@@ -419,7 +423,7 @@ def cmd_validate(args):
 
     # JSON
     summary = dict(mode=R["mode"], generated_at=_dt.datetime.now().isoformat(timespec="seconds"),
-                   data_end=full_end, in_sample_end=in_end,
+                   data_end=full_end, in_sample_end=in_end, coverage_universe=universe,
                    published_combo=dict(base="V2", theme_cap=PUB_THEME_CAP, stop=PUB_STOP, regime="none"),
                    in_sample_baseline=ins_m, forward=R["forward"], holdout=R["holdout"], tracker=tracker)
     json.dump(summary, open(os.path.join(OUT_DIR, "forward_validation_metrics.json"), "w"),

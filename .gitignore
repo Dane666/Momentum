@@ -19,4 +19,10 @@ config.local.json
 opt_study/__pycache__/
 opt_study/_*.pkl
 opt_study/*.log
+# 验证/观察清单产物: 由 CI 生成, 禁止提交(避免陈旧产物掩盖 CI 真实结果)
+opt_study/forward_validation_report.html
+opt_study/forward_validation_metrics.json
+opt_study/forward_validation_trades.csv
+opt_study/live_watchlist.html
+opt_study/live_watchlist.csv
 data/stock_names.json
