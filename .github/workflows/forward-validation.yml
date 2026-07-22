@@ -1,0 +1,72 @@
+name: forward-validation
+#
+# 超跌绩优反弹 · 前向验证(月度)
+# - 每月自动跑一次: 验证"已发布组合"在样本内终点之后的真实行情上是否泛化(零前视泄漏).
+# - 数据库更新到 2026H2 后, 本工作流自动从 holdout 切换为 forward 真·前瞻验证.
+# - 同时生成"当前候选观察清单"(接实盘小仓观察).
+# - 累积 oos_tracker.json 逐月扩充样本外验证样本.
+#
+# 触发: 每月 1 日 08:00 UTC(=16:00 CST, 收盘后) + workflow_dispatch 手动.
+on:
+  schedule:
+    - cron: "0 8 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      TZ: Asia/Shanghai
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Restore state cache (DB + tracker)
+        uses: actions/cache@v4
+        with:
+          path: |
+            qlib_pro_v16.db
+            opt_study/oos_tracker.json
+          key: fv-state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          restore-keys: |
+            fv-state-v1-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: 前向验证 (validate --mode auto)
+        run: python opt_study/forward_validation.py validate --mode auto
+
+      - name: 当前候选观察清单 (watchlist)
+        run: python opt_study/forward_validation.py watchlist --lookback 10
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forward-validation-artifacts
+          path: |
+            opt_study/forward_validation_report.html
+            opt_study/forward_validation_trades.csv
+            opt_study/forward_validation_metrics.json
+            opt_study/live_watchlist.html
+            opt_study/live_watchlist.csv
+            opt_study/oos_tracker.json
+
+      - name: Push tracker back to repo
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add opt_study/oos_tracker.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "No tracker changes"; else git commit -m "auto: update oos_tracker" && git pull --rebase origin main && git push origin main; fi

@@ -13,3 +13,9 @@ stock_etl/stock_data.db
 grid_trading_candidates_*.csv
 param_optimization_*.csv
 config.local.json
+
+# ---- 本地/生成产物(不入库) ----
+.workbuddy/
+opt_study/__pycache__/
+opt_study/_*.pkl
+opt_study/*.log

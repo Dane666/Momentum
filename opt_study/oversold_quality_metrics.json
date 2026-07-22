@@ -1,0 +1,204 @@
+{
+  "window": [
+    "2024-07-01",
+    "2026-07-15"
+  ],
+  "best": "V2 深度超跌+绩优+热门",
+  "best_metrics": {
+    "n": 14,
+    "winrate": 57.1,
+    "avg_ret": 3.74,
+    "avg_win": 12.08,
+    "avg_loss": -7.39,
+    "best": 35.42,
+    "worst": -9.44,
+    "total_ret": 15.91,
+    "annual": 7.81,
+    "sharpe": 0.724,
+    "maxdd": -14.72,
+    "variant": "V2 深度超跌+绩优+热门",
+    "n_base_signal": 82370
+  },
+  "sweep": [
+    {
+      "variant": "V0 朴素深度超跌",
+      "cfg": {
+        "mode": "deep",
+        "dd": -0.18,
+        "gap": 0.03,
+        "rsi_th": 35,
+        "ma60_rising": false,
+        "vol_confirm": false,
+        "macd_rsi": false,
+        "hot_on": false,
+        "pe_pb_on": false,
+        "quality_on": false
+      },
+      "metrics": {
+        "n": 63,
+        "winrate": 41.3,
+        "avg_ret": -1.42,
+        "avg_win": 10.47,
+        "avg_loss": -9.77,
+        "best": 29.95,
+        "worst": -89.52,
+        "total_ret": -30.7,
+        "annual": -17.03,
+        "sharpe": -0.369,
+        "maxdd": -50.77,
+        "variant": "V0 朴素深度超跌",
+        "n_base_signal": 82370
+      }
+    },
+    {
+      "variant": "V1 深度超跌+绩优",
+      "cfg": {
+        "mode": "deep",
+        "dd": -0.18,
+        "gap": 0.03,
+        "rsi_th": 35,
+        "ma60_rising": false,
+        "vol_confirm": false,
+        "macd_rsi": false,
+        "hot_on": false,
+        "pe_pb_on": true,
+        "quality_on": true
+      },
+      "metrics": {
+        "n": 68,
+        "winrate": 48.5,
+        "avg_ret": 0.7,
+        "avg_win": 8.85,
+        "avg_loss": -6.98,
+        "best": 38.67,
+        "worst": -14.49,
+        "total_ret": 11.8,
+        "annual": 5.84,
+        "sharpe": 0.346,
+        "maxdd": -28.1,
+        "variant": "V1 深度超跌+绩优",
+        "n_base_signal": 82370
+      }
+    },
+    {
+      "variant": "V2 深度超跌+绩优+热门",
+      "cfg": {
+        "mode": "deep",
+        "dd": -0.18,
+        "gap": 0.03,
+        "rsi_th": 35,
+        "ma60_rising": false,
+        "vol_confirm": false,
+        "macd_rsi": false,
+        "hot_on": true,
+        "pe_pb_on": true,
+        "quality_on": true
+      },
+      "metrics": {
+        "n": 14,
+        "winrate": 57.1,
+        "avg_ret": 3.74,
+        "avg_win": 12.08,
+        "avg_loss": -7.39,
+        "best": 35.42,
+        "worst": -9.44,
+        "total_ret": 15.91,
+        "annual": 7.81,
+        "sharpe": 0.724,
+        "maxdd": -14.72,
+        "variant": "V2 深度超跌+绩优+热门",
+        "n_base_signal": 82370
+      }
+    },
+    {
+      "variant": "V3 回踩企稳+绩优",
+      "cfg": {
+        "mode": "pullback",
+        "dd": -0.1,
+        "rsi_th": 45,
+        "floor_ma60": 0.1,
+        "ma60_rising": true,
+        "vol_confirm": true,
+        "macd_rsi": true,
+        "hot_on": false,
+        "pe_pb_on": true,
+        "quality_on": true
+      },
+      "metrics": {
+        "n": 35,
+        "winrate": 48.6,
+        "avg_ret": 0.59,
+        "avg_win": 9.32,
+        "avg_loss": -7.66,
+        "best": 25.66,
+        "worst": -15.04,
+        "total_ret": 5.03,
+        "annual": 2.53,
+        "sharpe": 0.232,
+        "maxdd": -22.32,
+        "variant": "V3 回踩企稳+绩优",
+        "n_base_signal": 1060
+      }
+    },
+    {
+      "variant": "V4 回踩企稳+绩优+热门",
+      "cfg": {
+        "mode": "pullback",
+        "dd": -0.1,
+        "rsi_th": 45,
+        "floor_ma60": 0.1,
+        "ma60_rising": true,
+        "vol_confirm": true,
+        "macd_rsi": true,
+        "hot_on": true,
+        "pe_pb_on": true,
+        "quality_on": true
+      },
+      "metrics": {
+        "n": 0,
+        "winrate": 0,
+        "avg_ret": 0,
+        "avg_win": 0,
+        "avg_loss": 0,
+        "best": 0,
+        "worst": 0,
+        "total_ret": 0,
+        "annual": 0,
+        "sharpe": 0,
+        "maxdd": 0,
+        "variant": "V4 回踩企稳+绩优+热门",
+        "n_base_signal": 1060
+      }
+    },
+    {
+      "variant": "V5 回踩+绩优(仅ROE/净利)+热门",
+      "cfg": {
+        "mode": "pullback",
+        "dd": -0.1,
+        "rsi_th": 45,
+        "floor_ma60": 0.1,
+        "ma60_rising": true,
+        "vol_confirm": true,
+        "macd_rsi": true,
+        "hot_on": true,
+        "pe_pb_on": false,
+        "quality_on": true
+      },
+      "metrics": {
+        "n": 0,
+        "winrate": 0,
+        "avg_ret": 0,
+        "avg_win": 0,
+        "avg_loss": 0,
+        "best": 0,
+        "worst": 0,
+        "total_ret": 0,
+        "annual": 0,
+        "sharpe": 0,
+        "maxdd": 0,
+        "variant": "V5 回踩+绩优(仅ROE/净利)+热门",
+        "n_base_signal": 1060
+      }
+    }
+  ]
+}

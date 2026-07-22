@@ -1,0 +1,107 @@
+{
+  "design": {
+    "train": [
+      "2024-07-01",
+      "2025-09-30"
+    ],
+    "test": [
+      "2025-10-01",
+      "2026-07-15"
+    ],
+    "full": [
+      "2024-07-01",
+      "2026-07-15"
+    ]
+  },
+  "train_selected": {
+    "theme_cap": 0,
+    "stop": -5,
+    "n": 4,
+    "total_ret": 15.8,
+    "sharpe": 1.563,
+    "maxdd": -3.27,
+    "note": "TRAIN 仅<=4笔未达 n>=5 选优阈值, 此为实际最优表现(任意样本量)"
+  },
+  "in_sample_full": {
+    "n": 10,
+    "winrate": 70.0,
+    "avg_ret": 7.03,
+    "avg_win": 11.73,
+    "avg_loss": -3.93,
+    "best": 35.42,
+    "worst": -8.18,
+    "total_ret": 23.61,
+    "annual": 11.39,
+    "sharpe": 1.011,
+    "maxdd": -10.76,
+    "label": "已发布组合·全窗口(样本内)",
+    "theme_cap": 1,
+    "stop": -0.15
+  },
+  "published_on_train": {
+    "n": 4,
+    "winrate": 75.0,
+    "avg_ret": 12.23,
+    "avg_win": 16.72,
+    "avg_loss": -1.22,
+    "best": 35.42,
+    "worst": -1.22,
+    "total_ret": 15.8,
+    "annual": 12.75,
+    "sharpe": 1.563,
+    "maxdd": -3.27,
+    "label": "已发布组合·TRAIN",
+    "theme_cap": 1,
+    "stop": -0.15
+  },
+  "published_on_test": {
+    "n": 6,
+    "winrate": 66.7,
+    "avg_ret": 3.56,
+    "avg_win": 7.99,
+    "avg_loss": -5.29,
+    "best": 10.7,
+    "worst": -8.18,
+    "total_ret": 6.83,
+    "annual": 9.31,
+    "sharpe": 0.655,
+    "maxdd": -10.77,
+    "label": "已发布组合·TEST(OOS参照)",
+    "theme_cap": 1,
+    "stop": -0.15
+  },
+  "selected_on_train": {
+    "n": 4,
+    "winrate": 75.0,
+    "avg_ret": 12.23,
+    "avg_win": 16.72,
+    "avg_loss": -1.22,
+    "best": 35.42,
+    "worst": -1.22,
+    "total_ret": 15.8,
+    "annual": 12.75,
+    "sharpe": 1.563,
+    "maxdd": -3.27,
+    "label": "TRAIN选出·TRAIN",
+    "theme_cap": 1,
+    "stop": -0.15
+  },
+  "selected_on_test": {
+    "n": 6,
+    "winrate": 66.7,
+    "avg_ret": 3.56,
+    "avg_win": 7.99,
+    "avg_loss": -5.29,
+    "best": 10.7,
+    "worst": -8.18,
+    "total_ret": 6.83,
+    "annual": 9.31,
+    "sharpe": 0.655,
+    "maxdd": -10.77,
+    "label": "TRAIN选出·TEST(真OOS)",
+    "theme_cap": 1,
+    "stop": -0.15
+  },
+  "data_note": "kline_cache 截至 2026-07-15, 无 2026H2 数据; OOS 采用时间切分 holdout",
+  "leak_note": "已发布组合(theme_cap1+止损-15%)的选参基于全窗口(含 TEST 段), 故 TEST 段存在轻微前视泄漏; 因 TRAIN 仅4笔无法独立重选, 这是当前数据下最合理的前向验证, 结论应保守解读."
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang='zh'><head><meta charset='utf-8'>
+<style>
+body{font-family:-apple-system,'PingFang SC',sans-serif;margin:24px;color:#1a1a1a;background:#fff}
+h1{font-size:22px} h2{font-size:17px;margin-top:26px;border-left:4px solid #2b6cb0;padding-left:8px}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}
+th,td{border:1px solid #ddd;padding:5px 7px;text-align:left}
+th{background:#f4f6f8} .num{text-align:right}
+.pos{color:#c0392b;font-weight:600} .neg{color:#1e7e34;font-weight:600}
+.tag{display:inline-block;background:#eef;color:#245;padding:2px 7px;border-radius:4px;margin:2px;font-size:12px}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.card{background:#f8fafc;border:1px solid #e3e8ee;border-radius:8px;padding:12px 16px;min-width:110px}
+.card b{font-size:20px;display:block}
+.note{background:#fff8e6;border:1px solid #f0d27a;padding:10px 14px;border-radius:8px;font-size:13px;line-height:1.6}
+</style></head><body>
+<h1>超跌绩优反弹 · 增强版回测报告</h1>
+<p>变体: <b>V2+单题材上限1+最优止损-15%</b> ｜ 窗口 2024-07-01~2026-07-15</p>
+<div class='kpi'>
+ <div class='card'><b>23.61%</b>总收益</div>
+ <div class='card'><b>70.0%</b>胜率</div>
+ <div class='card'><b>10</b>交易笔数</div>
+ <div class='card'><b>7.03%</b>平均每笔</div>
+ <div class='card'><b>11.73%</b>平均盈</div>
+ <div class='card'><b>-3.93%</b>平均亏</div>
+ <div class='card'><b>1.011</b>夏普</div>
+ <div class='card'><b>-10.76%</b>最大回撤</div>
+</div>
+<h2>信号口径</h2>
+<p><span class='tag'>mode=deep</span> <span class='tag'>dd=-0.18</span> <span class='tag'>gap=0.03</span> <span class='tag'>rsi_th=35</span> <span class='tag'>ma60_rising=False</span> <span class='tag'>vol_confirm=False</span> <span class='tag'>macd_rsi=False</span> <span class='tag'>hot_on=True</span> <span class='tag'>pe_pb_on=True</span> <span class='tag'>quality_on=True</span> <span class='tag'>theme_cap=1</span> <span class='tag'>stop_loss=-0.15</span></p>
+<h2>热门题材示例(窗口内部分日期 Top 题材)</h2>
+<p class='note'>2024-07-01: 物业管理,高股息精选,深圳国企改革,石墨电极; 2024-08-26: 网约车,超级品牌,鸿蒙概念,航空发动机; 2024-10-30: 华为盘古,信托概念,汽车芯片,无人机; 2024-12-25: 快手概念,NFT概念,减速器,拼多多概念; 2025-02-28: 算力租赁,减速器,存储芯片,DRG/DIP; 2025-04-28: 环氧丙烷,绿色电力,猪肉,西部大开发; 2025-06-27: 数字货币,高股息精选,可控核聚变,PCB概念; 2025-08-22: 液冷服务器,稀土永磁,光纤概念,期货概念; 2025-10-27: 人形机器人,中国AI50,存储芯片,PCB概念; 2025-12-22: 军工信息化,福建自贸区,军民融合,航空发动机; 2026-02-26: 金属铅,PCB概念,快手概念,稀土永磁; 2026-04-24: 光纤概念,共封装光学(CPO),同花顺果指数,存储芯片</p>
+<h2>参数扫描对照表(全变体)</h2>
+<table><tr><th>变体</th><th>基础信号</th><th>成交</th><th>胜率</th><th>平均每笔</th><th>总收益</th><th>夏普</th><th>最大回撤</th></tr>
+<tr><td>V0 朴素深度超跌</td><td>82370</td><td>63</td><td>41.3%</td><td>-1.42%</td><td class='num neg'>-30.7%</td><td>-0.369</td><td>-50.77%</td></tr><tr><td>V1 深度超跌+绩优</td><td>82370</td><td>68</td><td>48.5%</td><td>0.7%</td><td class='num pos'>11.8%</td><td>0.346</td><td>-28.1%</td></tr><tr style='background:#eaf6ff'><td>V2 深度超跌+绩优+热门</td><td>82370</td><td>14</td><td>57.1%</td><td>3.74%</td><td class='num pos'>15.91%</td><td>0.724</td><td>-14.72%</td></tr><tr><td>V3 回踩企稳+绩优</td><td>1060</td><td>35</td><td>48.6%</td><td>0.59%</td><td class='num pos'>5.03%</td><td>0.232</td><td>-22.32%</td></tr><tr><td>V4 回踩企稳+绩优+热门</td><td>1060</td><td>0</td><td>0%</td><td>0%</td><td class='num neg'>0%</td><td>0</td><td>0%</td></tr><tr><td>V5 回踩+绩优(仅ROE/净利)+热门</td><td>1060</td><td>0</td><td>0%</td><td>0%</td><td class='num neg'>0%</td><td>0</td><td>0%</td></tr></table>
+<h2>同股冷却期敏感度(V2 · 退后 N 日禁买同股)</h2>
+<p class='note'>边界修复: ① 持仓期内禁止同股重复建仓(逻辑正确性); ② 退出后冷却期避免刚止损又追. 下表为不同冷却期下 V2 表现.</p>
+<table><tr><th>冷却期(交易日)</th><th>成交</th><th>胜率</th><th>平均每笔</th><th>总收益</th><th>夏普</th><th>最大回撤</th></tr>
+<tr><td>0</td><td>14</td><td>57.1%</td><td>3.98%</td><td class='num pos'>16.77%</td><td>0.732</td><td>-15.22%</td></tr><tr><td>5</td><td>14</td><td>57.1%</td><td>3.74%</td><td class='num pos'>15.91%</td><td>0.724</td><td>-14.72%</td></tr><tr style='background:#eaf6ff'><td>10(采用)</td><td>14</td><td>57.1%</td><td>3.74%</td><td class='num pos'>15.91%</td><td>0.724</td><td>-14.72%</td></tr><tr><td>20</td><td>14</td><td>57.1%</td><td>3.74%</td><td class='num pos'>15.91%</td><td>0.724</td><td>-14.72%</td></tr></table>
+<h2>风险分散对照(V2 基础 + 单题材上限 / 大盘择时)</h2>
+<p class='note'>在 V2 基础上叠加风险分散: ① 单题材持仓上限(theme_cap=1 即每题材最多1只, 不同题材最多占满3槽);
+② 大盘择时(等权全A净值站上 MA60/MA20 才允许新开仓, 空头当日禁开). 下表对比分散效果.
+<b>结论: 单题材上限1 全面占优(收益↑回撤↓夏普↑); 大盘择时反而有害——超跌反弹在弱市/熊市更易爆发行情, 站上均线反而错过最佳买点, 故最优组合不叠加择时.</b></p>
+<table><tr><th>配置</th><th>成交</th><th>胜率</th><th>平均每笔</th><th>总收益</th><th>夏普</th><th>最大回撤</th></tr>
+<tr><td>V2 基础(无分散)</td><td>14</td><td>57.1%</td><td>3.74%</td><td class='num pos'>15.91%</td><td>0.724</td><td>-14.72%</td></tr><tr><td>V2 + 单题材上限1</td><td>13</td><td>61.5%</td><td>4.75%</td><td class='num pos'>19.37%</td><td>0.903</td><td>-12.13%</td></tr><tr><td>V2 + 单题材上限2</td><td>14</td><td>57.1%</td><td>3.74%</td><td class='num pos'>15.91%</td><td>0.724</td><td>-14.72%</td></tr><tr><td>V2 + 大盘择时MA60</td><td>5</td><td>20.0%</td><td>-4.79%</td><td class='num neg'>-7.52%</td><td>-1.039</td><td>-10.65%</td></tr><tr><td>V2 + 大盘择时MA20</td><td>2</td><td>0.0%</td><td>-5.07%</td><td class='num neg'>-3.33%</td><td>-0.99</td><td>-5.62%</td></tr><tr><td>V2 + 上限1 + 择时MA60</td><td>5</td><td>20.0%</td><td>-4.79%</td><td class='num neg'>-7.52%</td><td>-1.039</td><td>-10.65%</td></tr></table>
+<h2>止损点参数优化(V2 基线 · 不同止损位)</h2>
+<p class='note'>在 V2 基线(样本充足, 14笔)上扫描止损位, 找出最优止损(兼顾收益与回撤). 持有期固定 20 交易日.
+最优组合 = 最优止损位 + 单题材上限1(见分散化对照). 注: 大盘择时对超跌反弹策略有害(弱市更易爆发行情), 故最优组合不叠加择时闸口.</p>
+<table><tr><th>止损位</th><th>成交</th><th>胜率</th><th>平均每笔</th><th>总收益</th><th>夏普</th><th>最大回撤</th></tr>
+<tr><td>-3%</td><td>14</td><td>50.0%</td><td>1.52%</td><td class='num pos'>6.36%</td><td>0.372</td><td>-12.06%</td></tr><tr><td>-5%</td><td>14</td><td>57.1%</td><td>3.96%</td><td class='num pos'>16.82%</td><td>0.759</td><td>-13.94%</td></tr><tr style='background:#eaf6ff'><td>-7%</td><td>14</td><td>57.1%</td><td>3.74%</td><td class='num pos'>15.91%</td><td>0.724</td><td>-14.72%</td></tr><tr><td>-10%</td><td>11</td><td>63.6%</td><td>4.32%</td><td class='num pos'>13.88%</td><td>0.651</td><td>-13.71%</td></tr><tr><td>-12%</td><td>11</td><td>63.6%</td><td>4.32%</td><td class='num pos'>13.88%</td><td>0.651</td><td>-13.71%</td></tr><tr><td>-15%</td><td>10</td><td>60.0%</td><td>5.58%</td><td class='num pos'>18.09%</td><td>0.796</td><td>-12.81%</td></tr><tr><td>-20%</td><td>10</td><td>60.0%</td><td>5.58%</td><td class='num pos'>18.09%</td><td>0.796</td><td>-12.81%</td></tr></table>
+<h2>全量逐笔交易(10笔)</h2>
+<table><tr><th>#</th><th>代码</th><th>买入日</th><th>买价</th><th>卖出日</th><th>卖价</th>
+<th>收益</th><th>股数</th><th>持有日</th><th>退出</th><th>ROE%</th><th>净利同比%</th><th>PE</th></tr>
+<tr><td>1</td><td>000683</td><td>2024-11-25</td><td>5.38</td><td>2024-12-23</td><td>5.32</td><td class='num neg'>-1.22%</td><td>6100</td><td>20</td><td>到期</td><td>12.87</td><td>19.84</td><td>8.173469387755102</td></tr><tr><td>2</td><td>000657</td><td>2025-01-08</td><td>8.73</td><td>2025-02-13</td><td>9.28</td><td class='num pos'>6.25%</td><td>3800</td><td>20</td><td>到期</td><td>12.84</td><td>17.47</td><td>18.041666666666668</td></tr><tr><td>3</td><td>002380</td><td>2025-01-09</td><td>17.53</td><td>2025-02-14</td><td>23.74</td><td class='num pos'>35.42%</td><td>1800</td><td>20</td><td>到期</td><td>12.02</td><td>56.64</td><td>16.561904761904763</td></tr><tr><td>4</td><td>000523</td><td>2025-01-10</td><td>2.76</td><td>2025-02-17</td><td>3.00</td><td class='num pos'>8.47%</td><td>12600</td><td>20</td><td>到期</td><td>30.51</td><td>585.58</td><td>9.678558813140233</td></tr><tr><td>5</td><td>002801</td><td>2025-10-17</td><td>32.53</td><td>2025-11-14</td><td>33.27</td><td class='num pos'>2.29%</td><td>1100</td><td>20</td><td>到期</td><td>16.57</td><td>25.29</td><td>19.05708661417323</td></tr><tr><td>6</td><td>001696</td><td>2025-12-18</td><td>20.58</td><td>2026-01-19</td><td>22.72</td><td class='num pos'>10.36%</td><td>1800</td><td>20</td><td>到期</td><td>14.31</td><td>93.7</td><td>23.14492972646215</td></tr><tr><td>7</td><td>002345</td><td>2026-03-03</td><td>11.13</td><td>2026-03-31</td><td>10.22</td><td class='num neg'>-8.18%</td><td>3600</td><td>20</td><td>到期</td><td>13.73</td><td>156.66</td><td>19.71428571428571</td></tr><tr><td>8</td><td>002518</td><td>2026-03-17</td><td>48.07</td><td>2026-04-15</td><td>46.92</td><td class='num neg'>-2.39%</td><td>800</td><td>20</td><td>到期</td><td>13.36</td><td>54.97</td><td>45.41904761904762</td></tr><tr><td>9</td><td>600114</td><td>2026-03-19</td><td>28.73</td><td>2026-04-17</td><td>31.20</td><td class='num pos'>8.60%</td><td>1400</td><td>20</td><td>到期</td><td>17.64</td><td>34.95</td><td>33.139534883720934</td></tr><tr><td>10</td><td>000021</td><td>2026-03-31</td><td>26.00</td><td>2026-04-29</td><td>28.78</td><td class='num pos'>10.70%</td><td>1400</td><td>20</td><td>到期</td><td>9.09</td><td>22.07</td><td>35.562603419746274</td></tr></table>
+<div class='note' style='margin-top:18px'><b>诚实说明:</b> ① 数据库无分钟表, 买价=信号日14:45收盘×滑点, 卖价=到期/止损日15:00收盘×滑点;
+② 基本面为 akshare 东方财富业绩报表真实数据, 可用性=报告期末+1日(防未来函数); PE/PB 由真实EPS/每股净资产+当日收盘价现场计算(point-in-time);
+③ 概念成员为当前快照(2026-04-16), 题材归属近似; ④ 热门题材资金流为成交额代理(无真实主力资金流字段)。</div>
+</body></html>

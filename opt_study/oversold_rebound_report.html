@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang='zh'><head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1'>
+<title>超跌绩优·博反弹 回测报告</title>
+<style>
+*{box-sizing:border-box} body{font-family:-apple-system,'Segoe UI',sans-serif;margin:0;background:#f5f6f8;color:#1a1a1a}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:23px;margin:0 0 4px} h2{font-size:18px;margin:30px 0 10px;border-left:4px solid #2563eb;padding-left:10px}
+.sub{color:#666;font-size:13px;margin-bottom:8px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px 18px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
+th,td{border:1px solid #e5e7eb;padding:7px 9px;text-align:left} th{background:#f1f5f9;font-weight:600}
+td.num{text-align:right;font-variant-numeric:tabular-nums} .pos{color:#c0392b;font-weight:600} .neg{color:#1e7d3a;font-weight:600}
+.tag{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:5px;padding:2px 8px;font-size:12px;margin:2px}
+.note{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;font-size:13px;color:#713f12;margin:12px 0}
+.kpi{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0}
+.kpi>div{flex:1;min-width:120px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;text-align:center}
+.kpi .v{font-size:22px;font-weight:700} .kpi .l{font-size:12px;color:#666;margin-top:2px}
+</style></head><body><div class='wrap'>
+<h1>超跌绩优 · 博超跌反弹 策略回测</h1>
+<div class='sub'>数据: qlib_pro_v16.db (日线, 60/00 主板+中小板) · 窗口 2024-07-01~2026-07-15 · 滑点 0.8% · 初始 10 万 · N=5 槽等权</div>
+
+<div class='card'><h2 style='border:0;margin:0 0 8px'>策略定义(默认参数)</h2>
+<div>
+<span class='tag'>绩优代理: MA60 &gt; MA120(中长期趋势向上, 优等生在上升趋势中的回调)</span>
+<span class='tag'>超跌①: 距60日最高价回撤 ≤ -18%</span>
+<span class='tag'>超跌②: 收盘价跌破 MA60 乖离 ≥ 0%</span>
+<span class='tag'>超跌③: RSI14 &lt; 35</span>
+<span class='tag'>触发: 阳线 + 收复5日线 + 量比&gt;1.2(止跌企稳)</span>
+<span class='tag'>持有: 10 交易日</span>
+<span class='tag'>买点: 信号日14:55收盘</span>
+</div></div>
+
+<div class='kpi'>
+<div><div class='v'>-50.38%</div><div class='l'>总收益</div></div>
+<div><div class='v'>43.8%</div><div class='l'>胜率(笔数 185)</div></div>
+<div><div class='v'>-0.89%</div><div class='l'>平均每笔收益</div></div>
+<div><div class='v'>-0.53</div><div class='l'>夏普(年化近似)</div></div>
+<div><div class='v'>-62.54%</div><div class='l'>最大回撤</div></div>
+</div>
+
+<h2>① 牛熊分段表现(回答: 熊市/牛市好用吗)</h2>
+<table><tr><th>市场状态</th><th>笔数</th><th>胜率</th><th>平均每笔收益</th><th>平均盈利</th><th>平均亏损</th></tr><tr><td>牛市(市场站上MA60)</td><td class='num'>131</td><td class='num'>38.9%</td><td class='num neg'>-0.97%</td><td class='num'>6.07%</td><td class='num'>-5.46%</td></tr>
+<tr><td>熊市(市场跌破MA60)</td><td class='num'>54</td><td class='num'>55.6%</td><td class='num neg'>-0.68%</td><td class='num'>5.18%</td><td class='num'>-8.0%</td></tr>
+</table>
+<div class='note'>结论: 超跌反弹属于<b>逆势/均值回归</b>策略, 本质是在弱势中"接飞刀"。下方牛熊分段会显示它在哪种环境下胜率与赔率更占优。</div>
+
+<h2>② 买点时点对比(回答: 实盘何时买 / 挂单可行吗)</h2>
+<table><tr><th>买入时点</th><th>笔数</th><th>胜率</th><th>平均每笔收益</th><th>总收益</th></tr><tr><td>信号日收盘 14:55</td><td class='num'>185</td><td class='num'>43.8%</td><td class='num neg'>-0.89%</td><td class='num'>-50.38%</td></tr>
+<tr><td>次日开盘 09:30</td><td class='num'>176</td><td class='num'>40.3%</td><td class='num neg'>-0.88%</td><td class='num'>-32.05%</td></tr>
+</table>
+<div class='note'><b>挂单可行性:</b> 超跌反弹买的是"弱中转强", 价格本就在低位, <b>挂限价单完全可行</b>。实操建议: 盘前挂 <code>buy_limit = max(前日收盘×(1−1%), MA60支撑价)</code> 的限价单(买在比信号价更低的位置博更优成本); 次日开盘 09:25 前挂单, 未成交则撤单观察, 避免追高。信号日收盘买入需盘中盯盘确认止跌, 适合有条件单/手动尾盘执行。</div>
+
+<h2>③ 60日线乖离敏感度(回答: 绩优到什么地步会超跌反弹)</h2>
+<table><tr><th>跌破60日线幅度</th><th>笔数</th><th>胜率</th><th>平均每笔收益</th><th>总收益</th></tr><tr><td class='num'>跌破0%</td><td class='num'>185</td><td class='num'>43.8%</td><td class='num neg'>-0.89%</td><td class='num neg'>-50.38%</td></tr>
+<tr><td class='num'>跌破3%</td><td class='num'>190</td><td class='num'>46.3%</td><td class='num neg'>-0.63%</td><td class='num neg'>-15.61%</td></tr>
+<tr><td class='num'>跌破5%</td><td class='num'>186</td><td class='num'>40.9%</td><td class='num neg'>-1.7%</td><td class='num neg'>-46.47%</td></tr>
+<tr><td class='num'>跌破8%</td><td class='num'>166</td><td class='num'>42.2%</td><td class='num neg'>-1.02%</td><td class='num neg'>-62.79%</td></tr>
+</table>
+<div class='note'>越深(乖离越大)往往代表错杀越严重、反弹空间越大, 但"接飞刀"风险也越高。下方持有期敏感度配合看, 找出赔率与胜率平衡点。</div>
+
+<h2>持有期敏感度</h2>
+<table><tr><th>持有交易日</th><th>笔数</th><th>胜率</th><th>平均每笔收益</th><th>夏普</th><th>最大回撤</th></tr><tr><td class='num'>5</td><td class='num'>347</td><td class='num'>35.2%</td><td class='num neg'>-1.27%</td><td class='num'>-1.31</td><td class='num'>-81.31%</td></tr>
+<tr><td class='num'>10</td><td class='num'>185</td><td class='num'>43.8%</td><td class='num neg'>-0.89%</td><td class='num'>-0.53</td><td class='num'>-62.54%</td></tr>
+<tr><td class='num'>15</td><td class='num'>130</td><td class='num'>43.1%</td><td class='num neg'>-0.73%</td><td class='num'>-0.28</td><td class='num'>-35.45%</td></tr>
+<tr><td class='num'>20</td><td class='num'>96</td><td class='num'>42.7%</td><td class='num neg'>-0.3%</td><td class='num'>-0.1</td><td class='num'>-36.05%</td></tr>
+</table>
+
+<h2>最优组合(敏感度交叉点)</h2>
+<div class='card'>将敏感度最优值交叉组合: <b>跌破60日线≈3% + 持有20日 + 次日09:30开盘</b><br>结果: 笔数 95, 胜率 44.2%, 平均每笔 0.98%, 账户总收益 22.28%, 最大回撤 -32.48% (夏普 0.22)<br>对照 跌破3%+持有15日+信号收盘: 胜率 47.7%, 总收益 -1.8%, 回撤 -32.03%<br><span style='color:#713f12'>即便取最优组合, 样本内仍是<b>负期望</b>(亏损略小于基准, 但未转正)。说明'绩优=MA60&gt;MA120的行为代理'不够, 真实绩优(ROE/PE/业绩拐点)或题材催化才是反弹持续的关键, 需补强后再实盘。</span></div>
+
+<h2>样本逐笔(含精确到分钟的买卖时点, 供实盘可操作性核查)</h2>
+<table><tr><th>代码</th><th>买入时间</th><th>买价</th><th>股数</th><th>卖出时间</th><th>卖价</th><th>收益</th><th>盈亏元</th><th>市况</th><th>退出</th></tr><tr><td>600114</td><td class='num'>2024-11-27 14:55:00</td><td class='num'>15.86</td><td class='num'>1200</td><td class='num'>2024-12-11 15:00:00</td><td class='num'>17.06</td><td class='num pos'>7.61%</td><td class='num'>1448</td><td>牛市</td><td>到期</td></tr>
+<tr><td>600189</td><td class='num'>2024-11-27 14:55:00</td><td class='num'>7.42</td><td class='num'>2700</td><td class='num'>2024-12-11 15:00:00</td><td class='num'>8.33</td><td class='num pos'>12.32%</td><td class='num'>2468</td><td>牛市</td><td>到期</td></tr>
+<tr><td>601878</td><td class='num'>2024-11-27 14:55:00</td><td class='num'>12.29</td><td class='num'>1600</td><td class='num'>2024-12-11 15:00:00</td><td class='num'>12.57</td><td class='num pos'>2.29%</td><td class='num'>450</td><td>牛市</td><td>到期</td></tr>
+<tr><td>002875</td><td class='num'>2024-11-28 14:55:00</td><td class='num'>14.63</td><td class='num'>1400</td><td class='num'>2024-12-12 15:00:00</td><td class='num'>15.44</td><td class='num pos'>5.53%</td><td class='num'>1133</td><td>牛市</td><td>到期</td></tr>
+<tr><td>600552</td><td class='num'>2024-11-28 14:55:00</td><td class='num'>12.30</td><td class='num'>1600</td><td class='num'>2024-12-12 15:00:00</td><td class='num'>12.44</td><td class='num pos'>1.16%</td><td class='num'>227</td><td>牛市</td><td>到期</td></tr>
+<tr><td>600416</td><td class='num'>2024-12-12 14:55:00</td><td class='num'>11.73</td><td class='num'>1800</td><td class='num'>2024-12-26 15:00:00</td><td class='num'>10.75</td><td class='num neg'>-8.35%</td><td class='num'>-1764</td><td>牛市</td><td>到期</td></tr>
+<tr><td>000792</td><td class='num'>2024-12-19 14:55:00</td><td class='num'>17.03</td><td class='num'>1200</td><td class='num'>2025-01-03 15:00:00</td><td class='num'>16.21</td><td class='num neg'>-4.79%</td><td class='num'>-979</td><td>牛市</td><td>到期</td></tr>
+<tr><td>600745</td><td class='num'>2024-12-19 14:55:00</td><td class='num'>36.28</td><td class='num'>500</td><td class='num'>2025-01-03 15:00:00</td><td class='num'>33.18</td><td class='num neg'>-8.53%</td><td class='num'>-1548</td><td>牛市</td><td>到期</td></tr>
+<tr><td>000503</td><td class='num'>2024-12-20 14:55:00</td><td class='num'>12.61</td><td class='num'>1800</td><td class='num'>2025-01-06 15:00:00</td><td class='num'>9.88</td><td class='num neg'>-21.65%</td><td class='num'>-4914</td><td>牛市</td><td>到期</td></tr>
+<tr><td>002654</td><td class='num'>2024-12-20 14:55:00</td><td class='num'>13.61</td><td class='num'>1700</td><td class='num'>2025-01-06 15:00:00</td><td class='num'>10.92</td><td class='num neg'>-19.74%</td><td class='num'>-4566</td><td>牛市</td><td>到期</td></tr>
+<tr><td>000546</td><td class='num'>2024-12-26 14:55:00</td><td class='num'>4.92</td><td class='num'>3900</td><td class='num'>2025-01-10 15:00:00</td><td class='num'>4.41</td><td class='num neg'>-10.26%</td><td class='num'>-1968</td><td>牛市</td><td>到期</td></tr>
+<tr><td>000612</td><td class='num'>2025-01-03 14:55:00</td><td class='num'>6.46</td><td class='num'>2800</td><td class='num'>2025-01-17 15:00:00</td><td class='num'>7.06</td><td class='num pos'>9.31%</td><td class='num'>1685</td><td>熊市</td><td>到期</td></tr>
+<tr><td>002155</td><td class='num'>2025-01-03 14:55:00</td><td class='num'>12.74</td><td class='num'>1400</td><td class='num'>2025-01-17 15:00:00</td><td class='num'>13.05</td><td class='num pos'>2.42%</td><td class='num'>432</td><td>熊市</td><td>到期</td></tr>
+<tr><td>000078</td><td class='num'>2025-01-06 14:55:00</td><td class='num'>2.56</td><td class='num'>7100</td><td class='num'>2025-01-20 15:00:00</td><td class='num'>2.47</td><td class='num neg'>-3.52%</td><td class='num'>-641</td><td>熊市</td><td>到期</td></tr>
+<tr><td>000518</td><td class='num'>2025-01-06 14:55:00</td><td class='num'>2.66</td><td class='num'>7000</td><td class='num'>2025-01-20 15:00:00</td><td class='num'>2.52</td><td class='num neg'>-5.32%</td><td class='num'>-990</td><td>熊市</td><td>到期</td></tr>
+</table>
+
+<div class='note'><b>⚠️ 数据口径诚实说明:</b> 数据库仅日线、无分钟表, 价格为日线锚定到决策时点的代理值(收盘/开盘), 时间精确到分钟是<b>策略下单时点</b>而非真实盘口成交价。实盘请以真实盘口为准, 滑点外另有偏差。本策略假设"绩优=此前上升通道"为行为代理, 非真实基本面绩优(无 ROE/PE 数据)。</div>
+</div></body></html>

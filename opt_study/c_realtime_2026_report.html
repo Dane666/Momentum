@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C 尾盘偷袭板(最高收益版) · 2026 实盘化回测</title>
+<style>
+ *{box-sizing:border-box;margin:0;padding:0}
+ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f4f6f9;color:#1a2233;line-height:1.6;padding:30px 18px}
+ .wrap{max-width:1240px;margin:0 auto}
+ h1{font-size:24px;font-weight:800;margin-bottom:4px}
+ .sub{color:#5a6b85;font-size:13.5px;margin-bottom:20px}
+ .card{background:#fff;border:1px solid #e3e8f0;border-radius:14px;padding:22px 24px;margin-bottom:20px;box-shadow:0 2px 10px rgba(20,40,80,.04)}
+ h2{font-size:18px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+ h2 .dot{width:9px;height:9px;border-radius:50%;background:#3b6fe0}
+ .kpi{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:6px}
+ .kbox{background:#f8fafd;border:1px solid #e8edf5;border-radius:10px;padding:12px 14px}
+ .kbox .lbl{font-size:11.5px;color:#6c7a94;margin-bottom:3px}
+ .kbox .val{font-size:20px;font-weight:800}
+ .kbox .val.pos{color:#c0392b} .kbox .val.neg{color:#2c5aa0}
+ .scroll{max-height:560px;overflow-y:auto;border:1px solid #eef1f6;border-radius:10px}
+ table{width:100%;border-collapse:collapse;font-size:12.5px}
+ th,td{padding:7px 9px;text-align:left;border-bottom:1px solid #eef1f6}
+ th{background:#f7f9fc;font-weight:700;color:#3a4761;font-size:12px;position:sticky;top:0;z-index:2;white-space:nowrap}
+ td.num{text-align:right;font-variant-numeric:tabular-nums}
+ td.dt{font-variant-numeric:tabular-nums;white-space:nowrap;color:#33405a}
+ td.code{font-family:'SF Mono',Consolas,monospace;color:#2456c9}
+ .pos{color:#d1342f;font-weight:600} .neg{color:#0a8f52;font-weight:600}
+ .note{background:#fff8e6;border:1px solid #f2e2b0;border-radius:10px;padding:12px 15px;font-size:13px;color:#6b5a1e;margin:12px 0}
+ .note b{color:#8a6d0f}
+ .ok{color:#0a8f52;font-weight:700} .bad{color:#c0392b;font-weight:700}
+ ul{padding-left:20px;font-size:13.5px} li{margin-bottom:6px}
+ .foot{text-align:center;color:#8a97ad;font-size:12px;margin-top:6px}
+</style></head><body><div class="wrap">
+<h1>C 尾盘偷袭板(最高收益版 gap_h2_lu0_trapFalse) · 2026 实盘化回测</h1>
+<div class="sub">窗口 2026-01-05 ~ 2026-07-15　|　同一 DB(qlib_pro_v16)真实数据　|　初始资金 10万、双边滑点 0.008　|　N=3、持2天、MA60开门闸口</div>
+
+<div class="card">
+  <h2><span class="dot"></span>2026窗口 绩效概览</h2>
+  <div class="kpi">
+    <div class="kbox"><div class="lbl">期末净值</div><div class="val">¥104,167</div></div>
+    <div class="kbox"><div class="lbl">总收益</div><div class="val pos">+4.17%</div></div>
+    <div class="kbox"><div class="lbl">胜率</div><div class="val">84.6%</div></div>
+    <div class="kbox"><div class="lbl">夏普</div><div class="val">0.85</div></div>
+    <div class="kbox"><div class="lbl">最大回撤</div><div class="val">5.21%</div></div>
+  </div>
+  <div class="kpi" style="margin-top:12px">
+    <div class="kbox"><div class="lbl">成交笔数</div><div class="val">13</div></div>
+    <div class="kbox"><div class="lbl">信号日(MA60开门)</div><div class="val">20</div></div>
+    <div class="kbox"><div class="lbl">隔天高开止盈 / 到期</div><div class="val">2 / 11</div></div>
+    <div class="kbox"><div class="lbl">盈利笔 / 最佳 / 最差</div><div class="val">11 / +10.2% / -10.4%</div></div>
+    <div class="kbox"><div class="lbl">涨停买不进跳过</div><div class="val">0</div></div>
+  </div>
+  <div class="note">
+    <b>数据口径说明：</b>数据库仅有<b>日线</b>(kline_cache),<b>无分钟级表</b>。因此本表价格均为<b>日线锚定到策略决策时点的代理值</b>：
+    买入价 = 信号日收盘×(1+滑点)(尾盘偷袭板 close≈high,≈14:45 价)；
+    隔天高开卖出价 = 次日开盘×(1−滑点)；到期卖出价 = 到期日收盘×(1−滑点)。
+    时间精确到分钟反映的是策略<b>下单时点</b>(买 14:45:00 / 隔天高开卖 09:30:00 / 到期卖 15:00:00),用于人工核对是否落在交易时段内、是否可操作。
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="dot"></span>实盘可操作性核查</h2>
+  <ul>
+    <li>所有 13 笔的<b>买卖时间均落在 A股交易时段内</b>：买入统一 <b>14:45:00</b>(尾盘), 卖出为 <b>09:30:00</b>(次日开盘, 隔天高开止盈) 或 <b>15:00:00</b>(到期日收盘) —— 判定：<span class="ok">全部合规 ✅</span></li>
+    <li><b>买得进吗？</b>本窗口涨停封板跳过 0 笔(封板率 0%)——选股条件要求"开盘未涨停 + 当日未封板 + close≈high", 即专挑<b>没封板但收盘贴近涨停的强势股</b>, 14:45 可正常买入, 不存在涨停买不进陷阱。</li>
+    <li><b>仓位如何安排？</b>事件驱动满仓模型, N=3 个独立仓位槽(满仓才买、卖出才释放)。每笔约 4~5 万元(约总资金的 1/3), 整手 100 股约束。</li>
+    <li><b>卖出是否好执行？</b>两类退出都简单可机械执行：①次日 09:25 挂"开盘价卖出"条件单(若开盘≥买价×1.01 即走, 否则撤单持有)；②若未触发, 到期日 14:55 前挂"收盘价卖出"。无需盘中盯盘判断。</li>
+    <li><b>空仓纪律：</b>MA60 开门闸口——开盘前(用 T-1 收盘)判断大盘站上 60 日均线, 跌破则本周期(信号日)不建仓。本窗口 42 个候选信号日中, 共 <b>22 个</b>因 MA60 空头被挡在门外(避免弱势接飞刀), 仅 20 个满足建仓条件。</li>
+    <li><b>风险提示：</b>收益集中在少数"题材龙头肥尾"(最佳 +10.2%); 单笔最差 -10.4%; 亏损笔无硬止损(仅靠隔天高开与到期), 适合作为<b>题材活跃期的进攻卫星仓</b>, 且日线价格与真实 14:45 成交存在滑点外偏差, 实盘需以真实盘口为准。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2><span class="dot"></span>逐笔交易明细(时间精确到分钟)</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr>
+      <th>#</th><th>代码</th><th>行业</th>
+      <th>买入日期时间</th><th>买入价</th><th>股数</th>
+      <th>卖出日期时间</th><th>卖出价</th><th>收益%</th><th>盈亏(元)</th>
+      <th>持有</th><th>退出原因</th><th>MA60(买)</th>
+    </tr></thead>
+    <tbody>
+<tr><td>1</td><td class='code'>000739</td><td>流感</td><td class='dt'>2026-01-13 14:45:00</td><td class='num'>17.93</td><td class='num'>1,800</td><td class='dt'>2026-01-15 15:00:00</td><td class='num'>17.98</td><td class='num pos'>+0.29%</td><td class='num pos'>+95</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+<tr><td>2</td><td class='code'>000603</td><td>金属铅</td><td class='dt'>2026-01-21 14:45:00</td><td class='num'>46.37</td><td class='num'>700</td><td class='dt'>2026-01-23 15:00:00</td><td class='num'>51.09</td><td class='num pos'>+10.18%</td><td class='num pos'>+3,304</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+<tr><td>3</td><td class='code'>002738</td><td>小金属概念</td><td class='dt'>2026-01-21 14:45:00</td><td class='num'>92.74</td><td class='num'>300</td><td class='dt'>2026-01-23 15:00:00</td><td class='num'>95.73</td><td class='num pos'>+3.23%</td><td class='num pos'>+898</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+<tr><td>4</td><td class='code'>000510</td><td>金属铜</td><td class='dt'>2026-01-26 14:45:00</td><td class='num'>20.45</td><td class='num'>1,700</td><td class='dt'>2026-01-28 15:00:00</td><td class='num'>18.33</td><td class='num neg'>-10.37%</td><td class='num neg'>-3,604</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+<tr><td>5</td><td class='code'>000688</td><td>金属铅</td><td class='dt'>2026-01-26 14:45:00</td><td class='num'>32.59</td><td class='num'>1,000</td><td class='dt'>2026-01-28 15:00:00</td><td class='num'>30.63</td><td class='num neg'>-6.00%</td><td class='num neg'>-1,956</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+<tr><td>6</td><td class='code'>000960</td><td>金属锌</td><td class='dt'>2026-01-26 14:45:00</td><td class='num'>46.20</td><td class='num'>700</td><td class='dt'>2026-01-28 15:00:00</td><td class='num'>46.38</td><td class='num pos'>+0.39%</td><td class='num pos'>+126</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+<tr><td>7</td><td class='code'>002378</td><td>小金属概念</td><td class='dt'>2026-02-06 14:45:00</td><td class='num'>24.82</td><td class='num'>1,300</td><td class='dt'>2026-02-10 15:00:00</td><td class='num'>24.93</td><td class='num pos'>+0.45%</td><td class='num pos'>+146</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+<tr><td>8</td><td class='code'>002436</td><td>PCB概念</td><td class='dt'>2026-02-24 14:45:00</td><td class='num'>25.15</td><td class='num'>1,300</td><td class='dt'>2026-02-26 15:00:00</td><td class='num'>26.62</td><td class='num pos'>+5.87%</td><td class='num pos'>+1,918</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+<tr><td>9</td><td class='code'>000751</td><td>金属锌</td><td class='dt'>2026-02-27 14:45:00</td><td class='num'>7.17</td><td class='num'>4,900</td><td class='dt'>2026-03-02 09:30:00</td><td class='num'>7.33</td><td class='num pos'>+2.29%</td><td class='num pos'>+804</td><td class='num'>1d</td><td>隔天高开止盈</td><td>站上</td></tr>
+<tr><td>10</td><td class='code'>002246</td><td>军民融合</td><td class='dt'>2026-03-04 14:45:00</td><td class='num'>24.30</td><td class='num'>1,400</td><td class='dt'>2026-03-06 15:00:00</td><td class='num'>24.61</td><td class='num pos'>+1.27%</td><td class='num pos'>+432</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+<tr><td>11</td><td class='code'>002221</td><td>俄乌冲突概念</td><td class='dt'>2026-03-12 14:45:00</td><td class='num'>9.82</td><td class='num'>3,700</td><td class='dt'>2026-03-13 09:30:00</td><td class='num'>9.86</td><td class='num pos'>+0.43%</td><td class='num pos'>+157</td><td class='num'>1d</td><td>隔天高开止盈</td><td>站上</td></tr>
+<tr><td>12</td><td class='code'>002164</td><td>减速器</td><td class='dt'>2026-05-15 14:45:00</td><td class='num'>14.40</td><td class='num'>2,500</td><td class='dt'>2026-05-19 15:00:00</td><td class='num'>14.75</td><td class='num pos'>+2.41%</td><td class='num pos'>+867</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+<tr><td>13</td><td class='code'>002380</td><td>新型工业化</td><td class='dt'>2026-05-15 14:45:00</td><td class='num'>42.32</td><td class='num'>700</td><td class='dt'>2026-05-19 15:00:00</td><td class='num'>43.72</td><td class='num pos'>+3.31%</td><td class='num pos'>+981</td><td class='num'>2d</td><td>到期</td><td>站上</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="foot">数据源: qlib_pro_v16.db · 逻辑复用 harness_c_enhanced(未修改原文件) · 生成于 opt_study/</div>
+</div>
+</div></body></html>
