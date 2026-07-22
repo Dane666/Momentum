@@ -11,7 +11,8 @@ PE/PB 不在该接口, 由回测用真实 EPS + 当日收盘价 现场计算(poi
 import os, sys, time, sqlite3
 import pandas as pd
 
-DB = "/Users/admin/Documents/codeHub/adata-main/tests/momentum/qlib_pro_v16.db"
+DB = os.environ.get('MOMENTUM_DB_PATH',
+                    "/Users/admin/Documents/codeHub/adata-main/tests/momentum/qlib_pro_v16.db")
 PERIODS = [
     "20240331", "20240630", "20240930", "20241231",
     "20250331", "20250630", "20250930", "20251231", "20260331",

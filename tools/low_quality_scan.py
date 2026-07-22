@@ -251,7 +251,17 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
     import pandas as pd
     ctx = H.load_kline()
     ctx = H.build_ctx(ctx)
-    fmap = H.load_fundamentals()
+    # 绩优数据(基本面): 缺失则优雅降级为"仅低位"筛选, 不崩溃
+    fmap = {}
+    quality_available = False
+    try:
+        fmap = H.load_fundamentals()
+        if fmap:
+            quality_available = True
+    except Exception as e:
+        logger.warning(f"[低位绩优] fundamentals 读取失败, 退化为仅低位筛选: {e}")
+    if not quality_available:
+        logger.warning("[低位绩优] 基本面数据缺失: 仅按低位(深度超跌)筛选, 绩优未验证")
     names = _load_names()
 
     cal = sorted({t for g in ctx.values() for t in g.index})
@@ -281,28 +291,43 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
         # 低位(深度超跌技术形态)
         if not H.base_signal(g, last, cfg):
             continue
-        close = g.loc[last, 'close']
-        # 绩优(真实基本面 point-in-time)
-        ok, pe, pb, roe, np_yoy = H.quality_ok(fmap, code, today, close, True)
-        if not ok:
-            continue
+        close = float(g.loc[last, 'close'])
         r = g.loc[last]
         dd60 = r['dd60']
         # 250 日高回撤(低位丰富度), 不足 250 日则回退 dd60
         hi250 = g['close'].rolling(250, min_periods=120).max().iloc[-1]
         dd250 = (close / hi250 - 1.0) if (hi250 and hi250 > 0) else dd60
         is_hot = code in hot_codes
-        # 评分: 深度*0.5 + ROE*0.3 + 净利同比(封顶100)*0.1 + 热门+10
-        score = (-dd60 * 100) * 0.5 + (roe or 0) * 0.3 \
-            + min(np_yoy or 0, 100) * 0.1 + (10 if is_hot else 0)
-        picks.append(dict(
-            code=code, name=names.get(code, code), price=round(float(close), 2),
-            dd60=round(float(dd60) * 100, 1),
-            dd250=round(float(dd250) * 100, 1),
-            roe=roe, np_yoy=np_yoy,
-            pe=round(float(pe), 1) if pe else None,
-            pb=round(float(pb), 1) if pb else None,
-            hot=is_hot, score=round(score, 2)))
+
+        if quality_available:
+            # 绩优(真实基本面 point-in-time)
+            ok, pe, pb, roe, np_yoy = H.quality_ok(fmap, code, today, close, True)
+            if not ok:
+                continue
+            # 评分: 深度*0.5 + ROE*0.3 + 净利同比(封顶100)*0.1 + 热门+10
+            score = (-dd60 * 100) * 0.5 + (roe or 0) * 0.3 \
+                + min(np_yoy or 0, 100) * 0.1 + (10 if is_hot else 0)
+            picks.append(dict(
+                code=code, name=names.get(code, code), price=round(close, 2),
+                dd60=round(float(dd60) * 100, 1),
+                dd250=round(float(dd250) * 100, 1),
+                roe=roe, np_yoy=np_yoy,
+                pe=round(float(pe), 1) if pe else None,
+                pb=round(float(pb), 1) if pb else None,
+                hot=is_hot, score=round(score, 2), quality_unverified=False))
+        else:
+            # 基本面缺失: 仅按低位(深度超跌)筛选, 绩优未验证(保证 CI 不崩溃且有候选)
+            nm = names.get(code, code)
+            # 安全网: 剔除明显垃圾(ST / 退市风险 / 价格过低), 避免推送废单
+            if 'ST' in str(nm) or close < 1.5:
+                continue
+            score = (-dd60 * 100) * 0.5 + (10 if is_hot else 0)
+            picks.append(dict(
+                code=code, name=nm, price=round(close, 2),
+                dd60=round(float(dd60) * 100, 1),
+                dd250=round(float(dd250) * 100, 1),
+                roe=None, np_yoy=None, pe=None, pb=None,
+                hot=is_hot, score=round(score, 2), quality_unverified=True))
 
     picks.sort(key=lambda x: -x['score'])
     picks = picks[:top_n]
@@ -318,8 +343,14 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
 
 
 def _build_report(picks, today):
-    lines = [f"📉 低位绩优股筛选 | {today}",
-             "低位=深度超跌(距60日高≤-15%&RSI<35) + 绩优(ROE≥8%&净利>0&PE≤50&PB≤10)",
+    unverified = bool(picks) and bool(picks[0].get('quality_unverified'))
+    if unverified:
+        sub = "低位=深度超跌(距60日高≤-15%&RSI<35) [基本面缺失: 仅按低位筛选, 绩优未验证]"
+        score_desc = "评分=超跌深度×0.5+热门+10 (低位+热门)"
+    else:
+        sub = "低位=深度超跌(距60日高≤-15%&RSI<35) + 绩优(ROE≥8%&净利>0&PE≤50&PB≤10)"
+        score_desc = "评分=超跌深度×0.5+ROE×0.3+净利×0.1+热门+10"
+    lines = [f"📉 低位绩优股筛选 | {today}", sub,
              f"命中 {len(picks)} 只 (按 超跌深度/ROE/净利/热门 评分)"]
     if not picks:
         lines.append("（今日无满足双条件的标的）")
@@ -327,14 +358,16 @@ def _build_report(picks, today):
     lines.append("─" * 40)
     for i, p in enumerate(picks, 1):
         hot = " 🔥" if p['hot'] else ""
-        pe = f"PE{p['pe']}" if p['pe'] else "PE-"
-        pb = f"PB{p['pb']}" if p['pb'] else "PB-"
+        pe_s = f"PE{p['pe']}" if p.get('pe') else "PE-"
+        pb_s = f"PB{p['pb']}" if p.get('pb') else "PB-"
+        roe_s = f"ROE{p['roe']:.0f}%" if p.get('roe') is not None else "ROE-"
+        np_s = f"净利{p['np_yoy']:.0f}%" if p.get('np_yoy') is not None else "净利-"
         lines.append(
             f"{i:>2}. {p['code']} {p['name']}{hot}\n"
             f"    ¥{p['price']:.2f}  超跌{p['dd60']:.0f}%  250低{p['dd250']:.0f}%  "
-            f"ROE{p['roe']:.0f}%  净利{p['np_yoy']:.0f}%  {pe} {pb}")
+            f"{roe_s}  {np_s}  {pe_s} {pb_s}")
     lines.append("─" * 40)
-    lines.append("评分=超跌深度×0.5+ROE×0.3+净利×0.1+热门+10")
+    lines.append(score_desc)
     lines.append(f"止损¥{picks[0]['price']*SL_RATIO:.2f} 反弹目标¥{picks[0]['price']*TP_RATIO:.2f}(参考)")
     return "\n".join(lines)
 

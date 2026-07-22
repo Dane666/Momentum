@@ -62,6 +62,61 @@ jobs:
           restore-keys: |
             state-v1-${{ runner.os }}-
 
+      - name: Import fundamentals & sector cache into DB (if missing)
+        # fundamentals / stock_sector_cache 不在 CI 缓存里(仅本地构建), 这里从提交的 CSV 导入,
+        # 使"绩优"过滤与热门题材在 CI 中可用。表已存在则跳过(幂等)。
+        continue-on-error: true
+        run: |
+          python <<'PY'
+          import os, sqlite3, csv
+          db = os.environ.get('MOMENTUM_DB_PATH', 'qlib_pro_v16.db')
+          con = sqlite3.connect(db)
+
+          def rows(name):
+              try:
+                  return con.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]
+              except Exception:
+                  return 0
+
+          if rows('fundamentals') == 0 and os.path.exists('data/fundamentals.csv'):
+              print("fundamentals 缺失, 从 data/fundamentals.csv 导入...", flush=True)
+              con.execute("""CREATE TABLE IF NOT EXISTS fundamentals (
+                  code TEXT, period_end TEXT, avail_from TEXT,
+                  roe REAL, net_profit_yoy REAL, revenue_yoy REAL,
+                  eps REAL, eps_annualized REAL, bvps REAL, industry TEXT,
+                  PRIMARY KEY(code, period_end))""")
+              with open('data/fundamentals.csv', newline='', encoding='utf-8') as f:
+                  rd = csv.DictReader(f)
+                  recs = []
+                  for r in rd:
+                      def num(x):
+                          return float(x) if (x not in ('', None)) else None
+                      recs.append((r['code'], r['period_end'], r['avail_from'],
+                                   num(r['roe']), num(r['net_profit_yoy']), num(r['revenue_yoy']),
+                                   num(r['eps']), num(r['eps_annualized']), num(r['bvps']),
+                                   (r.get('industry') or None)))
+                  con.executemany("INSERT OR REPLACE INTO fundamentals VALUES (?,?,?,?,?,?,?,?,?,?)", recs)
+              con.commit()
+              print(f"  导入 fundamentals {len(recs)} 行", flush=True)
+          else:
+              print(f"fundamentals: {rows('fundamentals')} 行 (已存在/跳过)", flush=True)
+
+          if rows('stock_sector_cache') == 0 and os.path.exists('data/stock_sector_cache.csv'):
+              print("stock_sector_cache 缺失, 从 data/stock_sector_cache.csv 导入...", flush=True)
+              con.execute("""CREATE TABLE IF NOT EXISTS stock_sector_cache (
+                  code TEXT, sector TEXT, update_time TEXT)""")
+              with open('data/stock_sector_cache.csv', newline='', encoding='utf-8') as f:
+                  rd = csv.DictReader(f)
+                  recs = [(r['code'], r['sector'], r['update_time']) for r in rd]
+                  con.executemany("INSERT OR REPLACE INTO stock_sector_cache VALUES (?,?,?)", recs)
+              con.commit()
+              print(f"  导入 stock_sector_cache {len(recs)} 行", flush=True)
+          else:
+              print(f"stock_sector_cache: {rows('stock_sector_cache')} 行 (已存在/跳过)", flush=True)
+
+          con.close()
+          PY
+
       - name: Pre-fetch K-line data (warm cache)
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: |
@@ -264,6 +319,7 @@ jobs:
         if: >
           (github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'full') ||
           (github.event_name == 'schedule' && steps.calendar.outputs.is_open == 'true')
+        continue-on-error: true
         env:
           BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
         run: |
