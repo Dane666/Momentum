@@ -16,6 +16,7 @@
 import json
 import logging
 import os
+import time
 import requests
 
 logger = logging.getLogger('auction_extra')
@@ -192,55 +193,54 @@ def _secid_of(code: str) -> str:
     return ('1.' if code.startswith(('6', '9')) else '0.') + code
 
 
-def _em_a_open_chg(code: str):
-    """单只 A 股「今开 vs 昨收」高开%, 用 stock/get 接口(收盘后亦可取当日数据)."""
+def _em_a_open_chg(code: str, tries: int = 3):
+    """单只 A 股「今开 vs 昨收」高开%, 用 stock/get 接口(收盘后亦可取当日数据).
+
+    内置重试: eastmoney 对突发并发会限流返回空, 故单只也重试 + 退避.
+    """
     secid = _secid_of(code)
-    try:
-        url = 'https://push2.eastmoney.com/api/qt/stock/get'
-        params = {'secid': secid, 'fields': 'f44,f60', 'fltt': '2', 'invt': '2'}
-        r = requests.get(url, params=params, headers=_HEADERS, timeout=10)
-        d = r.json().get('data')
-        if not d:
-            return None
-        open_ = d.get('f44')
-        prev = d.get('f60')
-        if open_ in (None, '-', '') or prev in (None, '-', ''):
-            return None
-        open_ = float(open_); prev = float(prev)
-        if prev == 0:
-            return None
-        return (open_ / prev - 1) * 100
-    except Exception as e:
-        logger.warning('A股 %s 高开获取失败: %s', code, e)
-        return None
+    last_err = None
+    for _ in range(tries):
+        try:
+            url = 'https://push2.eastmoney.com/api/qt/stock/get'
+            params = {'secid': secid, 'fields': 'f44,f60', 'fltt': '2', 'invt': '2'}
+            r = requests.get(url, params=params, headers=_HEADERS, timeout=10)
+            d = r.json().get('data')
+            if not d:
+                last_err = 'empty data'; time.sleep(0.4); continue
+            open_ = d.get('f44')
+            prev = d.get('f60')
+            if open_ in (None, '-', '') or prev in (None, '-', ''):
+                last_err = 'missing field'; time.sleep(0.4); continue
+            open_ = float(open_); prev = float(prev)
+            if prev == 0:
+                return None
+            return (open_ / prev - 1) * 100
+        except Exception as e:
+            last_err = e
+            time.sleep(0.4)
+    logger.warning('A股 %s 高开获取失败(重试%d次): %s', code, tries, last_err)
+    return None
 
 
 def fetch_group_open_chg(stocks):
     """批量取相关 A 股「今开 vs 昨收」高开%, 返回 {code: 高开%}. 失败返回空 dict.
 
-    用 stock/get 单只并发(已验证收盘后亦可取当日 open/昨收); 优于 clist 批量
-    (后者需盘中实时快照, 非交易时段易返回空).
+    串行 + 错峰(规避 eastmoney 并发限流); 单只已带重试. 23 只约 10s, 远在超时内.
     """
     if not stocks:
         return {}
-    from concurrent.futures import ThreadPoolExecutor, as_completed
     res = {}
     try:
-        with ThreadPoolExecutor(max_workers=8) as pool:
-            fut = {pool.submit(_em_a_open_chg, c): c for c, _ in stocks}
-            for f in as_completed(fut):
-                code = fut[f]
-                try:
-                    v = f.result()
-                    if v is not None:
-                        res[code] = v
-                except Exception:
-                    pass
+        for c, _ in stocks:
+            v = _em_a_open_chg(c)
+            if v is not None:
+                res[c] = v
+            time.sleep(0.1)  # 错峰, 避免触发限流
     except Exception as e:
         logger.warning('相关 A 股高开批量获取失败: %s', e)
-        return res
     if not res:
-        logger.warning('相关 A 股高开全部为空(可能接口异常)')
+        logger.warning('相关 A 股高开全部为空(可能接口限流/异常)')
     return res
 
 
