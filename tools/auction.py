@@ -93,6 +93,16 @@ def analyze(df: pd.DataFrame) -> str:
                 elif top_sectors[0][1]>=2:
                     lines.append(f'\n👀 潜在主线: {top_sectors[0][0]}')
 
+    # 外部盘辅助: 碳酸锂期货 9:00-9:25 + 韩股早盘(至09:25)
+    try:
+        from tools.auction_extra import build_extra_sections
+        extra = build_extra_sections()
+        if extra:
+            lines.append('─' * 40)
+            lines.append(extra)
+    except Exception as e:
+        logger.warning(f'外部盘辅助段落失败: {e}')
+
     lines.append(f'\n⏰ 14:44 尾盘扫描见')
     return '\n'.join(lines)
 
