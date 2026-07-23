@@ -51,6 +51,10 @@ STOP_GRID = [-0.03, -0.05, -0.07, -0.10, -0.12, -0.15, -0.20]
 # 避免 CI 预热后只多几天新数据就跑出 n=0 的误导性 forward 结果.
 MIN_OOS_TRADING_DAYS = 20
 
+# universe 门禁: 覆盖标的数低于此阈值说明预热不足/库损坏, 前向验证结果为子集估计,
+# 必须 FAIL(非零退出) 而非假绿. 全市场非ST A股约 5000 只.
+MIN_UNIVERSE = 1500
+
 TRAIN_START, TRAIN_END = "2024-07-01", "2025-09-30"
 TEST_START, TEST_END = "2025-10-01", "2026-07-15"
 
@@ -315,10 +319,11 @@ def cmd_validate(args):
         msg = (f"数据未就绪: 未找到数据库 {DB_PATH}。前向验证需要 qlib_pro_v16.db 存在且含 "
                f"晚于 {IN_SAMPLE_END} 的行情。请在本地/自托管 runner 中确保数据库已更新后重跑。")
         print("WARN:", msg, flush=True)
-        # 仍产出一份说明性 HTML, 便于 CI 产物查看
+        # 仍产出一份说明性 HTML, 便于 CI 产物查看; 但判定为 FAIL(非零退出)避免假绿
         out = os.path.join(OUT_DIR, "forward_validation_report.html")
         open(out, "w").write(f"<html><body><h1>前向验证数据未就绪</h1><p>{msg}</p></body></html>")
-        return
+        print("FAIL: 数据库缺失, 前向验证无法运行.", flush=True)
+        sys.exit(1)
 
     mode = args.mode
     # 允许通过参数覆盖样本内终点(便于滚动扩展)
@@ -327,8 +332,12 @@ def cmd_validate(args):
     ctx, cal, fmap = load_all()
     universe = len(ctx)
     print(f"K线覆盖全市场标的数={universe}", flush=True)
-    if universe < 1500:
-        print(f"WARN: K线覆盖仅 {universe} 只(全市场约5000只), 前向验证结果为子集估计, 非全市场口径.", flush=True)
+    universe_ok = universe >= MIN_UNIVERSE
+    if not universe_ok:
+        print(f"FAIL-GATE: K线覆盖仅 {universe} 只 < {MIN_UNIVERSE} 阈值(全市场约5000只), "
+              f"前向验证样本严重不足, 结果不可信.", flush=True)
+    elif universe < 4000:
+        print(f"WARN: K线覆盖 {universe} 只(全市场约5000只), 前向验证为子集估计, 偏乐观.", flush=True)
     full_end = str(cal[-1])[:10]
     data_min = str(cal[0])[:10]
     data_max = full_end
@@ -454,6 +463,13 @@ def cmd_validate(args):
                    in_sample_baseline=ins_m, forward=R["forward"], holdout=R["holdout"], tracker=tracker)
     json.dump(summary, open(os.path.join(OUT_DIR, "forward_validation_metrics.json"), "w"),
               ensure_ascii=False, indent=2, default=lambda o: float(o) if isinstance(o, (np.floating, np.integer)) else o)
+
+    # universe 门禁: 样本严重不足时判定 FAIL(非零退出), 避免"假绿"掩盖预热/库损坏
+    if not universe_ok:
+        print(f"校验失败: 覆盖 {universe} 只 < {MIN_UNIVERSE} 阈值, 前向验证判定为 FAIL(避免假绿).",
+              flush=True)
+        sys.exit(1)
+
     print("完成. 报告: forward_validation_report.html | 逐笔: forward_validation_trades.csv | "
           "指标: forward_validation_metrics.json", flush=True)
 

@@ -25,4 +25,5 @@ opt_study/forward_validation_metrics.json
 opt_study/forward_validation_trades.csv
 opt_study/live_watchlist.html
 opt_study/live_watchlist.csv
+opt_study/kdj_factor_study_result.json
 data/stock_names.json

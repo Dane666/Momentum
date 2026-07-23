@@ -51,7 +51,7 @@ concurrency:
 jobs:
   backtest:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       TZ: Asia/Shanghai
       BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
@@ -96,7 +96,11 @@ jobs:
               fh.write(f"is_open={str(is_open).lower()}\n")
           PY
 
-      - name: Pre-fetch K-line (warm cache)
+      - name: Pre-fetch K-line (warm full-universe cache)
+        # 修复: 此前仅预热 200 只, 回测 run_sensitivity_analysis 对剩余 ~4800 只逐只网络抓取
+        # (tqdm "加载K线" ~10it/s), 导致 45min 超时. 现预热全市场非ST A股入 kline_cache,
+        # 回测直接命中缓存, 避免回测期的网络抓取瓶颈. continue-on-error 保证部分失败不阻断.
+        continue-on-error: true
         run: |
           python <<'PY'
           import sys,os,time;from pathlib import Path;p=Path('.').resolve()
@@ -107,9 +111,9 @@ jobs:
           from momentum.data import load_or_fetch_kline,fetch_all_stock_codes,fetch_kline_from_api,init_db
           from momentum import config as cfg;from concurrent.futures import ThreadPoolExecutor,as_completed
           init_db()
-          codes=[c for c in fetch_all_stock_codes() if c.startswith(('60','00')) and 'ST' not in c][:200]
-          print(f'Pre-fetching {len(codes)} stocks...');start=time.time();ok=fail=0
-          with ThreadPoolExecutor(max_workers=20) as pool:
+          codes=[c for c in fetch_all_stock_codes() if 'ST' not in c]
+          print(f'Pre-fetching {len(codes)} stocks (full universe)...');start=time.time();ok=fail=0
+          with ThreadPoolExecutor(max_workers=30) as pool:
               fx={pool.submit(load_or_fetch_kline,c,fetch_kline_from_api,cfg.KLINE_START_DATE):c for c in codes}
               for f in as_completed(fx):
                   try:
@@ -191,6 +195,21 @@ jobs:
         run: |
           mkdir -p opt_study
           if [ ! -f opt_study/oos_tracker.json ]; then echo "[]" > opt_study/oos_tracker.json; fi
+
+      - name: Download DB baseline (full-market, eliminates historical drift)
+        # #2 核心: 仅当缓存未命中/库过小才从 release db-baseline-v1 下载全量基准库
+        # (含完整历史K线+基本面+板块), 使 CI 与本地库历史价一致, 消除"生产vs本地"漂移.
+        # 命中缓存则跳过(历史已固定, 仅当日预热刷新). 基准库变更后重新上传该 release 即可.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -f qlib_pro_v16.db ] || [ "$(stat -c%s qlib_pro_v16.db 2>/dev/null || echo 0)" -lt 104857600 ]; then
+            echo "DB 缺失或过小(<100MB), 从 release db-baseline-v1 下载全量基准库..."
+            gh release download db-baseline-v1 -p qlib_pro_v16.db --clobber
+            echo "下载完成: $(du -h qlib_pro_v16.db | cut -f1)"
+          else
+            echo "DB 已存在(缓存命中), 跳过下载 ($(du -h qlib_pro_v16.db | cut -f1))"
+          fi
 
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
