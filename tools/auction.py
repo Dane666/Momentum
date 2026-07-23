@@ -93,10 +93,10 @@ def analyze(df: pd.DataFrame) -> str:
                 elif top_sectors[0][1]>=2:
                     lines.append(f'\n👀 潜在主线: {top_sectors[0][0]}')
 
-    # 外部盘辅助: 碳酸锂期货 9:00-9:25 + 韩股早盘(至09:25)
+    # 外部盘辅助: 碳酸锂期货 9:00-9:25 + 韩股早盘(至09:25) + 相关A股高开正反馈
     try:
         from tools.auction_extra import build_extra_sections
-        extra = build_extra_sections()
+        extra = build_extra_sections(df)
         if extra:
             lines.append('─' * 40)
             lines.append(extra)

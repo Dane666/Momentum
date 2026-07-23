@@ -16,7 +16,6 @@
 import json
 import logging
 import os
-import time
 import requests
 
 logger = logging.getLogger('auction_extra')
@@ -187,60 +186,43 @@ def fetch_korea_stocks():
     return out
 
 
-# ============ 相关 A 股「高开」实时抓取 ============
-def _secid_of(code: str) -> str:
-    """A 股 eastmoney secid: 沪市(6/9 开头) -> 1.xxxxxx, 深市(0/3 开头) -> 0.xxxxxx."""
-    return ('1.' if code.startswith(('6', '9')) else '0.') + code
+# ============ 相关 A 股「高开」(复用主扫描实时行情) ============
+def group_open_chg_from_df(stocks, df):
+    """从已抓取的全市场实时行情 DataFrame 计算相关 A 股「今开 vs 昨收」高开%.
 
-
-def _em_a_open_chg(code: str, tries: int = 3):
-    """单只 A 股「今开 vs 昨收」高开%, 用 stock/get 接口(收盘后亦可取当日数据).
-
-    内置重试: eastmoney 对突发并发会限流返回空, 故单只也重试 + 退避.
+    零额外网络: 直接复用竞价主扫描已获取的行情(新浪/efinance, 不受 eastmoney 限流).
+    列名兼容 efinance(今开/昨收) 与 新浪(今开/昨日收盘). 失败返回空 dict(优雅降级).
     """
-    secid = _secid_of(code)
-    last_err = None
-    for _ in range(tries):
-        try:
-            url = 'https://push2.eastmoney.com/api/qt/stock/get'
-            params = {'secid': secid, 'fields': 'f44,f60', 'fltt': '2', 'invt': '2'}
-            r = requests.get(url, params=params, headers=_HEADERS, timeout=10)
-            d = r.json().get('data')
-            if not d:
-                last_err = 'empty data'; time.sleep(0.4); continue
-            open_ = d.get('f44')
-            prev = d.get('f60')
-            if open_ in (None, '-', '') or prev in (None, '-', ''):
-                last_err = 'missing field'; time.sleep(0.4); continue
-            open_ = float(open_); prev = float(prev)
-            if prev == 0:
-                return None
-            return (open_ / prev - 1) * 100
-        except Exception as e:
-            last_err = e
-            time.sleep(0.4)
-    logger.warning('A股 %s 高开获取失败(重试%d次): %s', code, tries, last_err)
-    return None
-
-
-def fetch_group_open_chg(stocks):
-    """批量取相关 A 股「今开 vs 昨收」高开%, 返回 {code: 高开%}. 失败返回空 dict.
-
-    串行 + 错峰(规避 eastmoney 并发限流); 单只已带重试. 23 只约 10s, 远在超时内.
-    """
-    if not stocks:
+    if df is None or getattr(df, 'empty', True):
+        return {}
+    try:
+        import pandas as pd
+    except Exception:
+        return {}
+    cols = list(df.columns)
+    code_col = '股票代码' if '股票代码' in cols else None
+    open_col = '今开' if '今开' in cols else None
+    prev_col = '昨收' if '昨收' in cols else ('昨日收盘' if '昨日收盘' in cols else None)
+    if not (code_col and open_col and prev_col):
+        logger.info('实时行情缺少 今开/昨收 列, 跳过A股高开反馈')
         return {}
     res = {}
     try:
+        sub = df[[code_col, open_col, prev_col]].copy()
+        sub[code_col] = sub[code_col].astype(str).str.zfill(6)
+        o = pd.to_numeric(sub[open_col], errors='coerce')
+        p = pd.to_numeric(sub[prev_col], errors='coerce')
         for c, _ in stocks:
-            v = _em_a_open_chg(c)
-            if v is not None:
-                res[c] = v
-            time.sleep(0.1)  # 错峰, 避免触发限流
+            mask = sub[code_col] == c
+            if not mask.any():
+                continue
+            idx = sub.index[mask][0]
+            ov = o.loc[idx]; pv = p.loc[idx]
+            if pd.notna(ov) and pd.notna(pv) and pv > 0:
+                res[c] = (ov / pv - 1) * 100
     except Exception as e:
-        logger.warning('相关 A 股高开批量获取失败: %s', e)
-    if not res:
-        logger.warning('相关 A 股高开全部为空(可能接口限流/异常)')
+        logger.warning('A股高开从DataFrame计算失败: %s', e)
+        return {}
     return res
 
 
@@ -283,8 +265,12 @@ def _trend_tag(chg):
     return '⚪ 中性'
 
 
-def build_extra_sections():
-    """生成外部盘辅助段落; 无可数据时返回空串."""
+def build_extra_sections(df=None):
+    """生成外部盘辅助段落; 无可数据时返回空串.
+
+    df: 竞价主扫描已抓取的全市场实时行情(供计算相关A股高开正反馈); 为 None 时
+        跳过正反馈提示(优雅降级).
+    """
     blocks = []
 
     # --- 碳酸锂 ---
@@ -300,8 +286,8 @@ def build_extra_sections():
             parts.append(f"9:00-9:25 日内 {intraday:+.2f}%")
         parts.append(f"→ 锂矿股开盘参考: {tag}")
         block = '\n'.join(parts) + '\n  ' + lith_line
-        # 高开正反馈联动
-        fb = _feedback_text(chg, fetch_group_open_chg(LITHIUM_STOCKS), LITHIUM_STOCKS)
+        # 高开正反馈联动 (复用主扫描行情, 无额外网络)
+        fb = _feedback_text(chg, group_open_chg_from_df(LITHIUM_STOCKS, df), LITHIUM_STOCKS)
         if fb:
             block += '\n  ' + fb
         blocks.append(block)
@@ -325,7 +311,7 @@ def build_extra_sections():
         tag = '🔴 偏强(利多存储链)' if up >= 2 else ('🟢 偏弱(利空存储链)' if down >= 2 else '⚪ 中性')
         block = ('🇰🇷 韩股早盘(至09:25): ' + ' | '.join(seg) + f"  → {tag}"
                  + '\n  ' + korea_line)
-        fb = _feedback_text(avg_kr, fetch_group_open_chg(KOREA_STOCKS), KOREA_STOCKS)
+        fb = _feedback_text(avg_kr, group_open_chg_from_df(KOREA_STOCKS, df), KOREA_STOCKS)
         if fb:
             block += '\n  ' + fb
         blocks.append(block)
