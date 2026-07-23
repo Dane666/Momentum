@@ -26,62 +26,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger('c_tail_scan')
 
 
-def save_to_tracking(picks: list):
-    today = datetime.now().strftime('%Y-%m-%d')
-    track_file = 'data/picks_tracking.json'
-    tracking = []
-    try:
-        if os.path.exists(track_file):
-            with open(track_file, 'r', encoding='utf-8') as f:
-                tracking = json.load(f)
-    except Exception:
-        pass
-    if any(p.get('date') == today and p.get('type') == 'C_TAIL' for p in tracking):
-        return
-    for l in picks:
-        tracking.append({
-            'date': today, 'code': l['code'], 'name': l['name'],
-            'price': l['price'], 'sl_price': round(l['price'] * 0.95, 2),
-            'tp_price': round(l['price'] * 1.10, 2),
-            'status': 'WATCHING', 'type': 'C_TAIL',
-        })
-    try:
-        os.makedirs('data', exist_ok=True)
-        with open(track_file, 'w', encoding='utf-8') as f:
-            json.dump(tracking, f, ensure_ascii=False, indent=2)
-        logger.info(f"[C-Tail] 保存 {len(picks)} 只")
-    except Exception as e:
-        logger.error(f"[C-Tail] 写入失败: {e}")
-
-
-def sync_to_db(picks: list):
-    try:
-        import sqlite3
-        today = datetime.now().strftime('%Y-%m-%d')
-        db_path = os.environ.get('MOMENTUM_DB_PATH', 'qlib_pro_v16.db')
-        conn = sqlite3.connect(db_path)
-        cur = conn.cursor()
-        cur.execute('''CREATE TABLE IF NOT EXISTS stock_picks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, code TEXT, name TEXT,
-            price REAL, status TEXT, sl_price REAL, tp_price REAL, type TEXT,
-            exit_price REAL, pnl_pct REAL, trigger_type TEXT, trigger_time TEXT,
-            pnl_ratio REAL, track_status TEXT DEFAULT 'TRACKING',
-            track_count INTEGER DEFAULT 0, day1_pnl REAL, day2_pnl REAL,
-            day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0,
-            sl_triggered INTEGER DEFAULT 0, sl_recovery REAL)''')
-        for l in picks:
-            cur.execute('SELECT id FROM stock_picks WHERE date=? AND code=?', (today, l['code']))
-            if cur.fetchone(): continue
-            sl = round(l['price'] * 0.95, 2); tp = round(l['price'] * 1.10, 2)
-            cur.execute('''INSERT INTO stock_picks
-                (date,code,name,price,status,sl_price,tp_price,type,track_status,track_count,max_pnl_3d)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)''',
-                (today, l['code'], l['name'], l['price'], 'WATCHING', sl, tp,
-                 'C_TAIL', 'TRACKING', 0, 0.0))
-        conn.commit(); conn.close()
-        logger.info(f"[C-Tail] DB 同步 {len(picks)} 只")
-    except Exception as e:
-        logger.warning(f"[C-Tail] DB 失败: {e}")
+# tracking / DB 同步统一走 tools/tracking_utils.add_picks (公共方法),
+# 详见 low_quality_scan.py 说明。本模块只保留报告推送。
 
 
 def bark_push(title: str, body: str):
@@ -105,8 +51,8 @@ def run():
     from momentum.core.strategy_c_tail import run_c_scan
     picks, hot, report, is_bull = run_c_scan()
     if picks:
-        save_to_tracking(picks)
-        sync_to_db(picks)
+        from momentum.tools.tracking_utils import add_picks
+        add_picks(picks, 'C_TAIL', 0.95, 1.10)
     print(report)
     title = '🎯 C·偷袭板' if picks else '🎯 C·偷袭板(空)'
     bark_push(title, report)

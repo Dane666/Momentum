@@ -82,8 +82,11 @@ def run():
                     f"请速去券商手动操作！"
                 )
             else:
+                tlabel = {'LOW_QUALITY': '低位绩优', 'C_TAIL': 'C尾盘',
+                          'LEADER': '龙头', 'STRATEGY': '策略'}.get(
+                    pick_type, '策略')
                 line = (
-                    f"📊 【策略模拟提示】观察股 {p['name']}({p['code']})"
+                    f"📊 【{tlabel}模拟提示】观察股 {p['name']}({p['code']})"
                     f" 已触发{direction}信号。\n"
                     f"当前价: ¥{current:.2f}  模拟盈亏: {pnl:+.1f}%"
                 )

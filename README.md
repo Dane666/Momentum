@@ -22,7 +22,7 @@
 | ENABLE_TRAPPED_FILTER | True | 套牢盘过滤 <10% |
 | MAX_TRAPPED_RATIO | 0.10 | 套牢盘阈值 |
 | 实时数据源 | Sina → efinance → K线缓存 | 三级降级，任一级可用即正常、全失效才降级标记 |
-| 竞价外部盘辅助 | 碳酸锂期货主连(eastmoney) + 韩股三星/海力士(yfinance) | 辅助判断锂矿股 / 存储-HBM 链开盘强弱；相关 A 股「今开 vs 昨收」高开正反馈联动（✅确认 / ⚠️背离） |
+| 竞价外部盘辅助 | 碳酸锂期货主连(eastmoney) + 韩股三星/海力士(yfinance) | 辅助判断锂矿股 / 存储-HBM 链开盘强弱；相关 A 股「今开 vs 昨收」高开正反馈联动（✅确认 / ⚠️背离）；**正反馈阈值(高开±0.5% / 外盘±1%)与板块联动强度评分均在 `tools/auction_extra_config.json` 的 `feedback` 段可调** |
 
 ## 超跌绩优反弹策略
 
@@ -90,6 +90,30 @@
 | auto 门槛 | `auto` 模式最小样本外窗口门槛 `MIN_OOS_TRADING_DAYS=20`，薄样本自动退化为 holdout。 |
 | 专用缓存 key | 验证 job 缓存键由共用 `state-v1` 改为 `state-validation`，消除非确定性恢复（空缓存覆盖满缓存）。 |
 
+## 统一监控与选股登记
+
+所有策略（低位绩优 / C 尾盘 / 龙头 / 手动持仓）选出的股票，都通过**统一公共方法**
+`momentum.tools.tracking_utils.add_picks()` 登记到 `data/picks_tracking.json` +
+`stock_picks` 表，再由 `tools/position_monitor.py`（交易时段每 30 分钟）统一监控
+止盈/止损触发并 Bark 推送。新增策略无需各自造一份保存逻辑，只需：
+
+```python
+from momentum.tools.tracking_utils import add_picks
+add_picks(picks, 'MY_STRATEGY', sl_ratio=0.92, tp_ratio=1.12)   # 自动算止损/止盈、去重、同步 DB
+```
+
+- `add_picks` 按 `date + code + type` 去重，失败不影响主流程；`bark_notify()` 为统一推送入口
+- `position_monitor` 触发时按类型中文标签推送：**低位绩优 / C 尾盘 / 龙头 / 策略 / 手动**
+- 盘后 `tools/stock_picks_tracker.py`（16:00）产出 D0-D3 跟踪日报，含各类型图标
+- 低位绩优筛选已剔除 ST / *ST / 退 / 仙股（<1.5 元），避免风险警示股混入绩优池
+
+> **每日扫描 ≠ 回测**：14:45「低位绩优股」是**每日快照式筛选**（列出当天所有满足
+> "深度超跌 + 绩优" 的标的，取评分 Top-N），而回测是**交易级回合模拟**（入场→持有→
+> 退出，计 1 笔完整交易，含同股冷却 / 单题材上限）。二者口径不同——实盘每天 1~N 只
+> 推荐、回测却约 1 笔/月，**属正常现象，不矛盾**。某只股票连续多天上榜 = 它连续多天
+> 仍满足筛选条件（仍在超跌区），并非自动"更值得买"；需结合是否真正止跌反弹
+> （RSI 拐头、不再创新低）判断，谨防"越跌越买"的价值陷阱。
+
 ## 因子研究
 
 **KDJ 底部金叉（不采纳）**
@@ -133,3 +157,4 @@ python opt_study/kdj_factor_study.py                               # 因子回�
 | Bark 收不到 | device key 未配 | 检查 Secret |
 | 验证 job 假绿 | 预热不足/库损坏 | #4 门禁已判 FAIL；检查 `coverage_universe` |
 | CI 与本地收益差 | 历史价漂移 | #2 已用 Release 基准库对齐；真·前瞻待数据累积 |
+| 实盘每天都有推荐, 回测却 1 笔/月 | 快照式筛选 vs 交易级回合模拟, 口径不同 | 正常; 见「统一监控与选股登记」说明 |

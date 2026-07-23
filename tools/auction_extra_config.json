@@ -1,5 +1,14 @@
 {
   "_comment": "竞价外部盘辅助 — 相关A股清单(可自由增删, 无需改代码)。code=6位, name=中文名。lithium=受碳酸锂期货影响; korea=受三星/海力士(HBM/存储)影响。",
+  "feedback": {
+    "_comment": "正反馈联动阈值(均可调, 无需改代码)。open_high/open_low=相关A股今开相对昨收的高/低开判定%; ext_strong/ext_weak=外盘(碳酸锂/韩股)偏强/偏弱判定%; linkage_strong/linkage_mid=板块联动强度评分同向占比阈值(>=strong强, >=mid中, 否则弱)。",
+    "open_high": 0.5,
+    "open_low": -0.5,
+    "ext_strong": 1.0,
+    "ext_weak": -1.0,
+    "linkage_strong": 0.7,
+    "linkage_mid": 0.4
+  },
   "lithium_stocks": [
     ["002466", "天齐锂业"], ["002460", "赣锋锂业"], ["000792", "盐湖股份"],
     ["002738", "中矿资源"], ["002240", "盛新锂能"], ["002192", "融捷股份"],

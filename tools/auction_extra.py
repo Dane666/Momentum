@@ -34,6 +34,10 @@ KOREA_STOCKS = [  # 受三星 / 海力士 (HBM / 存储) 走势影响
     ('000021', '深科技'), ('688981', '中芯国际'),
 ]
 
+# 正反馈联动阈值(优先读 auction_extra_config.json -> feedback, 缺失回退默认)
+FEEDBACK = dict(open_high=0.5, open_low=-0.5, ext_strong=1.0,
+                ext_weak=-1.0, linkage_strong=0.7, linkage_mid=0.4)
+
 _CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                             'auction_extra_config.json')
 
@@ -49,8 +53,17 @@ def _load_config():
             LITHIUM_STOCKS[:] = [(str(c), str(n)) for c, n in ls]
         if ks:
             KOREA_STOCKS[:] = [(str(c), str(n)) for c, n in ks]
-        logger.info('auction_extra 配置已加载: 锂矿%d只 / 存储%d只',
-                    len(LITHIUM_STOCKS), len(KOREA_STOCKS))
+        fb = cfg.get('feedback')
+        if isinstance(fb, dict):
+            for k in FEEDBACK:
+                if k in fb:
+                    try:
+                        FEEDBACK[k] = float(fb[k])
+                    except (TypeError, ValueError):
+                        pass
+        logger.info('auction_extra 配置已加载: 锂矿%d只 / 存储%d只 / 正反馈阈值 open±%.2f%% ext±%.2f%%',
+                    len(LITHIUM_STOCKS), len(KOREA_STOCKS),
+                    FEEDBACK['open_high'], FEEDBACK['ext_strong'])
     except FileNotFoundError:
         logger.info('auction_extra_config.json 不存在, 用内置默认清单')
     except Exception as e:
@@ -227,18 +240,21 @@ def group_open_chg_from_df(stocks, df):
 
 
 def _feedback_text(ext_chg, open_map, stocks):
-    """对照外盘方向, 给出 A 股相关股高开的「正反馈/背离」联动提示."""
+    """对照外盘方向, 给出 A 股相关股高开的「正反馈/背离」联动提示.
+    阈值全部来自 FEEDBACK 配置(见 auction_extra_config.json)."""
     if not open_map:
         return None  # 拿不到 A 股开盘, 不提示(优雅降级)
     code2name = {c: n for c, n in stocks}
     vals = [v for k, v in open_map.items() if k in code2name]
     if not vals:
         return None
+    oh = FEEDBACK['open_high']; ol = FEEDBACK['open_low']
+    es = FEEDBACK['ext_strong']; ew = FEEDBACK['ext_weak']
     avg = sum(vals) / len(vals)
-    n_high = sum(1 for v in vals if v > 0.5)   # 高开阈值 0.5%
-    n_low = sum(1 for v in vals if v < -0.5)
-    ext_up = ext_chg is not None and ext_chg >= 1
-    ext_down = ext_chg is not None and ext_chg <= -1
+    n_high = sum(1 for v in vals if v > oh)
+    n_low = sum(1 for v in vals if v < ol)
+    ext_up = ext_chg is not None and ext_chg >= es
+    ext_down = ext_chg is not None and ext_chg <= ew
     if ext_up and avg > 0:
         return (f"✅ 正反馈确认: 外盘利多已在A股开盘兑现 — 相关股均值 {avg:+.2f}%, "
                 f"{n_high}/{len(vals)} 只高开")
@@ -252,6 +268,43 @@ def _feedback_text(ext_chg, open_map, stocks):
         return (f"⚠️ 背离: 外盘利空但A股相关股逆势 — 均值 {avg:+.2f}%, "
                 f"关注个股独立性")
     return f"ℹ️ 外盘中性, A股相关股开盘均值 {avg:+.2f}%"
+
+
+def _linkage_text(ext_chg, open_map, stocks):
+    """板块联动强度评分: 相关 A 股中与外盘同向(外盘涨则跟涨/外盘跌则跟跌)的占比.
+
+    返回形如 "📊 板块联动强度: 🔴强 (4/5 同向, 均值+0.90%)" 的字符串, 或 None.
+    强度阈值来自 FEEDBACK.linkage_strong / linkage_mid 配置.
+    """
+    if not open_map:
+        return None
+    code2name = {c: n for c, n in stocks}
+    items = [(k, v) for k, v in open_map.items() if k in code2name]
+    if not items:
+        return None
+    total = len(items)
+    avg = sum(v for _, v in items) / total
+    if ext_chg is not None and abs(ext_chg) >= 0.01:
+        # 有外盘方向: 同向 = (外盘涨且 A 股涨) 或 (外盘跌且 A 股跌)
+        same = sum(1 for _, v in items
+                   if (v > 0 and ext_chg > 0) or (v < 0 and ext_chg < 0))
+        ratio = same / total
+        tag = '同向' if ext_chg >= 0 else '反向(背离方向)'
+    else:
+        # 外盘中性: 用相关股自身合力方向(涨/跌占比)衡量板块一致性
+        up = sum(1 for _, v in items if v > 0)
+        down = sum(1 for _, v in items if v < 0)
+        same = max(up, down)
+        ratio = same / total
+        tag = '普涨' if up >= down else '普跌'
+    if ratio >= FEEDBACK['linkage_strong']:
+        label = '🔴 强'
+    elif ratio >= FEEDBACK['linkage_mid']:
+        label = '🟡 中'
+    else:
+        label = '🟢 弱'
+    return (f"📊 板块联动强度: {label} ({same}/{total} {tag}, "
+            f"均值 {avg:+.2f}%)")
 
 
 # ============ 文案 ============
@@ -290,6 +343,9 @@ def build_extra_sections(df=None):
         fb = _feedback_text(chg, group_open_chg_from_df(LITHIUM_STOCKS, df), LITHIUM_STOCKS)
         if fb:
             block += '\n  ' + fb
+        lk = _linkage_text(chg, group_open_chg_from_df(LITHIUM_STOCKS, df), LITHIUM_STOCKS)
+        if lk:
+            block += '\n  ' + lk
         blocks.append(block)
     else:
         blocks.append('🌐 碳酸锂期货: 数据获取失败(跳过)\n  ' + lith_line)
@@ -314,6 +370,9 @@ def build_extra_sections(df=None):
         fb = _feedback_text(avg_kr, group_open_chg_from_df(KOREA_STOCKS, df), KOREA_STOCKS)
         if fb:
             block += '\n  ' + fb
+        lk = _linkage_text(avg_kr, group_open_chg_from_df(KOREA_STOCKS, df), KOREA_STOCKS)
+        if lk:
+            block += '\n  ' + lk
         blocks.append(block)
     else:
         blocks.append('🇰🇷 韩股早盘: 数据获取失败(跳过)\n  ' + korea_line)

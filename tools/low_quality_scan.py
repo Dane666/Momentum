@@ -175,67 +175,17 @@ def bark_push(title: str, body: str):
 
 
 # --------------------------------------------------------------------------- #
-# tracking / DB 同步(对齐 c_tail_scan)
+# tracking / DB 同步 —— 统一走 tools/tracking_utils.add_picks (公共方法)
 # --------------------------------------------------------------------------- #
-def save_to_tracking(picks: list, today: str):
-    track_file = 'data/picks_tracking.json'
-    tracking = []
-    try:
-        if os.path.exists(track_file):
-            with open(track_file, 'r', encoding='utf-8') as f:
-                tracking = json.load(f)
-    except Exception:
-        pass
-    if any(p.get('date') == today and p.get('type') == 'LOW_QUALITY'
-           for p in tracking):
-        logger.info("[低位绩优] 今日已保存, 跳过")
-        return
-    for p in picks:
-        tracking.append({
-            'date': today, 'code': p['code'], 'name': p['name'],
-            'price': p['price'],
-            'sl_price': round(p['price'] * SL_RATIO, 2),
-            'tp_price': round(p['price'] * TP_RATIO, 2),
-            'status': 'WATCHING', 'type': 'LOW_QUALITY',
-        })
-    try:
-        os.makedirs('data', exist_ok=True)
-        with open(track_file, 'w', encoding='utf-8') as f:
-            json.dump(tracking, f, ensure_ascii=False, indent=2)
-        logger.info(f"[低位绩优] 保存 {len(picks)} 只到 tracking")
-    except Exception as e:
-        logger.error(f"[低位绩优] 写入失败: {e}")
-
-
-def sync_to_db(picks: list, today: str):
-    try:
-        con = sqlite3.connect(DB_PATH)
-        cur = con.cursor()
-        cur.execute('''CREATE TABLE IF NOT EXISTS stock_picks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, code TEXT, name TEXT,
-            price REAL, status TEXT, sl_price REAL, tp_price REAL, type TEXT,
-            exit_price REAL, pnl_pct REAL, trigger_type TEXT, trigger_time TEXT,
-            pnl_ratio REAL, track_status TEXT DEFAULT 'TRACKING',
-            track_count INTEGER DEFAULT 0, day1_pnl REAL, day2_pnl REAL,
-            day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0)''')
-        for p in picks:
-            cur.execute('SELECT id FROM stock_picks WHERE date=? AND code=?',
-                        (today, p['code']))
-            if cur.fetchone():
-                continue
-            sl = round(p['price'] * SL_RATIO, 2)
-            tp = round(p['price'] * TP_RATIO, 2)
-            cur.execute('''INSERT INTO stock_picks
-                (date,code,name,price,status,sl_price,tp_price,type,
-                 track_status,track_count,max_pnl_3d)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)''',
-                (today, p['code'], p['name'], p['price'], 'WATCHING', sl, tp,
-                 'LOW_QUALITY', 'TRACKING', 0, 0.0))
-        con.commit()
-        con.close()
-        logger.info(f"[低位绩优] DB 同步 {len(picks)} 只")
-    except Exception as e:
-        logger.warning(f"[低位绩优] DB 失败: {e}")
+def _is_garbage(name, close):
+    """剔除风险警示/退市/仙股: ST、*ST、退、警示 字样, 或股价 < 1.5 的仙股。
+    避免绩优策略误推 ST/*ST(如 *ST美丽) 或垃圾低价股。"""
+    s = str(name)
+    if 'ST' in s or '退' in s or s.startswith('*') or '警示' in s:
+        return True
+    if close is not None and close < 1.5:
+        return True
+    return False
 
 
 # --------------------------------------------------------------------------- #
@@ -298,6 +248,9 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
         hi250 = g['close'].rolling(250, min_periods=120).max().iloc[-1]
         dd250 = (close / hi250 - 1.0) if (hi250 and hi250 > 0) else dd60
         is_hot = code in hot_codes
+        name = names.get(code, code)
+        if _is_garbage(name, close):
+            continue
 
         if quality_available:
             # 绩优(真实基本面 point-in-time)
@@ -308,7 +261,7 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
             score = (-dd60 * 100) * 0.5 + (roe or 0) * 0.3 \
                 + min(np_yoy or 0, 100) * 0.1 + (10 if is_hot else 0)
             picks.append(dict(
-                code=code, name=names.get(code, code), price=round(close, 2),
+                code=code, name=name, price=round(close, 2),
                 dd60=round(float(dd60) * 100, 1),
                 dd250=round(float(dd250) * 100, 1),
                 roe=roe, np_yoy=np_yoy,
@@ -317,13 +270,10 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
                 hot=is_hot, score=round(score, 2), quality_unverified=False))
         else:
             # 基本面缺失: 仅按低位(深度超跌)筛选, 绩优未验证(保证 CI 不崩溃且有候选)
-            nm = names.get(code, code)
-            # 安全网: 剔除明显垃圾(ST / 退市风险 / 价格过低), 避免推送废单
-            if 'ST' in str(nm) or close < 1.5:
-                continue
+            # 垃圾过滤已由 _is_garbage(name, close) 统一处理
             score = (-dd60 * 100) * 0.5 + (10 if is_hot else 0)
             picks.append(dict(
-                code=code, name=nm, price=round(close, 2),
+                code=code, name=name, price=round(close, 2),
                 dd60=round(float(dd60) * 100, 1),
                 dd250=round(float(dd250) * 100, 1),
                 roe=None, np_yoy=None, pe=None, pb=None,
@@ -334,8 +284,8 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
     report = _build_report(picks, today)
     print(report)
     if picks and os.environ.get('LOW_QUALITY_NO_TRACK') != '1':
-        save_to_tracking(picks, today)
-        sync_to_db(picks, today)
+        from momentum.tools.tracking_utils import add_picks
+        add_picks(picks, 'LOW_QUALITY', SL_RATIO, TP_RATIO, date=today)
     title = f"📉 低位绩优股 {today}" if picks else f"📉 低位绩优股 {today}(空)"
     bark_push(title, report)
     logger.info("[低位绩优] 完成")

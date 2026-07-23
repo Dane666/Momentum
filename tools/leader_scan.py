@@ -27,66 +27,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger('leader_scan')
 
 
-def save_picks_to_tracking(leaders: list):
-    """推入龙头选股到 picks_tracking.json (type=LEADER)."""
-    today = datetime.now().strftime('%Y-%m-%d')
-    track_file = 'data/picks_tracking.json'
-    tracking = []
-    try:
-        if os.path.exists(track_file):
-            with open(track_file, 'r', encoding='utf-8') as f:
-                tracking = json.load(f)
-    except Exception as e:
-        logger.warning(f"[Leader] 读取 picks_tracking.json 失败: {e}")
-    if any(p.get('date') == today and p.get('type') == 'LEADER' for p in tracking):
-        logger.info(f"[Leader] {today} 已有龙头记录, 跳过")
-        return
-    inserted = 0
-    for l in leaders:
-        tracking.append({'date': today, 'code': l['code'], 'name': l['name'],
-                         'price': l['price'], 'sl_price': round(l['price'] * 0.95, 2),
-                         'tp_price': round(l['price'] * 1.10, 2),
-                         'status': 'WATCHING', 'type': 'LEADER'})
-        inserted += 1
-    try:
-        os.makedirs('data', exist_ok=True)
-        with open(track_file, 'w', encoding='utf-8') as f:
-            json.dump(tracking, f, ensure_ascii=False, indent=2)
-        logger.info(f"[Leader] 已保存 {inserted} 只龙头")
-    except Exception as e:
-        logger.error(f"[Leader] 写入失败: {e}")
-
-
-def sync_to_db(leaders: list):
-    """同步龙头选股到 stock_picks 表."""
-    try:
-        import sqlite3
-        today = datetime.now().strftime('%Y-%m-%d')
-        db_path = os.environ.get('MOMENTUM_DB_PATH', 'qlib_pro_v16.db')
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS stock_picks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, code TEXT, name TEXT,
-            price REAL, status TEXT, sl_price REAL, tp_price REAL, type TEXT,
-            exit_price REAL, pnl_pct REAL, trigger_type TEXT, trigger_time TEXT,
-            pnl_ratio REAL, track_status TEXT DEFAULT 'TRACKING',
-            track_count INTEGER DEFAULT 0, day1_pnl REAL, day2_pnl REAL,
-            day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0,
-            sl_triggered INTEGER DEFAULT 0, sl_recovery REAL)''')
-        for l in leaders:
-            cursor.execute('SELECT id FROM stock_picks WHERE date=? AND code=?', (today, l['code']))
-            if cursor.fetchone():
-                continue
-            sl = round(l['price'] * 0.95, 2); tp = round(l['price'] * 1.10, 2)
-            cursor.execute('''INSERT INTO stock_picks
-                (date,code,name,price,status,sl_price,tp_price,type,track_status,track_count,max_pnl_3d)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)''',
-                (today, l['code'], l['name'], l['price'], 'WATCHING', sl, tp,
-                 'LEADER', 'TRACKING', 0, 0.0))
-        conn.commit(); conn.close()
-        logger.info(f"[Leader] DB同步 {len(leaders)} 只龙头")
-    except Exception as e:
-        logger.warning(f"[Leader] DB同步失败: {e}")
+# tracking / DB 同步统一走 tools/tracking_utils.add_picks (公共方法)。
 
 
 def bark_push(title: str, body: str):
@@ -156,8 +97,8 @@ def run():
     leaders, report, is_bull = run_leader_scan()
 
     if leaders:
-        save_picks_to_tracking(leaders)
-        sync_to_db(leaders)
+        from momentum.tools.tracking_utils import add_picks
+        add_picks(leaders, 'LEADER', 0.95, 1.10)
 
     print(report)
     title = '🐉 龙头策略选股' if leaders else '🐉 龙头策略'

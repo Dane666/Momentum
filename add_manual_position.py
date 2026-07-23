@@ -11,9 +11,26 @@ import requests
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger('add_manual')
 
-TRACK_FILE = 'data/picks_tracking.json'
 FIXED_STOP_PCT = 0.05      # 止损 -5%
 TAKE_PROFIT_PCT = 0.10     # 止盈 +10%
+
+# 引导 momentum 包, 复用统一跟踪公共方法(任何策略选股都走 tracking_utils)
+import sys as _sys
+from pathlib import Path as _Path
+_ROOT = _Path(__file__).resolve().parent
+if str(_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_ROOT))
+try:
+    import momentum as _m  # noqa: F401
+except ImportError:
+    import importlib.util as _ilu
+    _spec = _ilu.spec_from_file_location(
+        'momentum', _ROOT / '__init__.py',
+        submodule_search_locations=[str(_ROOT)])
+    _mod = _ilu.module_from_spec(_spec)
+    _sys.modules['momentum'] = _mod
+    _spec.loader.exec_module(_mod)
+from momentum.tools.tracking_utils import add_picks, bark_notify
 
 
 def _exchange_prefix(code: str) -> str:
@@ -44,39 +61,6 @@ def fetch_stock_name(code: str) -> str:
     return ''
 
 
-def load_tracking() -> list:
-    try:
-        with open(TRACK_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception:
-        return []
-
-
-def save_tracking(data: list):
-    os.makedirs('data', exist_ok=True)
-    with open(TRACK_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-
-def send_bark(title: str, content: str):
-    key = os.getenv('BARK_DEVICE_KEY', '').strip()
-    if not key:
-        logger.warning("BARK_DEVICE_KEY not set, skip notification")
-        return
-    if key.startswith('http'):
-        parts = key.rstrip('/').split('/')
-        key = parts[-1] if parts[-1] else (parts[-2] if len(parts) > 1 else key)
-    try:
-        payload = {"device_key": key, "title": title, "body": content[:3800], "group": "Momentum"}
-        r = requests.post("https://api.day.app/push", json=payload, timeout=10)
-        if r.status_code == 200:
-            logger.info("Bark notification sent")
-        else:
-            logger.error(f"Bark failed: {r.text}")
-    except Exception as e:
-        logger.error(f"Bark error: {e}")
-
-
 def main():
     if len(sys.argv) < 3:
         logger.error("Usage: python add_manual_position.py <code> <price>")
@@ -102,7 +86,6 @@ def main():
     # 3. 构建记录
     today = datetime.now().strftime('%Y-%m-%d')
     entry = {
-        "date": today,
         "code": code,
         "name": name,
         "price": price,
@@ -112,14 +95,13 @@ def main():
         "status": "HOLDING"
     }
 
-    # 4. 追加到 picks_tracking.json
-    tracking = load_tracking()
-    tracking.append(entry)
-    save_tracking(tracking)
+    # 4. 统一注册到 position-monitor 监控(公共方法, 自动写 picks_tracking.json + DB)
+    add_picks([entry], 'MANUAL', 1 - FIXED_STOP_PCT, 1 + TAKE_PROFIT_PCT,
+              date=today, status='HOLDING')
     logger.info(f"Added manual position: {code} {name} @ {price}, SL={sl_price}, TP={tp_price}")
 
     # 5. Bark 成功通知
-    send_bark(
+    bark_notify(
         "📌 手动持仓已录入",
         f"{name}({code}) 已加入监控\n"
         f"买入价: {price}\n"
