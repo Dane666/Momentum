@@ -47,6 +47,10 @@ ENTRY = H.ENTRY_MODE
 CD = H.SAME_CODE_COOLDOWN
 STOP_GRID = [-0.03, -0.05, -0.07, -0.10, -0.12, -0.15, -0.20]
 
+# auto 模式门槛: 样本外窗口需至少这么多交易日才做真·前瞻, 否则退化为 holdout,
+# 避免 CI 预热后只多几天新数据就跑出 n=0 的误导性 forward 结果.
+MIN_OOS_TRADING_DAYS = 20
+
 TRAIN_START, TRAIN_END = "2024-07-01", "2025-09-30"
 TEST_START, TEST_END = "2025-10-01", "2026-07-15"
 
@@ -250,6 +254,7 @@ th{{background:#f4f6f8}} .num{{text-align:right}}
 <h1>超跌绩优反弹 · 前向验证报告</h1>
 <p>模式: <span class='mode'>{mode.upper()}</span> ｜ 已发布组合 = V2 + 单题材上限{PUB_THEME_CAP} + 止损{int(PUB_STOP*100)}% + 无择时 ｜
 数据截至 <b>{R['data_end']}</b>, 样本内终点 <b>{ise}</b></p>
+<p style='font-size:12px;color:#666'>模式判定: {R.get('auto_note','')} ｜ 样本外窗口交易日数: {R.get('forward_window_days',0)} ｜ 覆盖全市场 {R.get('coverage_universe','?')} 只</p>
 
 <div class='{vcls}'>{verdict}</div>
 <div class='decay'>{decay}</div>
@@ -342,16 +347,36 @@ def cmd_validate(args):
     ins_m["label"] = "已发布组合·样本内基线"
 
     genuine_forward = full_end > in_end
+    # auto 模式门槛: 样本外窗口需足够长(≥ MIN_OOS_TRADING_DAYS 个交易日)才做真·前瞻,
+    # 否则退化为 holdout —— 避免"仅多几天新数据"导致 forward 在极薄样本上跑出 n=0 的误导性结果.
     if mode == "auto":
-        mode = "forward" if genuine_forward else "holdout"
+        if genuine_forward:
+            fwd_window = slice_cal(cal, in_end, "2099-12-31")
+            if len(fwd_window) >= MIN_OOS_TRADING_DAYS:
+                mode = "forward"
+                auto_note = (f"auto: 样本外窗口 {len(fwd_window)} 交易日 ≥ {MIN_OOS_TRADING_DAYS}, "
+                             f"走真·前瞻(数据 {full_end} 晚于样本内终点 {in_end})")
+            else:
+                mode = "holdout"
+                auto_note = (f"auto: 样本外窗口仅 {len(fwd_window)} 交易日 < {MIN_OOS_TRADING_DAYS}, "
+                             f"退化为 holdout(避免薄样本误导); 数据库末端 {full_end}")
+        else:
+            mode = "holdout"
+            auto_note = f"auto: 数据库末端 {full_end} 未晚于样本内终点 {in_end}, 走 holdout"
+        print(auto_note, flush=True)
+    else:
+        fwd_window = slice_cal(cal, in_end, "2099-12-31") if genuine_forward else []
+        auto_note = f"显式模式={mode}"
 
     R = dict(mode=mode, data_end=full_end, in_sample_end=in_end, in_sample_baseline=ins_m,
              in_sample_cal=in_sample_cal, eq_ins=eq_ins,
-             data_min=data_min, data_max=data_max, forward=None, holdout=None)
+             data_min=data_min, data_max=data_max, forward=None, holdout=None,
+             coverage_universe=universe,
+             auto_note=auto_note, forward_window_days=len(fwd_window) if genuine_forward else 0)
     tracker = load_tracker()
 
     if mode == "forward":
-        forward_cal = slice_cal(cal, in_end, "2099-12-31")  # 严格晚于样本内
+        forward_cal = fwd_window  # 复用已计算的样本外窗口(严格晚于样本内)
         fwd_tr, eq_key, fwd_m = simulate_on(ctx, forward_cal, inv, hot_at, fmap, PUB_THEME_CAP, PUB_STOP)
         fwd_m["label"] = f"已发布组合·真·前瞻({full_end})"
         R["forward"] = fwd_m
@@ -424,6 +449,7 @@ def cmd_validate(args):
     # JSON
     summary = dict(mode=R["mode"], generated_at=_dt.datetime.now().isoformat(timespec="seconds"),
                    data_end=full_end, in_sample_end=in_end, coverage_universe=universe,
+                   auto_note=R.get("auto_note", ""), forward_window_days=R.get("forward_window_days", 0),
                    published_combo=dict(base="V2", theme_cap=PUB_THEME_CAP, stop=PUB_STOP, regime="none"),
                    in_sample_baseline=ins_m, forward=R["forward"], holdout=R["holdout"], tracker=tracker)
     json.dump(summary, open(os.path.join(OUT_DIR, "forward_validation_metrics.json"), "w"),

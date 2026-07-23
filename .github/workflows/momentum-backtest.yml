@@ -174,15 +174,23 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
 
-      - name: Restore state cache (DB + tracker)
+      - name: Restore state cache (DB + tracker, dedicated validation key)
+        # 专用 key 与 backtest job 的 state-v1 隔离, 避免两者缓存互相覆盖导致的非确定性恢复
+        # (此前出现过空缓存 686B 覆盖 3.4MB 缓存, 使验证拿到空库). 验证库以全市场预热为准,
+        # 独立累积, 月度增量预热才能逐步填满真实样本.
         uses: actions/cache@v4
         with:
           path: |
             qlib_pro_v16.db
             opt_study/oos_tracker.json
-          key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          key: state-validation-${{ runner.os }}-${{ hashFiles('config.py') }}
           restore-keys: |
-            state-v1-${{ runner.os }}-
+            state-validation-${{ runner.os }}-
+
+      - name: Ensure state paths exist (avoid cache save warning)
+        run: |
+          mkdir -p opt_study
+          if [ ! -f opt_study/oos_tracker.json ]; then echo "[]" > opt_study/oos_tracker.json; fi
 
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
