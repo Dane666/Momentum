@@ -83,6 +83,10 @@ class MarketScanner:
 
         # ========== Phase 2: 市场宽度 ==========
         df_real = fetch_realtime_quotes(fs='沪深A股')
+        # 缓存降级检测: fetcher 三级降级的 K线缓存分支会带 _from_cache 列
+        from_cache = (df_real is not None and not df_real.empty
+                      and '_from_cache' in df_real.columns
+                      and bool(df_real['_from_cache'].fillna(False).any()))
         if df_real is None or df_real.empty:
             logger.error("获取实时行情失败")
             return pd.DataFrame(), ""
@@ -171,6 +175,10 @@ class MarketScanner:
             save_factor_logs(df_result, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
         report_text = self.engine._display_report(df_result, start_t, filter_stats)
+        if from_cache:
+            # 实时接口失败, 走 K线缓存降级: 明确提示用户数据为缓存(可能滞后)
+            report_text = ("⚠️ 实时接口降级：本次使用 K线缓存(最近可用)数据，"
+                           "价格/信号可能滞后，仅供参考。\n") + report_text
 
         return df_result, report_text
     

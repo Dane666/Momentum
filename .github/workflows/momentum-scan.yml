@@ -166,6 +166,15 @@ jobs:
         run: |
           python -c "from tools.low_quality_scan import warm_cache; warm_cache()"
 
+      - name: Warm full-universe K-line cache (for realtime fallback)
+        # 全市场预热 kline_cache: 实时接口失败时, fetcher 三级降级(K线缓存)可覆盖全市场,
+        # 而非仅 ~200 只. 快速路径=一次 bulk 实时行情 upsert 当日 bar(每日只补当天);
+        # 兜底=逐只 load_or_fetch_kline 增量写库. 失败不阻断主流程.
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: |
+          python -c "from tools.kline_warm import warm_universe; warm_universe()"
+
       - name: Wait for 14:44 scan window
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: |

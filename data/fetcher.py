@@ -565,18 +565,23 @@ def _build_quotes_from_kline_cache(codes: list) -> pd.DataFrame:
 
     try:
         conn = sqlite3.connect(db_path, check_same_thread=False)
-        placeholders = ','.join(['?' for _ in codes])
-        p2 = tuple(codes) + tuple(codes)
-        # 取每只股票最近两天的收盘价 (含 amount)
-        query = f"""
-        SELECT code, trade_date, close, amount FROM (
-            SELECT code, trade_date, close, amount,
-                   ROW_NUMBER() OVER (PARTITION BY code ORDER BY trade_date DESC) as rn
-            FROM kline_cache WHERE code IN ({placeholders})
-        ) ranked WHERE rn <= 2
-        """
-        df2 = pd.read_sql_query(query, conn, params=p2)
+        # SQLite 单次 IN 子句最多 999 个占位符, 全市场(数千只)需分块查询
+        CHUNK = 500
+        frames = []
+        for i in range(0, len(codes), CHUNK):
+            chunk = codes[i:i + CHUNK]
+            placeholders = ','.join(['?' for _ in chunk])
+            # 取每只股票最近两天的收盘价 (含 amount)
+            query = f"""
+            SELECT code, trade_date, close, amount FROM (
+                SELECT code, trade_date, close, amount,
+                       ROW_NUMBER() OVER (PARTITION BY code ORDER BY trade_date DESC) as rn
+                FROM kline_cache WHERE code IN ({placeholders})
+            ) ranked WHERE rn <= 2
+            """
+            frames.append(pd.read_sql_query(query, conn, params=tuple(chunk)))
         conn.close()
+        df2 = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
         if df2.empty:
             return pd.DataFrame()

@@ -149,6 +149,47 @@ def load_or_fetch_kline(
         return fetch_func(code, start_date)
 
 
+def upsert_kline_bars(df: pd.DataFrame) -> int:
+    """
+    批量写入/覆盖每日 K 线 bar (用于实时行情降级兜底预热).
+
+    按 (code, trade_date) 幂等覆盖, 多线程安全(使用全局写入锁).
+    供 tools/kline_warm.warm_universe 的 bulk 实时行情路径调用:
+    一次 bulk 实时行情 -> 转成日 bar -> 这里一次性入 kline_cache,
+    使 fetcher 的 K线缓存降级(_build_quotes_from_kline_cache)能覆盖全市场.
+
+    Args:
+        df: 含 code/trade_date/open/high/low/close/volume/amount/turnover_ratio 的 DataFrame
+    Returns:
+        写入行数 (失败返回 0)
+    """
+    if df is None or df.empty:
+        return 0
+    cols = ['code', 'trade_date', 'open', 'high', 'low', 'close',
+            'volume', 'amount', 'turnover_ratio']
+    available = [c for c in cols if c in df.columns]
+    if 'code' not in available or 'trade_date' not in available:
+        logger.warning("[Cache] upsert_kline_bars 缺少 code/trade_date 列, 跳过")
+        return 0
+    db_path = get_db_path()
+    try:
+        conn = sqlite3.connect(db_path, check_same_thread=False)
+        with _cache_write_lock:
+            c = conn.cursor()
+            # 删除当日已存在的同 (code, trade_date), 避免唯一约束冲突
+            for _, r in df[available].iterrows():
+                c.execute(
+                    "DELETE FROM kline_cache WHERE code=? AND trade_date=?",
+                    (r['code'], r['trade_date']))
+            conn.commit()
+            df[available].to_sql('kline_cache', conn, if_exists='append', index=False)
+        conn.close()
+        return len(df)
+    except Exception as e:
+        logger.warning(f"[Cache] upsert_kline_bars 失败: {e}")
+        return 0
+
+
 def clear_kline_cache(code: str = None):
     """
     清除K线缓存

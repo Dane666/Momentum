@@ -137,6 +137,10 @@ def run_c_scan(top_k: int = 8, top_n: int = 3) -> Tuple[List[Dict], List, str, b
     if df_all is None or df_all.empty:
         return [], [], '数据获取失败', is_bull
 
+    # 缓存降级检测: fetcher 三级降级的 K线缓存分支会带 _from_cache 列
+    from_cache = ('_from_cache' in df_all.columns
+                  and bool(df_all['_from_cache'].fillna(False).any()))
+
     df_all['code_str'] = df_all['股票代码'].astype(str)
     df_all['_amt'] = pd.to_numeric(df_all['成交额'], errors='coerce').fillna(0)
     # Only look up sector for top-200 by turnover; fallback to board prefix for rest
@@ -167,7 +171,12 @@ def run_c_scan(top_k: int = 8, top_n: int = 3) -> Tuple[List[Dict], List, str, b
 
     leaders = []
     if is_bull and hot_stock_set:
-        leaders = pick_tailspike(df_all, list(hot_stock_set))[:top_n]
+        if from_cache:
+            # 缓存降级: 偷袭板条件依赖盘中 high/open 关系, 缓存里 high=close/open=prev_close
+            # 会退化成恒真, 编造"盘中触涨停未封板"假信号 -> 直接跳过, 不产假候选
+            logger.info("[C尾] 缓存降级模式, 偷袭板信号不可靠, 跳过候选筛选")
+        else:
+            leaders = pick_tailspike(df_all, list(hot_stock_set))[:top_n]
 
     lines = ['🎯 C·尾盘偷袭板 | 14:44']
     if is_bull:
@@ -187,4 +196,7 @@ def run_c_scan(top_k: int = 8, top_n: int = 3) -> Tuple[List[Dict], List, str, b
                          f'({l["change_pct"]:+.1f}%) | 成交{l["amount"]:.1f}亿')
     elif is_bull:
         lines.append('\n📋 无符合偷袭板条件的标的')
+    if from_cache:
+        lines.append('\n⚠️ 实时数据缺失，偷袭板需盘中 tick，本次跳过'
+                     '（MA60/热门行业仍按缓存展示）')
     return leaders, ranked, '\n'.join(lines), is_bull
