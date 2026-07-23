@@ -192,35 +192,56 @@ def _secid_of(code: str) -> str:
     return ('1.' if code.startswith(('6', '9')) else '0.') + code
 
 
+def _em_a_open_chg(code: str):
+    """单只 A 股「今开 vs 昨收」高开%, 用 stock/get 接口(收盘后亦可取当日数据)."""
+    secid = _secid_of(code)
+    try:
+        url = 'https://push2.eastmoney.com/api/qt/stock/get'
+        params = {'secid': secid, 'fields': 'f44,f60', 'fltt': '2', 'invt': '2'}
+        r = requests.get(url, params=params, headers=_HEADERS, timeout=10)
+        d = r.json().get('data')
+        if not d:
+            return None
+        open_ = d.get('f44')
+        prev = d.get('f60')
+        if open_ in (None, '-', '') or prev in (None, '-', ''):
+            return None
+        open_ = float(open_); prev = float(prev)
+        if prev == 0:
+            return None
+        return (open_ / prev - 1) * 100
+    except Exception as e:
+        logger.warning('A股 %s 高开获取失败: %s', code, e)
+        return None
+
+
 def fetch_group_open_chg(stocks):
-    """批量取相关 A 股「今开 vs 昨收」高开%, 返回 {code: 高开%}. 失败返回空 dict."""
+    """批量取相关 A 股「今开 vs 昨收」高开%, 返回 {code: 高开%}. 失败返回空 dict.
+
+    用 stock/get 单只并发(已验证收盘后亦可取当日 open/昨收); 优于 clist 批量
+    (后者需盘中实时快照, 非交易时段易返回空).
+    """
     if not stocks:
         return {}
-    secids = [_secid_of(c) for c, _ in stocks]
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    res = {}
     try:
-        url = 'https://push2.eastmoney.com/api/qt/clist/get'
-        params = {'secids': ','.join(secids), 'fields': 'f12,f14,f44,f60',
-                  'fltt': '2', 'invt': '2'}
-        r = requests.get(url, params=params, headers=_HEADERS, timeout=15)
-        j = r.json().get('data', {})
-        diff = j.get('diff', []) if isinstance(j, dict) else []
-        res = {}
-        for it in diff:
-            code = it.get('f12')
-            open_ = it.get('f44')
-            prev = it.get('f60')
-            if code and open_ not in (None, '-', '') and prev not in (None, '-', ''):
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            fut = {pool.submit(_em_a_open_chg, c): c for c, _ in stocks}
+            for f in as_completed(fut):
+                code = fut[f]
                 try:
-                    oc = (float(open_) / float(prev) - 1) * 100
-                    res[code] = oc
-                except (TypeError, ValueError):
+                    v = f.result()
+                    if v is not None:
+                        res[code] = v
+                except Exception:
                     pass
-        if not res:
-            logger.warning('相关 A 股高开批量返回为空(可能尚未开盘/接口异常)')
-        return res
     except Exception as e:
         logger.warning('相关 A 股高开批量获取失败: %s', e)
-        return {}
+        return res
+    if not res:
+        logger.warning('相关 A 股高开全部为空(可能接口异常)')
+    return res
 
 
 def _feedback_text(ext_chg, open_map, stocks):
