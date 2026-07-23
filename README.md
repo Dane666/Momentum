@@ -22,7 +22,7 @@
 | ENABLE_TRAPPED_FILTER | True | 套牢盘过滤 <10% |
 | MAX_TRAPPED_RATIO | 0.10 | 套牢盘阈值 |
 | 实时数据源 | Sina → efinance → K线缓存 | 三级降级，任一级可用即正常、全失效才降级标记 |
-| 竞价外部盘辅助 | 碳酸锂期货主连(eastmoney) + 韩股三星/海力士(yfinance) | 辅助判断锂矿股 / 存储-HBM 链开盘强弱 |
+| 竞价外部盘辅助 | 碳酸锂期货主连(eastmoney) + 韩股三星/海力士(yfinance) | 辅助判断锂矿股 / 存储-HBM 链开盘强弱；相关 A 股「今开 vs 昨收」高开正反馈联动（✅确认 / ⚠️背离） |
 
 ## 超跌绩优反弹策略
 
@@ -103,6 +103,8 @@
 尾盘: `.../momentum-scan.yml/dispatches` POST `{"ref":"main","inputs":{"run_mode":"full"}}` Cron `25 14 * * 1-5` Asia/Shanghai
 
 竞价: `.../auction-scan.yml/dispatches` POST `{"ref":"main"}` Cron `25 1 * * 1-5` Asia/Shanghai
+
+> 竞价外部盘的相关 A 股清单（锂矿股 / 存储-HBM 股）集中在 `tools/auction_extra_config.json`，**无需改代码即可增删**；缺失时回退内置默认。相关 A 股高开正反馈复用竞价主扫描已抓的实时行情（零额外网络）。
 
 ## 通知配置 (Bark)
 
