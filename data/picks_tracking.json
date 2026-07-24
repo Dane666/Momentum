@@ -455,15 +455,5 @@
     "tp_price": 6.9,
     "status": "WATCHING",
     "type": "LOW_QUALITY"
-  },
-  {
-    "date": "2026-07-23",
-    "code": "000430",
-    "name": "张家界",
-    "price": 6.0,
-    "sl_price": 5.7,
-    "tp_price": 6.6,
-    "status": "HOLDING",
-    "type": "MANUAL"
   }
 ]
