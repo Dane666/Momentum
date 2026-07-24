@@ -371,6 +371,23 @@ jobs:
           for pk in picks:
               lines.append(f"  {pk['code']} {pk['name']}: ¥{pk['price']:.2f}")
 
+          # 择时空仓说明: 当日若无主动量(STRATEGY)选股, 从 scan_stdout 提取择时原因,
+          # 避免推送"空白无解释" (如 [择时] 市场空头 proxy<MA20 今日空仓观望).
+          strategy_picks = [p for p in picks if p.get('type') == 'STRATEGY']
+          if not strategy_picks:
+              try:
+                  with open('scan_stdout.txt', 'r', encoding='utf-8') as _f:
+                      _stxt = _f.read()
+                  import re as _re
+                  _m = _re.search(r'\[择时\][^\n]*', _stxt)
+                  if _m:
+                      _reason = _m.group(0).replace('[择时] ', '').strip()
+                      lines.append(f'🛑 主动量策略择时空仓：{_reason}')
+                  else:
+                      lines.append('🛑 主动量策略今日无符合条件标的（因子/题材未触发）')
+              except Exception:
+                  lines.append('🛑 主动量策略今日无选股（详见运行日志）')
+
           # Tracking report from DB
           try:
               import sqlite3
