@@ -1,0 +1,167 @@
+name: regime-backtest
+
+# 三策略分环境(牛/熊/震荡)回测 · 月度自动刷新推荐矩阵
+# ============================================================
+# 目标: 定期(每月1日)重算 opt_study/regime_recommendation.json (3x3 矩阵 + 当前环境 + 推荐策略),
+#       回推仓库后, 供 momentum-scan 的 Bark 推送每日读取"当前大盘 → 推荐策略"段.
+#
+# 数据源: harness.load_universe() 直接读 qlib_pro_v16.db 的 kline_cache 表 (离线, 不触发实时网络),
+#         故复用 momentum-backtest.yml 验证 job 的离线模式 —— 下载全量基准库(db-baseline-v1,
+#         含完整历史K线+基本面+板块)即可稳定跑出回测, 在境外 Runner 上也无网络依赖.
+#
+# 触发器:
+#   主:  cron 每月1日 16:00 CST (0 8 1 * *)
+#   备:  GitHub UI "Run workflow" 手动触发
+#
+on:
+  schedule:
+    - cron: "0 8 1 * *"   # 每月1日 16:00 CST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: regime-backtest-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  regime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      TZ: Asia/Shanghai
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Restore state cache (DB, dedicated regime key)
+        # 专用 key 与 momentum-backtest 的 state-v1 / state-validation 隔离,
+        # 避免缓存互相覆盖导致非确定性恢复. 库以全量基准为主, 独立累积.
+        uses: actions/cache@v4
+        with:
+          path: qlib_pro_v16.db
+          key: state-regime-${{ runner.os }}-${{ hashFiles('config.py') }}
+          restore-keys: |
+            state-regime-${{ runner.os }}-
+
+      - name: Download DB baseline (full-market, eliminates historical drift)
+        # 仅当缓存未命中/库过小才从 release db-baseline-v1 下载全量基准库
+        # (含完整历史K线+基本面+板块), 使 CI 与本地库历史价一致. 命中缓存则跳过.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -f qlib_pro_v16.db ] || [ "$(stat -c%s qlib_pro_v16.db 2>/dev/null || echo 0)" -lt 104857600 ]; then
+            echo "DB 缺失或过小(<100MB), 从 release db-baseline-v1 下载全量基准库..."
+            gh release download db-baseline-v1 -p qlib_pro_v16.db --clobber
+            echo "下载完成: $(du -h qlib_pro_v16.db | cut -f1)"
+          else
+            echo "DB 已存在(缓存命中), 跳过下载 ($(du -h qlib_pro_v16.db | cut -f1))"
+          fi
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Warm broad kline universe (full market, offline-safe)
+        # 数据源 = qlib_pro_v16.db 的 kline_cache 表(离线, 不触发网络);
+        # baseline 已含全历史, 此步骤仅补增量/最新, 命中缓存则秒过. 失败不阻断主流程.
+        continue-on-error: true
+        run: |
+          python <<'PY'
+          import sys,os,time;from pathlib import Path;p=Path('.').resolve()
+          sys.path.insert(0,str(p.parent))
+          import importlib.util
+          s=importlib.util.spec_from_file_location('momentum',p/'__init__.py',submodule_search_locations=[str(p)])
+          m=importlib.util.module_from_spec(s);sys.modules['momentum']=m;s.loader.exec_module(m)
+          from momentum.data import load_or_fetch_kline,fetch_all_stock_codes,fetch_kline_from_api,init_db
+          from momentum import config as cfg;from concurrent.futures import ThreadPoolExecutor,as_completed
+          init_db()
+          codes=[c for c in fetch_all_stock_codes() if 'ST' not in c]
+          print(f'Warming {len(codes)} non-ST A-share codes...');start=time.time();ok=fail=0
+          with ThreadPoolExecutor(max_workers=30) as pool:
+              fx={pool.submit(load_or_fetch_kline,c,fetch_kline_from_api,cfg.KLINE_START_DATE):c for c in codes}
+              for f in as_completed(fx):
+                  try:
+                      if f.result(timeout=20) is not None: ok+=1
+                      else: fail+=1
+                  except: fail+=1
+          print(f'Warm done: {ok} ok {fail} fail in {time.time()-start:.0f}s')
+          PY
+
+      - name: Import fundamentals & sector cache into DB (if missing)
+        # fundamentals / stock_sector_cache 不在 CI 缓存里(仅本地构建), 这里从提交的 CSV 导入,
+        # 使"绩优"过滤(低位绩优)与热门题材(C-Tail)在 CI 中可用. 表已存在则跳过(幂等).
+        continue-on-error: true
+        run: |
+          python <<'PY'
+          import sqlite3, csv, os
+          DB="qlib_pro_v16.db"
+          if not os.path.exists(DB):
+              print("DB 不存在: regime 回测将依赖基准库既有数据"); raise SystemExit(0)
+          con=sqlite3.connect(DB)
+          def num(x): return float(x) if (x not in ('',None)) else None
+          try:
+              con.execute("""CREATE TABLE IF NOT EXISTS fundamentals (
+                  code TEXT, period_end TEXT, avail_from TEXT, roe REAL, net_profit_yoy REAL,
+                  revenue_yoy REAL, eps REAL, eps_annualized REAL, bvps REAL, industry TEXT,
+                  PRIMARY KEY(code, period_end))""")
+              with open('data/fundamentals.csv',newline='',encoding='utf-8') as f:
+                  rd=csv.DictReader(f)
+                  recs=[(r['code'],r['period_end'],r['avail_from'],num(r['roe']),
+                         num(r['net_profit_yoy']),num(r['revenue_yoy']),num(r['eps']),
+                         num(r['eps_annualized']),num(r['bvps']),(r.get('industry') or None)) for r in rd]
+              con.executemany("INSERT OR REPLACE INTO fundamentals VALUES (?,?,?,?,?,?,?,?,?,?)",recs)
+              print(f"fundamentals 导入 {len(recs)} 行")
+          except Exception as e: print("fundamentals 导入跳过:",e)
+          try:
+              con.execute("CREATE TABLE IF NOT EXISTS stock_sector_cache (code TEXT, sector TEXT, update_time TEXT)")
+              with open('data/stock_sector_cache.csv',newline='',encoding='utf-8') as f:
+                  rd=csv.DictReader(f)
+                  recs2=[(r['code'],r['sector'],r['update_time']) for r in rd]
+              con.executemany("INSERT OR REPLACE INTO stock_sector_cache VALUES (?,?,?)",recs2)
+              print(f"stock_sector_cache 导入 {len(recs2)} 行")
+          except Exception as e: print("stock_sector_cache 导入跳过:",e)
+          con.commit();con.close()
+          PY
+
+      - name: Run regime backtest (all strategies, full history)
+        # 离线回测: 读 kline_cache 表, 不触发实时网络. 写 opt_study/regime_recommendation.json.
+        run: python opt_study/regime_backtest.py --strategy all
+
+      - name: Upload regime artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regime-backtest
+          path: |
+            opt_study/regime_recommendation.json
+
+      - name: Push recommendation back to repo
+        # 仅提交回测产物 json (不提交 DB). 带 pull --rebase + 重试, 避免与 momentum-scan 的
+        # picks_tracking.json push 并发冲突 (两者时间窗错开, 但重试更稳妥).
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add opt_study/regime_recommendation.json
+          if git diff --cached --quiet; then
+            echo "No change to regime_recommendation.json (内容未变, 跳过推送)"
+          else
+            git commit -m "auto: refresh regime_recommendation (monthly)"
+            for attempt in 1 2 3; do
+              git pull --rebase origin main
+              if git push origin main; then
+                echo "Pushed regime_recommendation.json (attempt $attempt)"
+                break
+              fi
+              echo "Push attempt $attempt failed, retrying..."
+              sleep 2
+            done
+          fi
