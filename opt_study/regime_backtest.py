@@ -37,6 +37,22 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.dirname(ROOT))   # tests/ 使 momentum 包可导入 (harness 依赖)
 
+# CI 中 checkout 顶层目录名可能与包名大小写不一致(如 repo 名 "Momentum"),
+# 导致 sys.path 自动发现 'momentum' 失败(harness 的 `from momentum import config` 报 ModuleNotFoundError).
+# 这里显式把 ROOT(本身即 momentum 包根, 含 __init__.py) 注册为 'momentum' 模块,
+# 与 momentum-scan.yml 的 Push 步骤一致, 保证跨平台/跨目录名可用.
+import importlib.util as _ilu
+from pathlib import Path as _P
+if 'momentum' not in sys.modules:
+    _root_dir = _P(ROOT).resolve()
+    if (_root_dir / '__init__.py').exists():
+        _spec = _ilu.spec_from_file_location(
+            'momentum', str(_root_dir / '__init__.py'),
+            submodule_search_locations=[str(_root_dir)])
+        _mm = _ilu.module_from_spec(_spec)
+        sys.modules['momentum'] = _mm
+        _spec.loader.exec_module(_mm)
+
 MIN_N = 8          # 单环境样本量门槛(低于此置信度降为 low)
 WIN_RATE_OK = 55.0 # 胜率达标线
 
@@ -80,6 +96,12 @@ def empty_metrics():
 # ---------------------------------------------------------------------------
 def run_low_quality(quick: bool):
     import harness_oversold_quality as HOQ
+    import os
+    # HOQ 顶部硬编码了本地 macOS 绝对路径 DB/ROOT, 在 CI(Linux) 上无效
+    # (sqlite3 "unable to open database file"). 这里用可移植路径覆盖:
+    # 优先 env MOMENTUM_DB_PATH, 否则 ROOT/qlib_pro_v16.db. 不改外部 harness 文件, 符合"旁路"约束.
+    HOQ.DB = os.environ.get("MOMENTUM_DB_PATH") or os.path.join(ROOT, "qlib_pro_v16.db")
+    HOQ.ROOT = ROOT
     if quick:
         HOQ.WINDOW_START = "2025-09-01"   # 缩短窗口, 本地快速验证
     print("[低位绩优] 加载K线...", flush=True)
