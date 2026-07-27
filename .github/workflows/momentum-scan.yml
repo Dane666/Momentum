@@ -368,6 +368,67 @@ jobs:
           except: pass
 
           lines = [f'🔍 尾盘选股 | {today}']
+
+          # 环境→推荐策略段: 实时计算当前大盘环境, 从离线回测矩阵查对应推荐策略,
+          # 仅当置信度中/高时附到推送, 让用户按当前大盘状态自选策略.
+          try:
+              _rec_path = os.path.join('opt_study', 'regime_recommendation.json')
+              if os.path.exists(_rec_path):
+                  with open(_rec_path, encoding='utf-8') as _rf:
+                      _rec = json.load(_rf)
+                  _recmap = _rec.get('recommendation', {})
+
+                  # 实时环境: 全A等权净值 proxy 最新交易日 regime (bull/bear/ranging)
+                  _cur = None
+                  _STRAT_CN = {'low_quality':'低位绩优','momentum':'主动量','c_tail':'C-Tail'}
+                  _REGIME_CN = {'bull':'牛市(多头)','bear':'熊市(空头)','ranging':'震荡市'}
+                  try:
+                      import importlib.util as _ilu, sys as _sys
+                      from pathlib import Path as _P
+                      _p = _P('.').resolve()
+                      _sys.path.insert(0, str(_p / 'opt_study'))   # harness 在 opt_study
+                      if 'momentum' not in _sys.modules:
+                          _spec = _ilu.spec_from_file_location(
+                              'momentum', _p / '__init__.py',
+                              submodule_search_locations=[str(_p)])
+                          _mm = _ilu.module_from_spec(_spec)
+                          _sys.modules['momentum'] = _mm
+                          _spec.loader.exec_module(_mm)
+                      import pandas as _pd
+                      import numpy as _np
+                      import harness as _H
+                      _dc, _sm, _cal = _H.load_universe()
+                      _nav, _ = _H.build_market_proxy(_dc, _cal)
+                      _ma20 = _nav.rolling(20).mean()
+                      _ma60 = _nav.rolling(60).mean()
+                      for _t in _nav.index[::-1]:
+                          _nv = _nav.get(_t, _np.nan); _a20 = _ma20.get(_t, _np.nan); _a60 = _ma60.get(_t, _np.nan)
+                          if _pd.isna(_nv) or _pd.isna(_a20) or _pd.isna(_a60):
+                              continue
+                          if _nv >= _a20 and _nv >= _a60: _cur = 'bull'
+                          elif _nv < _a20 and _nv < _a60: _cur = 'bear'
+                          else: _cur = 'ranging'
+                          break
+                  except Exception as _ce:
+                      print(f'[regime] 实时环境计算失败, 回退JSON快照: {_ce}')
+                      _cur = _rec.get('current_regime', {}).get('regime')
+
+                  if _cur:
+                      _rc = _recmap.get(_cur, {})
+                      _conf = _rc.get('confidence', 'low')
+                      _strat = _rc.get('strategy')
+                      _strat_cn = _STRAT_CN.get(_strat) if _strat else None
+                      if _strat_cn and _conf in ('medium', 'high'):
+                          _tag = '高置信' if _conf == 'high' else '中置信'
+                          lines.append(f'📈 当前大盘：{_REGIME_CN.get(_cur, _cur)} → 推荐策略：{_strat_cn}（{_tag}）')
+                      elif _strat_cn and _conf == 'low':
+                          _wr = _rc.get('winrate'); _ar = _rc.get('avg_ret')
+                          _m = f"胜率{_wr}%/均收益{_ar}%" if _wr is not None else ""
+                          lines.append(f'⚠️ 当前大盘：{_REGIME_CN.get(_cur,_cur)}：无明显优势策略'
+                                       f'（相对最佳：{_strat_cn} {_m}），建议降低仓位或观望')
+          except Exception as _e:
+              print(f'[regime] 推荐段跳过: {_e}')
+
           for pk in picks:
               lines.append(f"  {pk['code']} {pk['name']}: ¥{pk['price']:.2f}")
 
