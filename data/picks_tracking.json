@@ -475,5 +475,15 @@
     "tp_price": 65.24,
     "status": "WATCHING",
     "type": "LOW_QUALITY"
+  },
+  {
+    "date": "2026-07-28",
+    "code": "300390",
+    "name": "300390",
+    "price": 56.1,
+    "sl_price": 47.69,
+    "tp_price": 64.52,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY"
   }
 ]
