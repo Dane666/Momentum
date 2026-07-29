@@ -144,24 +144,37 @@ jobs:
             opt_study/regime_recommendation.json
 
       - name: Push recommendation back to repo
-        # 仅提交回测产物 json (不提交 DB). 带 pull --rebase + 重试, 避免与 momentum-scan 的
-        # picks_tracking.json push 并发冲突 (两者时间窗错开, 但重试更稳妥).
+        # 仅提交回测产物 json (不提交 DB). 用 reset --hard 模式避免 git pull --rebase 的 json 内容冲突:
+        #   每次运行 json 含 generated 时间戳, 必然与 origin 不同; 若 origin 同时也有 json 改动,
+        #   rebase 会把本地 json commit 重放到已改 json 之上 -> 内容冲突. 故改为:
+        #   先保存生成结果 -> 同步到最新 origin/main -> 在其上提交 -> push; 失败则重同步重试.
+        #   这样每次提交的父节点都是最新 origin/main, push 必定 fast-forward, 永不发生 rebase 冲突.
         if: always()
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add opt_study/regime_recommendation.json
-          if git diff --cached --quiet; then
-            echo "No change to regime_recommendation.json (内容未变, 跳过推送)"
-          else
-            git commit -m "auto: refresh regime_recommendation (monthly)"
-            for attempt in 1 2 3; do
-              git pull --rebase origin main
-              if git push origin main; then
-                echo "Pushed regime_recommendation.json (attempt $attempt)"
-                break
-              fi
-              echo "Push attempt $attempt failed, retrying..."
-              sleep 2
-            done
+          if [ ! -s opt_study/regime_recommendation.json ]; then
+            echo "json 未生成, 跳过推送"; exit 0
           fi
+          cp opt_study/regime_recommendation.json /tmp/regime_fresh.json
+          push_json() {
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/regime_fresh.json opt_study/regime_recommendation.json
+            git add opt_study/regime_recommendation.json
+            if git diff --cached --quiet; then
+              echo "与 origin 内容一致(仅时间戳或无变化), 跳过提交"
+              return 0
+            fi
+            git commit -m "auto: refresh regime_recommendation ($(date +%Y-%m-%d))"
+            git push origin main && return 0
+            return 1
+          }
+          ok=1
+          for attempt in 1 2 3; do
+            if push_json; then ok=0; echo "Pushed regime_recommendation.json (attempt $attempt)"; break; fi
+            echo "Push attempt $attempt failed, retrying..."
+            sleep 3
+          done
+          if [ $ok -ne 0 ]; then echo "⚠️ 推送失败(产物已上传 artifact, 可手动 cherry-pick)"; fi
+
