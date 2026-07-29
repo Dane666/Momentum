@@ -53,7 +53,7 @@ if 'momentum' not in sys.modules:
         sys.modules['momentum'] = _mm
         _spec.loader.exec_module(_mm)
 
-MIN_N = 8          # 单环境样本量门槛(低于此置信度降为 low)
+MIN_N = 6          # 单环境样本量门槛(低于此置信度降为 low); 放宽至6使强信号(如熊市低位绩优n=7)不被边界样本压低
 WIN_RATE_OK = 55.0 # 胜率达标线
 
 REGIMES = ["bull", "bear", "ranging"]
