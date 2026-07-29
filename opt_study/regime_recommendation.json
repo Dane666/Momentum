@@ -1,8 +1,8 @@
 {
-  "generated": "2026-07-27 11:23",
+  "generated": "2026-07-29 10:34",
   "regimes_definition": "bull=nav>=MA20且>=MA60; bear=nav<MA20且<MA60; ranging=交叉区",
   "current_regime": {
-    "date": "2026-07-27",
+    "date": "2026-07-29",
     "regime": "bear"
   },
   "recommended_for_current": {
@@ -107,7 +107,7 @@
         "n": 510,
         "winrate": 47.25,
         "avg_ret": 0.79,
-        "sharpe": 0.628,
+        "sharpe": 0.626,
         "profit_pct": 50.17,
         "max_dd": 61.39
       },
@@ -115,7 +115,7 @@
         "n": 268,
         "winrate": 51.49,
         "avg_ret": 2.04,
-        "sharpe": 1.904,
+        "sharpe": 1.9,
         "profit_pct": 404.59,
         "max_dd": 30.92
       },
@@ -123,7 +123,7 @@
         "n": 95,
         "winrate": 35.79,
         "avg_ret": -2.25,
-        "sharpe": -1.281,
+        "sharpe": -1.278,
         "profit_pct": -54.94,
         "max_dd": 57.13
       },
@@ -131,7 +131,7 @@
         "n": 89,
         "winrate": 56.18,
         "avg_ret": 1.91,
-        "sharpe": 1.492,
+        "sharpe": 1.489,
         "profit_pct": 91.21,
         "max_dd": 18.79
       }
@@ -144,7 +144,7 @@
       "winrate": 51.49,
       "avg_ret": 2.04,
       "n": 268,
-      "sharpe": 1.904,
+      "sharpe": 1.9,
       "reason": "牛市(多头)：C-Tail 回测最优(胜率51.49%/均收益2.04%, n=268)，建议优先采用"
     },
     "bear": {
@@ -162,7 +162,7 @@
       "winrate": 56.18,
       "avg_ret": 1.91,
       "n": 89,
-      "sharpe": 1.492,
+      "sharpe": 1.489,
       "reason": "震荡市：C-Tail 回测最优(胜率56.18%/均收益1.91%, n=89)，建议优先采用"
     }
   }
