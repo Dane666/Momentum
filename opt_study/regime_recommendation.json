@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-29 10:34",
+  "generated": "2026-07-29 10:54",
   "regimes_definition": "bull=nav>=MA20且>=MA60; bear=nav<MA20且<MA60; ranging=交叉区",
   "current_regime": {
     "date": "2026-07-29",
@@ -8,10 +8,10 @@
   "recommended_for_current": {
     "regime": "bear",
     "regime_cn": "熊市(空头)",
-    "strategy": "momentum",
-    "strategy_cn": "主动量",
-    "confidence": "low",
-    "reason": "熊市(空头)：主动量 回测最优(胜率38.46%/均收益-0.34%, n=26)，建议优先采用"
+    "strategy": "low_quality",
+    "strategy_cn": "低位绩优",
+    "confidence": "medium",
+    "reason": "熊市(空头)：低位绩优 回测最优(胜率100.0%/均收益11.49%, n=7)，建议优先采用"
   },
   "matrix": {
     "low_quality": {
@@ -148,13 +148,13 @@
       "reason": "牛市(多头)：C-Tail 回测最优(胜率51.49%/均收益2.04%, n=268)，建议优先采用"
     },
     "bear": {
-      "strategy": "momentum",
-      "confidence": "low",
-      "winrate": 38.46,
-      "avg_ret": -0.34,
-      "n": 26,
-      "sharpe": -0.454,
-      "reason": "熊市(空头)：主动量 回测最优(胜率38.46%/均收益-0.34%, n=26)，建议优先采用"
+      "strategy": "low_quality",
+      "confidence": "medium",
+      "winrate": 100.0,
+      "avg_ret": 11.49,
+      "n": 7,
+      "sharpe": 2.721,
+      "reason": "熊市(空头)：低位绩优 回测最优(胜率100.0%/均收益11.49%, n=7)，建议优先采用"
     },
     "ranging": {
       "strategy": "c_tail",
