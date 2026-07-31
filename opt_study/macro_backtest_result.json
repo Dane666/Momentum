@@ -1,0 +1,120 @@
+{
+  "generated": "2026-07-31 15:16",
+  "config": {
+    "stress": {
+      "enabled": true,
+      "hard_below_ma60": -0.1,
+      "soft_below_ma60": -0.04,
+      "soft_scale": 0.5,
+      "crash_hard_below_ma60": -0.15
+    },
+    "calendar": {
+      "enabled": true,
+      "soft_months": [
+        4,
+        6,
+        12
+      ],
+      "soft_scale": 0.5,
+      "bias_months": [
+        1,
+        2,
+        3
+      ]
+    },
+    "per_strategy": {
+      "low_quality": {
+        "calendar": false,
+        "stress": "crash_only"
+      },
+      "momentum": {
+        "calendar": false,
+        "stress": "crash_only"
+      },
+      "c_tail": {
+        "calendar": false,
+        "stress": "crash_only"
+      }
+    }
+  },
+  "note": "baseline=无宏观总闸; +macro=接入 MacroOverwrite 总闸(应激熔断+日历软护栏). 低位绩优/C-Tail 软降仓已忠实应用, 主动量软降仓缩放权益曲线; C-Tail 日历软降仓在实时层(弱月降配)实现, 回测仅含硬熔断禁开.",
+  "results": {
+    "low_quality": {
+      "baseline": {
+        "n": 13,
+        "winrate": 53.8,
+        "avg_ret": 4.44,
+        "avg_win": 11.73,
+        "avg_loss": -4.07,
+        "best": 35.42,
+        "worst": -8.18,
+        "total_ret": 18.65,
+        "annual": 9.09,
+        "sharpe": 0.784,
+        "maxdd": -14.86
+      },
+      "macro": {
+        "n": 13,
+        "winrate": 53.8,
+        "avg_ret": 4.44,
+        "avg_win": 11.73,
+        "avg_loss": -4.07,
+        "best": 35.42,
+        "worst": -8.18,
+        "total_ret": 18.65,
+        "annual": 9.09,
+        "sharpe": 0.784,
+        "maxdd": -14.86
+      },
+      "gate": {
+        "block_days": 0,
+        "soft_days": 0,
+        "force_calendar": false
+      }
+    },
+    "momentum": {
+      "baseline": {
+        "n": 81,
+        "winrate": 44.44,
+        "avg_ret": 0.16,
+        "sharpe": 0.48,
+        "profit_pct": 14.56,
+        "maxdd": 11.04
+      },
+      "macro": {
+        "n": 81,
+        "winrate": 44.44,
+        "avg_ret": 0.16,
+        "sharpe": 0.483,
+        "profit_pct": 14.56,
+        "maxdd": 11.04
+      },
+      "gate": {
+        "block_days": 0,
+        "soft_days": 0
+      }
+    },
+    "c_tail": {
+      "baseline": {
+        "n": 504,
+        "winrate": 46.03,
+        "avg_ret": 0.71,
+        "sharpe": 0.479,
+        "profit_pct": 23.44,
+        "maxdd": 61.23
+      },
+      "macro": {
+        "n": 504,
+        "winrate": 46.03,
+        "avg_ret": 0.71,
+        "sharpe": 0.479,
+        "profit_pct": 23.44,
+        "maxdd": 61.23
+      },
+      "gate": {
+        "block_days": 0,
+        "soft_days": 0
+      }
+    }
+  }
+}

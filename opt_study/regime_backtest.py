@@ -355,6 +355,23 @@ def compute_current_regime():
     return dict(date=None, regime="na")
 
 
+def compute_current_macro():
+    """用全A等权净值 proxy 计算最新可得交易日的宏观熔断裁决 (广谱应激, 不绑策略日历)."""
+    from macro_overwrite import MacroOverwrite
+    import harness as H
+    data_cache, sector_map, calendar = H.load_universe()
+    nav, _ = H.build_market_proxy(data_cache, calendar)
+    mo = MacroOverwrite()
+    ser = mo.build_series(nav, None)   # strategy=None → 仅广谱应激快照
+    if len(nav.index):
+        k = str(nav.index[-1])[:10]
+        d = ser.get(k)
+        if d is not None:
+            return dict(date=k, **d.to_dict())
+    return dict(date=None, level="normal", allow_new=True, position_scale=1.0,
+                reason="无数据", tags=[])
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--strategy", default="all",
@@ -389,10 +406,23 @@ def main():
     rec = build_recommendation(matrix)
     cur = compute_current_regime()
     rec_for_cur = rec.get(cur["regime"], {})
+    macro_cur = compute_current_macro()
     out = dict(
         generated=pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
         regimes_definition="bull=nav>=MA20且>=MA60; bear=nav<MA20且<MA60; ranging=交叉区",
         current_regime=cur,
+        macro_overwrite=dict(
+            current=macro_cur,
+            definition=("Macro Overwrite 总闸 = 应激熔断 + 日历软护栏, 作用于三策略既有开仓日闸口之上."
+                        " 默认配置: 应激仅 crash_only(nav 相对 MA60 偏离 < -15% 硬熔断, 禁止新开仓, "
+                        "非侵入保险); 日历软护栏(4/6/12 月×0.5)默认全部关闭 —— macro_backtest 实测"
+                        "(2024-2026)该 blanket 软降仓对三策略均为净负(弱月反有正 edge), 故默认不做"
+                        "机械降仓, 组件仍保留可一行开启."),
+            per_strategy_default=dict(
+                low_quality="应激 crash_only, 日历关闭",
+                momentum="应激 crash_only, 日历关闭",
+                c_tail="应激 crash_only, 日历关闭"),
+        ),
         recommended_for_current=dict(
             regime=cur["regime"],
             regime_cn=REGIME_CN.get(cur["regime"], cur["regime"]),

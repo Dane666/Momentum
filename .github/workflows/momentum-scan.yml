@@ -429,6 +429,26 @@ jobs:
           except Exception as _e:
               print(f'[regime] 推荐段跳过: {_e}')
 
+          # 宏观熔断段: 从离线回测矩阵的 macro_overwrite.current 读取实时总闸状态,
+          # 作为策略信号之上的最高优先级提示(应激熔断 / 软降仓 / 正常).
+          try:
+              _rec_path = os.path.join('opt_study', 'regime_recommendation.json')
+              if os.path.exists(_rec_path):
+                  with open(_rec_path, encoding='utf-8') as _rf:
+                      _rec = json.load(_rf)
+                  _mc = _rec.get('macro_overwrite', {}).get('current', {})
+                  _mlv = _mc.get('level', 'normal')
+                  _msc = _mc.get('position_scale', 1.0)
+                  _mrs = _mc.get('reason', '')
+                  if _mlv == 'hard':
+                      lines.append(f'🛡️ 宏观熔断：硬熔断（系统性下跌，禁止新开仓）｜{_mrs}')
+                  elif _mlv == 'soft':
+                      lines.append(f'🛡️ 宏观熔断：软降仓（建议仓位 ×{_msc}）｜{_mrs}')
+                  else:
+                      lines.append(f'🛡️ 宏观熔断：正常（总闸开放，策略信号有效）')
+          except Exception as _me:
+              print(f'[macro] 熔断段跳过: {_me}')
+
           for pk in picks:
               lines.append(f"  {pk['code']} {pk['name']}: ¥{pk['price']:.2f}")
 

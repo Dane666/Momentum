@@ -1,9 +1,25 @@
 {
-  "generated": "2026-07-29 11:05",
+  "generated": "2026-07-31 15:23",
   "regimes_definition": "bull=nav>=MA20且>=MA60; bear=nav<MA20且<MA60; ranging=交叉区",
   "current_regime": {
-    "date": "2026-07-29",
+    "date": "2026-07-22",
     "regime": "bear"
+  },
+  "macro_overwrite": {
+    "current": {
+      "date": "2026-07-22",
+      "level": "normal",
+      "allow_new": true,
+      "position_scale": 1.0,
+      "reason": "正常",
+      "tags": []
+    },
+    "definition": "Macro Overwrite 总闸 = 应激熔断 + 日历软护栏, 作用于三策略既有开仓日闸口之上. 默认配置: 应激仅 crash_only(nav 相对 MA60 偏离 < -15% 硬熔断, 禁止新开仓, 非侵入保险); 日历软护栏(4/6/12 月×0.5)默认全部关闭 —— macro_backtest 实测(2024-2026)该 blanket 软降仓对三策略均为净负(弱月反有正 edge), 故默认不做机械降仓, 组件仍保留可一行开启.",
+    "per_strategy_default": {
+      "low_quality": "应激 crash_only, 日历关闭",
+      "momentum": "应激 crash_only, 日历关闭",
+      "c_tail": "应激 crash_only, 日历关闭"
+    }
   },
   "recommended_for_current": {
     "regime": "bear",
@@ -11,129 +27,129 @@
     "strategy": "low_quality",
     "strategy_cn": "低位绩优",
     "confidence": "medium",
-    "reason": "熊市(空头)：低位绩优 回测最优(胜率100.0%/均收益11.49%, n=7)，建议优先采用"
+    "reason": "熊市(空头)：低位绩优 回测最优(胜率87.5%/均收益9.09%, n=8)，建议优先采用"
   },
   "matrix": {
     "low_quality": {
       "natural": {
-        "n": 10,
-        "winrate": 70.0,
-        "avg_ret": 7.03,
+        "n": 13,
+        "winrate": 53.8,
+        "avg_ret": 4.44,
         "avg_win": 11.73,
-        "avg_loss": -3.93,
+        "avg_loss": -4.07,
         "best": 35.42,
         "worst": -8.18,
-        "total_ret": 23.61,
-        "annual": 11.39,
-        "sharpe": 1.011,
-        "maxdd": -10.76
+        "total_ret": 18.65,
+        "annual": 9.09,
+        "sharpe": 0.784,
+        "maxdd": -14.86
       },
       "bull": {
-        "n": 2,
+        "n": 4,
         "winrate": 0.0,
-        "avg_ret": -3.57,
+        "avg_ret": -3.55,
         "avg_win": 0,
-        "avg_loss": -3.57,
+        "avg_loss": -3.55,
         "best": -1.22,
         "worst": -5.93,
-        "total_ret": -2.35,
-        "annual": -2.22,
-        "sharpe": -0.837,
-        "maxdd": -4.66
+        "total_ret": -4.54,
+        "annual": -4.28,
+        "sharpe": -0.762,
+        "maxdd": -7.25
       },
       "bear": {
-        "n": 7,
-        "winrate": 100.0,
-        "avg_ret": 11.49,
-        "avg_win": 11.49,
-        "avg_loss": 0,
+        "n": 8,
+        "winrate": 87.5,
+        "avg_ret": 9.09,
+        "avg_win": 10.43,
+        "avg_loss": -0.3,
         "best": 35.42,
-        "worst": 1.92,
-        "total_ret": 28.72,
-        "annual": 107.76,
-        "sharpe": 2.721,
-        "maxdd": -4.45
+        "worst": -0.3,
+        "total_ret": 25.84,
+        "annual": 94.58,
+        "sharpe": 2.394,
+        "maxdd": -6.39
       },
       "ranging": {
-        "n": 4,
-        "winrate": 50.0,
-        "avg_ret": -1.12,
+        "n": 5,
+        "winrate": 40.0,
+        "avg_ret": -2.26,
         "avg_win": 3.05,
-        "avg_loss": -5.29,
+        "avg_loss": -5.81,
         "best": 3.82,
         "worst": -8.18,
-        "total_ret": -1.53,
-        "annual": -4.64,
-        "sharpe": -0.671,
-        "maxdd": -3.73
+        "total_ret": -3.77,
+        "annual": -11.26,
+        "sharpe": -1.661,
+        "maxdd": -5.92
       }
     },
     "momentum": {
       "natural": {
         "n": 81,
-        "winrate": 45.68,
-        "avg_ret": 0.22,
-        "sharpe": 0.556,
-        "profit_pct": 18.02,
+        "winrate": 44.44,
+        "avg_ret": 0.18,
+        "sharpe": 0.478,
+        "profit_pct": 14.56,
         "max_dd": 11.03
       },
       "bull": {
         "n": 71,
-        "winrate": 46.48,
-        "avg_ret": 0.17,
-        "sharpe": 0.43,
-        "profit_pct": 12.12,
+        "winrate": 45.07,
+        "avg_ret": 0.12,
+        "sharpe": 0.343,
+        "profit_pct": 8.84,
         "max_dd": 11.03
       },
       "bear": {
         "n": 26,
         "winrate": 38.46,
         "avg_ret": -0.34,
-        "sharpe": -0.454,
-        "profit_pct": -8.76,
+        "sharpe": -0.458,
+        "profit_pct": -8.77,
         "max_dd": 16.27
       },
       "ranging": {
         "n": 13,
         "winrate": 46.15,
         "avg_ret": 0.53,
-        "sharpe": 0.406,
+        "sharpe": 0.408,
         "profit_pct": 6.94,
         "max_dd": 5.98
       }
     },
     "c_tail": {
       "natural": {
-        "n": 510,
-        "winrate": 47.25,
-        "avg_ret": 0.79,
-        "sharpe": 0.626,
-        "profit_pct": 50.17,
-        "max_dd": 61.39
+        "n": 504,
+        "winrate": 46.03,
+        "avg_ret": 0.71,
+        "sharpe": 0.479,
+        "profit_pct": 23.44,
+        "max_dd": 61.23
       },
       "bull": {
-        "n": 268,
-        "winrate": 51.49,
-        "avg_ret": 2.04,
-        "sharpe": 1.9,
-        "profit_pct": 404.59,
-        "max_dd": 30.92
+        "n": 267,
+        "winrate": 49.81,
+        "avg_ret": 2.02,
+        "sharpe": 1.672,
+        "profit_pct": 313.71,
+        "max_dd": 33.28
       },
       "bear": {
-        "n": 95,
-        "winrate": 35.79,
-        "avg_ret": -2.25,
-        "sharpe": -1.278,
-        "profit_pct": -54.94,
-        "max_dd": 57.13
+        "n": 93,
+        "winrate": 37.63,
+        "avg_ret": -1.79,
+        "sharpe": -1.117,
+        "profit_pct": -49.46,
+        "max_dd": 51.91
       },
       "ranging": {
         "n": 89,
-        "winrate": 56.18,
-        "avg_ret": 1.91,
-        "sharpe": 1.489,
-        "profit_pct": 91.21,
-        "max_dd": 18.79
+        "winrate": 52.81,
+        "avg_ret": 1.1,
+        "sharpe": 0.646,
+        "profit_pct": 30.17,
+        "max_dd": 19.39
       }
     }
   },
@@ -141,29 +157,29 @@
     "bull": {
       "strategy": "c_tail",
       "confidence": "low",
-      "winrate": 51.49,
-      "avg_ret": 2.04,
-      "n": 268,
-      "sharpe": 1.9,
-      "reason": "牛市(多头)：C-Tail 回测最优(胜率51.49%/均收益2.04%, n=268)，建议优先采用"
+      "winrate": 49.81,
+      "avg_ret": 2.02,
+      "n": 267,
+      "sharpe": 1.672,
+      "reason": "牛市(多头)：C-Tail 回测最优(胜率49.81%/均收益2.02%, n=267)，建议优先采用"
     },
     "bear": {
       "strategy": "low_quality",
       "confidence": "medium",
-      "winrate": 100.0,
-      "avg_ret": 11.49,
-      "n": 7,
-      "sharpe": 2.721,
-      "reason": "熊市(空头)：低位绩优 回测最优(胜率100.0%/均收益11.49%, n=7)，建议优先采用"
+      "winrate": 87.5,
+      "avg_ret": 9.09,
+      "n": 8,
+      "sharpe": 2.394,
+      "reason": "熊市(空头)：低位绩优 回测最优(胜率87.5%/均收益9.09%, n=8)，建议优先采用"
     },
     "ranging": {
       "strategy": "c_tail",
-      "confidence": "high",
-      "winrate": 56.18,
-      "avg_ret": 1.91,
+      "confidence": "low",
+      "winrate": 52.81,
+      "avg_ret": 1.1,
       "n": 89,
-      "sharpe": 1.489,
-      "reason": "震荡市：C-Tail 回测最优(胜率56.18%/均收益1.91%, n=89)，建议优先采用"
+      "sharpe": 0.646,
+      "reason": "震荡市：C-Tail 回测最优(胜率52.81%/均收益1.1%, n=89)，建议优先采用"
     }
   }
 }
