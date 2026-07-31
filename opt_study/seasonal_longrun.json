@@ -1,0 +1,119 @@
+{
+  "data": "kline_cache 全样本(1995-2026, 所有曾上市A股等权)",
+  "n_days": 7307,
+  "window": [
+    "1995-02-16",
+    "2026-07-22"
+  ],
+  "monthly_profile": {
+    "1": {
+      "n": 572,
+      "avg_daily": -0.1214,
+      "ann": -30.58,
+      "day_win": 46.9
+    },
+    "2": {
+      "n": 473,
+      "avg_daily": 0.3433,
+      "ann": 86.52,
+      "day_win": 59.2
+    },
+    "3": {
+      "n": 663,
+      "avg_daily": 0.0908,
+      "ann": 22.88,
+      "day_win": 52.8
+    },
+    "4": {
+      "n": 611,
+      "avg_daily": -0.1813,
+      "ann": -45.7,
+      "day_win": 47.0
+    },
+    "5": {
+      "n": 580,
+      "avg_daily": -0.0579,
+      "ann": -14.58,
+      "day_win": 49.1
+    },
+    "6": {
+      "n": 622,
+      "avg_daily": -0.2324,
+      "ann": -58.56,
+      "day_win": 46.8
+    },
+    "7": {
+      "n": 680,
+      "avg_daily": 0.1495,
+      "ann": 37.69,
+      "day_win": 53.2
+    },
+    "8": {
+      "n": 664,
+      "avg_daily": 0.022,
+      "ann": 5.54,
+      "day_win": 52.3
+    },
+    "9": {
+      "n": 617,
+      "avg_daily": 0.1068,
+      "ann": 26.92,
+      "day_win": 51.2
+    },
+    "10": {
+      "n": 523,
+      "avg_daily": 0.0232,
+      "ann": 5.84,
+      "day_win": 49.9
+    },
+    "11": {
+      "n": 643,
+      "avg_daily": 0.0961,
+      "ann": 24.22,
+      "day_win": 54.6
+    },
+    "12": {
+      "n": 659,
+      "avg_daily": -0.158,
+      "ann": -39.81,
+      "day_win": 45.8
+    }
+  },
+  "timing_overlay": {
+    "buyhold": {
+      "n": 7307,
+      "ann": 0.56,
+      "sharpe": 0.016,
+      "maxdd": -99.85,
+      "win": 50.6
+    },
+    "april_flat": {
+      "n": 7307,
+      "ann": 4.38,
+      "sharpe": 0.129,
+      "maxdd": -99.44,
+      "win": 46.7
+    },
+    "spring_only": {
+      "n": 7307,
+      "ann": 5.28,
+      "sharpe": 0.311,
+      "maxdd": -77.73,
+      "win": 12.3
+    }
+  },
+  "welch": {
+    "spring_vs_rest": {
+      "t": 1.859,
+      "df": 2861.1,
+      "spring_mean_daily": 0.0897,
+      "rest_mean_daily": -0.0245
+    },
+    "april_vs_rest": {
+      "t": -2.153,
+      "df": 730.7,
+      "april_mean_daily": -0.1813,
+      "rest_mean_daily": 0.019
+    }
+  }
+}

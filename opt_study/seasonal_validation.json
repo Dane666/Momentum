@@ -1,0 +1,164 @@
+{
+  "data_window": {
+    "start": "2024-06-03",
+    "end": "2026-07-22",
+    "n_days": 519,
+    "n_stocks": 3117
+  },
+  "caveat": "仅~2年历史, 每日历月1-2样本, 无统计显著性; 无市值/股息率, 小盘/红利tilt不可测",
+  "monthly_profile": {
+    "1": {
+      "n_days": 38,
+      "avg_daily_ret": 0.1344,
+      "ann_ret": 33.86,
+      "day_win": 50.0,
+      "total_ret": 4.94
+    },
+    "2": {
+      "n_days": 32,
+      "avg_daily_ret": 0.2847,
+      "ann_ret": 71.75,
+      "day_win": 65.6,
+      "total_ret": 9.31
+    },
+    "3": {
+      "n_days": 43,
+      "avg_daily_ret": -0.1703,
+      "ann_ret": -42.92,
+      "day_win": 48.8,
+      "total_ret": -7.47
+    },
+    "4": {
+      "n_days": 42,
+      "avg_daily_ret": 0.0516,
+      "ann_ret": 13.0,
+      "day_win": 61.9,
+      "total_ret": 1.49
+    },
+    "5": {
+      "n_days": 37,
+      "avg_daily_ret": 0.0262,
+      "ann_ret": 6.61,
+      "day_win": 56.8,
+      "total_ret": 0.77
+    },
+    "6": {
+      "n_days": 59,
+      "avg_daily_ret": -0.1608,
+      "ann_ret": -40.52,
+      "day_win": 50.8,
+      "total_ret": -9.48
+    },
+    "7": {
+      "n_days": 62,
+      "avg_daily_ret": -0.0021,
+      "ann_ret": -0.53,
+      "day_win": 58.1,
+      "total_ret": -0.67
+    },
+    "8": {
+      "n_days": 43,
+      "avg_daily_ret": 0.0858,
+      "ann_ret": 21.63,
+      "day_win": 60.5,
+      "total_ret": 3.56
+    },
+    "9": {
+      "n_days": 41,
+      "avg_daily_ret": 0.5098,
+      "ann_ret": 128.47,
+      "day_win": 51.2,
+      "total_ret": 22.35
+    },
+    "10": {
+      "n_days": 35,
+      "avg_daily_ret": 0.2339,
+      "ann_ret": 58.93,
+      "day_win": 65.7,
+      "total_ret": 7.75
+    },
+    "11": {
+      "n_days": 41,
+      "avg_daily_ret": 0.1277,
+      "ann_ret": 32.18,
+      "day_win": 58.5,
+      "total_ret": 4.94
+    },
+    "12": {
+      "n_days": 45,
+      "avg_daily_ret": -0.0261,
+      "ann_ret": -6.57,
+      "day_win": 57.8,
+      "total_ret": -1.5
+    }
+  },
+  "timing_overlay": {
+    "buyhold": {
+      "n": 518,
+      "ann": 18.12,
+      "sharpe": 0.805,
+      "maxdd": -20.94,
+      "win": 56.8
+    },
+    "april_flat": {
+      "n": 518,
+      "ann": 17.07,
+      "sharpe": 0.811,
+      "maxdd": -23.43,
+      "win": 51.7
+    },
+    "spring_only": {
+      "n": 518,
+      "ann": 3.35,
+      "sharpe": 0.352,
+      "maxdd": -12.24,
+      "win": 11.8
+    }
+  },
+  "factor_tilt": {
+    "spring_momentum": {
+      "n": 113,
+      "ann": 238.86,
+      "sharpe": 11.263,
+      "maxdd": -4.48,
+      "win": 76.1
+    },
+    "spring_ew": {
+      "n": 113,
+      "ann": 15.37,
+      "sharpe": 0.751,
+      "maxdd": -12.24,
+      "win": 54.0
+    },
+    "april_quality_value_lowvol": {
+      "n": 42,
+      "ann": -1.78,
+      "sharpe": -0.059,
+      "maxdd": -11.01,
+      "win": 59.5
+    },
+    "april_ew": {
+      "n": 42,
+      "ann": 13.0,
+      "sharpe": 0.455,
+      "maxdd": -10.41,
+      "win": 61.9
+    }
+  },
+  "calendar_strategy": {
+    "calendar": {
+      "n": 518,
+      "ann": 65.68,
+      "sharpe": 2.79,
+      "maxdd": -19.58,
+      "win": 61.4
+    },
+    "ew": {
+      "n": 518,
+      "ann": 18.12,
+      "sharpe": 0.805,
+      "maxdd": -20.94,
+      "win": 56.8
+    }
+  }
+}
