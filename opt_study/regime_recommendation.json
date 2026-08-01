@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-31 15:36",
+  "generated": "2026-08-01 17:59",
   "regimes_definition": "bull=nav>=MA20且>=MA60; bear=nav<MA20且<MA60; ranging=交叉区",
   "current_regime": {
     "date": "2026-07-31",
