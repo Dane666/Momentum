@@ -1,0 +1,91 @@
+{
+  "hold": 20,
+  "stop": -0.05,
+  "quality_on": true,
+  "summary": {
+    "breakout": {
+      "metrics": {
+        "n": 16,
+        "winrate": 31.2,
+        "avg_ret": 0.56,
+        "avg_win": 16.65,
+        "avg_loss": -6.74,
+        "best": 36.94,
+        "worst": -11.2,
+        "total_ret": 0.8,
+        "annual": 0.33,
+        "sharpe": 0.087,
+        "maxdd": -17.62,
+        "label": "突破放量"
+      },
+      "env": {
+        "ranging": {
+          "n": 1,
+          "winrate": 0.0,
+          "avg": -9.3
+        },
+        "bull": {
+          "n": 15,
+          "winrate": 33.3,
+          "avg": 1.22
+        }
+      }
+    },
+    "pullback": {
+      "metrics": {
+        "n": 13,
+        "winrate": 15.4,
+        "avg_ret": -2.39,
+        "avg_win": 24.61,
+        "avg_loss": -7.29,
+        "best": 37.55,
+        "worst": -11.64,
+        "total_ret": -10.54,
+        "annual": -4.45,
+        "sharpe": -0.542,
+        "maxdd": -15.43,
+        "label": "缩量回踩"
+      },
+      "env": {
+        "bull": {
+          "n": 9,
+          "winrate": 22.2,
+          "avg": -0.96
+        },
+        "ranging": {
+          "n": 4,
+          "winrate": 0.0,
+          "avg": -5.58
+        }
+      }
+    },
+    "merged": {
+      "metrics": {
+        "n": 28,
+        "winrate": 21.4,
+        "avg_ret": -2.13,
+        "avg_win": 15.82,
+        "avg_loss": -7.02,
+        "best": 36.94,
+        "worst": -11.64,
+        "total_ret": -20.51,
+        "annual": -8.95,
+        "sharpe": -0.672,
+        "maxdd": -27.62,
+        "label": "合并(突破+回踩)"
+      },
+      "env": {
+        "ranging": {
+          "n": 5,
+          "winrate": 0.0,
+          "avg": -6.33
+        },
+        "bull": {
+          "n": 23,
+          "winrate": 26.1,
+          "avg": -1.21
+        }
+      }
+    }
+  }
+}
