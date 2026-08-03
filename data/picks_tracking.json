@@ -433,8 +433,13 @@
     "price": 1.43,
     "sl_price": 1.22,
     "tp_price": 1.64,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY"
+    "status": "TRIGGERED",
+    "type": "LOW_QUALITY",
+    "exit_price": 1.64,
+    "pnl_pct": 14.69,
+    "trigger_type": "TP",
+    "trigger_time": "2026-08-03 14:01:39",
+    "pnl_ratio": 14.69
   },
   {
     "date": "2026-07-22",
