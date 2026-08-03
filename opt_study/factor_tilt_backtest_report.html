@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang='zh'><head><meta charset='utf-8'>
+<style>
+body{font-family:-apple-system,'PingFang SC',sans-serif;margin:24px;color:#1a1a1a;background:#fff}
+h1{font-size:22px} h2{font-size:17px;margin-top:26px;border-left:4px solid #2b6cb0;padding-left:8px}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}
+th,td{border:1px solid #ddd;padding:5px 7px;text-align:left}
+th{background:#f4f6f8} .num{text-align:right}
+.pos{color:#c0392b;font-weight:600} .neg{color:#1e7e34;font-weight:600}
+.note{background:#fff8e6;border:1px solid #f0d27a;padding:10px 14px;border-radius:8px;font-size:13px;line-height:1.6}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.card{background:#f8fafc;border:1px solid #e3e8ee;border-radius:8px;padding:12px 16px;min-width:110px}
+.card b{font-size:20px;display:block}
+</style></head><body>
+<h1>小盘 / 红利 因子倾斜回测</h1>
+<p>基线 = 已发布最优组合(V2 深度超跌+绩优+热门 + 单题材上限1 + 止损-15% + 无大盘择时) ｜ 窗口 2024-07-01~2026-07-15</p>
+<div class='kpi'>
+ <div class='card'><b>18.65%</b>基线总收益</div>
+ <div class='card'><b>53.8%</b>基线胜率</div>
+ <div class='card'><b>13</b>基线成交笔数</div>
+ <div class='card'><b>82442</b>基线超跌信号候选数</div>
+</div>
+<div class='note'><b>严肃声明:</b> 窗口为样本内(2024-07~2026-07-15); 倾斜阈值事后选取, 存在过拟合风险;
+样本量小(n≈10), 结论须保守, 应以后向验证(forward_validation)复核. 股息率为"上市以来平均年度股息率%"近似, 用于相对排序.</div>
+
+<h2>一、策略层 filter 回测(硬过滤候选)</h2>
+<p class='note'>在超跌信号候选上叠加小盘/红利硬过滤后跑完整策略. 注意: 硬过滤会缩减候选与成交笔数(样本本就小),
+故该层仅作方向性参考; 真正的因子有效性见第二节截面归因. "dropped" = 因不满足倾斜或缺失市值数据被剔除的候选数.</p>
+<table><tr><th>配置</th><th>超跌候选</th><th>成交</th><th>胜率</th><th>平均每笔</th><th>总收益</th><th>夏普</th><th>最大回撤</th><th>剔除候选</th></tr>
+<tr style='background:#eaf6ff'><td>基线(无倾斜)</td><td>81767</td><td>13</td><td>53.8%</td><td>4.44%</td><td class='num pos'>18.65%</td><td>0.784</td><td>-14.86%</td><td>675</td></tr><tr><td>小盘50%</td><td>36353</td><td>6</td><td>100.0%</td><td>11.08%</td><td class='num pos'>23.32%</td><td>1.143</td><td>-6.16%</td><td>46089</td></tr><tr><td>小盘30%</td><td>19909</td><td>4</td><td>100.0%</td><td>11.92%</td><td class='num pos'>16.33%</td><td>1.009</td><td>-4.17%</td><td>62533</td></tr><tr><td>小盘20%</td><td>12401</td><td>2</td><td>100.0%</td><td>5.49%</td><td class='num pos'>3.61%</td><td>0.485</td><td>-2.82%</td><td>70041</td></tr><tr><td>红利50%</td><td>42943</td><td>9</td><td>44.4%</td><td>0.98%</td><td class='num pos'>2.64%</td><td>0.181</td><td>-14.68%</td><td>39499</td></tr><tr><td>红利30%</td><td>26733</td><td>8</td><td>50.0%</td><td>0.22%</td><td class='num pos'>0.56%</td><td>0.077</td><td>-15.16%</td><td>55709</td></tr><tr><td>红利20%</td><td>18524</td><td>6</td><td>33.3%</td><td>-1.82%</td><td class='num neg'>-3.54%</td><td>-0.159</td><td>-16.81%</td><td>63918</td></tr><tr><td>小盘50%+红利50%</td><td>17500</td><td>4</td><td>100.0%</td><td>3.69%</td><td class='num pos'>4.97%</td><td>0.385</td><td>-8.51%</td><td>64942</td></tr><tr><td>小盘30%+红利30%</td><td>5382</td><td>2</td><td>100.0%</td><td>1.43%</td><td class='num pos'>0.94%</td><td>0.126</td><td>-4.99%</td><td>77060</td></tr></table>
+
+<h2>二、交易层截面归因(主) — 按流通市值分位</h2>
+<p class='note'>对基线实际成交逐笔标注流通市值百分秩(0=最小盘,100=最大盘), 比较各组平均收益与胜率. 不缩减样本.</p>
+<table><tr><th>市值分组</th><th>成交</th><th>胜率</th><th>平均每笔</th><th>平均盈</th><th>平均亏</th></tr>
+<tr><td>大盘</td><td>10</td><td>40.0%</td><td class='num pos'>1.15%</td><td>8.98%</td><td>-4.07%</td></tr><tr><td>小盘</td><td>3</td><td>100.0%</td><td class='num pos'>15.39%</td><td>15.39%</td><td>0%</td></tr></table>
+<h3>市值五分位 (Q1=最小盘 ... Q5=最大盘)</h3>
+<table><tr><th>市值五分位</th><th>成交</th><th>胜率</th><th>平均每笔</th><th>平均盈</th><th>平均亏</th></tr>
+<tr><td>2</td><td>2</td><td>100.0%</td><td class='num pos'>18.85%</td><td>18.85%</td><td>0%</td></tr><tr><td>3</td><td>1</td><td>100.0%</td><td class='num pos'>8.47%</td><td>8.47%</td><td>0%</td></tr><tr><td>4</td><td>4</td><td>25.0%</td><td class='num neg'>-3.56%</td><td>6.25%</td><td>-6.83%</td></tr><tr><td>5</td><td>6</td><td>50.0%</td><td class='num pos'>4.29%</td><td>9.89%</td><td>-1.3%</td></tr></table>
+
+<h2>三、交易层截面归因(主) — 按股息率分位</h2>
+<p class='note'>对基线实际成交逐笔标注股息率百分秩(0=最低红利,100=最高红利).</p>
+<table><tr><th>股息分组</th><th>成交</th><th>胜率</th><th>平均每笔</th><th>平均盈</th><th>平均亏</th></tr>
+<tr><td>低红利</td><td>4</td><td>75.0%</td><td class='num pos'>12.23%</td><td>16.72%</td><td>-1.22%</td></tr><tr><td>高红利</td><td>9</td><td>44.4%</td><td class='num pos'>0.98%</td><td>7.99%</td><td>-4.63%</td></tr></table>
+<h3>股息五分位 (Q1=最低红利 ... Q5=最高红利)</h3>
+<table><tr><th>股息五分位</th><th>成交</th><th>胜率</th><th>平均每笔</th><th>平均盈</th><th>平均亏</th></tr>
+<tr><td>1</td><td>2</td><td>100.0%</td><td class='num pos'>7.36%</td><td>7.36%</td><td>0%</td></tr><tr><td>3</td><td>2</td><td>50.0%</td><td class='num pos'>17.1%</td><td>35.42%</td><td>-1.22%</td></tr><tr><td>4</td><td>4</td><td>75.0%</td><td class='num pos'>5.24%</td><td>7.78%</td><td>-2.39%</td></tr><tr><td>5</td><td>5</td><td>20.0%</td><td class='num neg'>-2.44%</td><td>8.6%</td><td>-5.2%</td></tr></table>
+
+<div class='note' style='margin-top:18px'><b>读图提示:</b> 若"小盘"组平均收益/胜率明显高于"大盘"组, 且五分位呈单调(越小盘越好),
+说明小盘倾斜对该策略有正贡献; 红利同理. 反之则该因子在该策略中无显著 edge.</div>
+</body></html>

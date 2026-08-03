@@ -1,0 +1,474 @@
+{
+  "window": [
+    "2024-07-01",
+    "2026-07-15"
+  ],
+  "base": {
+    "n": 13,
+    "winrate": 53.8,
+    "avg_ret": 4.44,
+    "avg_win": 11.73,
+    "avg_loss": -4.07,
+    "best": 35.42,
+    "worst": -8.18,
+    "total_ret": 18.65,
+    "annual": 9.09,
+    "sharpe": 0.784,
+    "maxdd": -14.86
+  },
+  "n_base_signal": 82442,
+  "filter": [
+    {
+      "name": "基线(无倾斜)",
+      "metrics": {
+        "n": 13,
+        "winrate": 53.8,
+        "avg_ret": 4.44,
+        "avg_win": 11.73,
+        "avg_loss": -4.07,
+        "best": 35.42,
+        "worst": -8.18,
+        "total_ret": 18.65,
+        "annual": 9.09,
+        "sharpe": 0.784,
+        "maxdd": -14.86
+      },
+      "n_signal": 81767,
+      "dropped": 675
+    },
+    {
+      "name": "小盘50%",
+      "metrics": {
+        "n": 6,
+        "winrate": 100.0,
+        "avg_ret": 11.08,
+        "avg_win": 11.08,
+        "avg_loss": 0,
+        "best": 35.42,
+        "worst": 1.28,
+        "total_ret": 23.32,
+        "annual": 11.26,
+        "sharpe": 1.143,
+        "maxdd": -6.16
+      },
+      "n_signal": 36353,
+      "dropped": 46089
+    },
+    {
+      "name": "小盘30%",
+      "metrics": {
+        "n": 4,
+        "winrate": 100.0,
+        "avg_ret": 11.92,
+        "avg_win": 11.92,
+        "avg_loss": 0,
+        "best": 35.42,
+        "worst": 1.28,
+        "total_ret": 16.33,
+        "annual": 8.01,
+        "sharpe": 1.009,
+        "maxdd": -4.17
+      },
+      "n_signal": 19909,
+      "dropped": 62533
+    },
+    {
+      "name": "小盘20%",
+      "metrics": {
+        "n": 2,
+        "winrate": 100.0,
+        "avg_ret": 5.49,
+        "avg_win": 5.49,
+        "avg_loss": 0,
+        "best": 9.41,
+        "worst": 1.58,
+        "total_ret": 3.61,
+        "annual": 1.82,
+        "sharpe": 0.485,
+        "maxdd": -2.82
+      },
+      "n_signal": 12401,
+      "dropped": 70041
+    },
+    {
+      "name": "红利50%",
+      "metrics": {
+        "n": 9,
+        "winrate": 44.4,
+        "avg_ret": 0.98,
+        "avg_win": 7.99,
+        "avg_loss": -4.63,
+        "best": 10.7,
+        "worst": -8.18,
+        "total_ret": 2.64,
+        "annual": 1.34,
+        "sharpe": 0.181,
+        "maxdd": -14.68
+      },
+      "n_signal": 42943,
+      "dropped": 39499
+    },
+    {
+      "name": "红利30%",
+      "metrics": {
+        "n": 8,
+        "winrate": 50.0,
+        "avg_ret": 0.22,
+        "avg_win": 5.63,
+        "avg_loss": -5.2,
+        "best": 10.36,
+        "worst": -8.18,
+        "total_ret": 0.56,
+        "annual": 0.28,
+        "sharpe": 0.077,
+        "maxdd": -15.16
+      },
+      "n_signal": 26733,
+      "dropped": 55709
+    },
+    {
+      "name": "红利20%",
+      "metrics": {
+        "n": 6,
+        "winrate": 33.3,
+        "avg_ret": -1.82,
+        "avg_win": 4.94,
+        "avg_loss": -5.2,
+        "best": 8.6,
+        "worst": -8.18,
+        "total_ret": -3.54,
+        "annual": -1.82,
+        "sharpe": -0.159,
+        "maxdd": -16.81
+      },
+      "n_signal": 18524,
+      "dropped": 63918
+    },
+    {
+      "name": "小盘50%+红利50%",
+      "metrics": {
+        "n": 4,
+        "winrate": 100.0,
+        "avg_ret": 3.69,
+        "avg_win": 3.69,
+        "avg_loss": 0,
+        "best": 9.62,
+        "worst": 1.28,
+        "total_ret": 4.97,
+        "annual": 2.5,
+        "sharpe": 0.385,
+        "maxdd": -8.51
+      },
+      "n_signal": 17500,
+      "dropped": 64942
+    },
+    {
+      "name": "小盘30%+红利30%",
+      "metrics": {
+        "n": 2,
+        "winrate": 100.0,
+        "avg_ret": 1.43,
+        "avg_win": 1.43,
+        "avg_loss": 0,
+        "best": 1.58,
+        "worst": 1.28,
+        "total_ret": 0.94,
+        "annual": 0.48,
+        "sharpe": 0.126,
+        "maxdd": -4.99
+      },
+      "n_signal": 5382,
+      "dropped": 77060
+    }
+  ],
+  "attribution": {
+    "cap": [
+      {
+        "group": "大盘",
+        "n": 10,
+        "winrate": 40.0,
+        "avg_ret": 1.15,
+        "avg_win": 8.98,
+        "avg_loss": -4.07
+      },
+      {
+        "group": "小盘",
+        "n": 3,
+        "winrate": 100.0,
+        "avg_ret": 15.39,
+        "avg_win": 15.39,
+        "avg_loss": 0
+      }
+    ],
+    "div": [
+      {
+        "group": "低红利",
+        "n": 4,
+        "winrate": 75.0,
+        "avg_ret": 12.23,
+        "avg_win": 16.72,
+        "avg_loss": -1.22
+      },
+      {
+        "group": "高红利",
+        "n": 9,
+        "winrate": 44.4,
+        "avg_ret": 0.98,
+        "avg_win": 7.99,
+        "avg_loss": -4.63
+      }
+    ],
+    "cap_q": [
+      {
+        "group": 2,
+        "n": 2,
+        "winrate": 100.0,
+        "avg_ret": 18.85,
+        "avg_win": 18.85,
+        "avg_loss": 0
+      },
+      {
+        "group": 3,
+        "n": 1,
+        "winrate": 100.0,
+        "avg_ret": 8.47,
+        "avg_win": 8.47,
+        "avg_loss": 0
+      },
+      {
+        "group": 4,
+        "n": 4,
+        "winrate": 25.0,
+        "avg_ret": -3.56,
+        "avg_win": 6.25,
+        "avg_loss": -6.83
+      },
+      {
+        "group": 5,
+        "n": 6,
+        "winrate": 50.0,
+        "avg_ret": 4.29,
+        "avg_win": 9.89,
+        "avg_loss": -1.3
+      }
+    ],
+    "div_q": [
+      {
+        "group": 1,
+        "n": 2,
+        "winrate": 100.0,
+        "avg_ret": 7.36,
+        "avg_win": 7.36,
+        "avg_loss": 0
+      },
+      {
+        "group": 3,
+        "n": 2,
+        "winrate": 50.0,
+        "avg_ret": 17.1,
+        "avg_win": 35.42,
+        "avg_loss": -1.22
+      },
+      {
+        "group": 4,
+        "n": 4,
+        "winrate": 75.0,
+        "avg_ret": 5.24,
+        "avg_win": 7.78,
+        "avg_loss": -2.39
+      },
+      {
+        "group": 5,
+        "n": 5,
+        "winrate": 20.0,
+        "avg_ret": -2.44,
+        "avg_win": 8.6,
+        "avg_loss": -5.2
+      }
+    ]
+  },
+  "tagged_trades": [
+    {
+      "code": "000683",
+      "buy_t": "2024-11-25",
+      "ret": -0.01218714701860768,
+      "reason": "到期",
+      "circ_mv": 22159811405.25,
+      "div_yield": 0.7,
+      "cap_rank": 88.51445663010968,
+      "div_rank": 47.46432148666984,
+      "cap_bucket": "大盘",
+      "div_bucket": "低红利",
+      "cap_q": 5,
+      "div_q": 3
+    },
+    {
+      "code": "000657",
+      "buy_t": "2025-01-08",
+      "ret": 0.06253894937497706,
+      "reason": "到期",
+      "circ_mv": 11150943684.78,
+      "div_yield": 0.22,
+      "cap_rank": 77.40135512156237,
+      "div_rank": 14.36375389817505,
+      "cap_bucket": "大盘",
+      "div_bucket": "低红利",
+      "cap_q": 4,
+      "div_q": 1
+    },
+    {
+      "code": "002380",
+      "buy_t": "2025-01-09",
+      "ret": 0.3542356946612266,
+      "reason": "到期",
+      "circ_mv": 2499085820.7,
+      "div_yield": 0.7,
+      "cap_rank": 25.607811877241932,
+      "div_rank": 47.46432148666984,
+      "cap_bucket": "小盘",
+      "div_bucket": "低红利",
+      "cap_q": 2,
+      "div_q": 3
+    },
+    {
+      "code": "000523",
+      "buy_t": "2025-01-10",
+      "ret": 0.0846947051326612,
+      "reason": "到期",
+      "circ_mv": 4041738469.7,
+      "div_yield": 0.27,
+      "cap_rank": 45.55599840573934,
+      "div_rank": 18.434904916495583,
+      "cap_bucket": "小盘",
+      "div_bucket": "低红利",
+      "cap_q": 3,
+      "div_q": 1
+    },
+    {
+      "code": "002801",
+      "buy_t": "2025-10-17",
+      "ret": 0.02285773311493755,
+      "reason": "到期",
+      "circ_mv": 4182793524.0,
+      "div_yield": 1.45,
+      "cap_rank": 35.29061694108312,
+      "div_rank": 76.61166007203188,
+      "cap_bucket": "小盘",
+      "div_bucket": "高红利",
+      "cap_q": 2,
+      "div_q": 4
+    },
+    {
+      "code": "002345",
+      "buy_t": "2025-10-23",
+      "ret": -0.05449652388427895,
+      "reason": "到期",
+      "circ_mv": 12367558465.9,
+      "div_yield": 1.94,
+      "cap_rank": 72.78317794088474,
+      "div_rank": 86.70677909512612,
+      "cap_bucket": "大盘",
+      "div_bucket": "高红利",
+      "cap_q": 4,
+      "div_q": 5
+    },
+    {
+      "code": "002736",
+      "buy_t": "2025-11-21",
+      "ret": -0.0030036630036628376,
+      "reason": "到期",
+      "circ_mv": 134093389809.15,
+      "div_yield": 2.36,
+      "cap_rank": 98.03610394762944,
+      "div_rank": 91.2815849855439,
+      "cap_bucket": "大盘",
+      "div_bucket": "高红利",
+      "cap_q": 5,
+      "div_q": 5
+    },
+    {
+      "code": "002550",
+      "buy_t": "2025-11-27",
+      "ret": -0.06846887606982632,
+      "reason": "到期",
+      "circ_mv": 8734708870.4,
+      "div_yield": 1.91,
+      "cap_rank": 62.983535012894265,
+      "div_rank": 86.30896988726371,
+      "cap_bucket": "大盘",
+      "div_bucket": "高红利",
+      "cap_q": 4,
+      "div_q": 5
+    },
+    {
+      "code": "001696",
+      "buy_t": "2025-12-18",
+      "ret": 0.1036487726007802,
+      "reason": "到期",
+      "circ_mv": 20101029973.75,
+      "div_yield": 1.43,
+      "cap_rank": 83.71354889902797,
+      "div_rank": 76.02276036967841,
+      "cap_bucket": "大盘",
+      "div_bucket": "高红利",
+      "cap_q": 5,
+      "div_q": 4
+    },
+    {
+      "code": "002345",
+      "buy_t": "2026-03-03",
+      "ret": -0.08183804922935334,
+      "reason": "到期",
+      "circ_mv": 9895087054.65,
+      "div_yield": 1.94,
+      "cap_rank": 63.757191033525096,
+      "div_rank": 86.70677909512612,
+      "cap_bucket": "大盘",
+      "div_bucket": "高红利",
+      "cap_q": 4,
+      "div_q": 5
+    },
+    {
+      "code": "002518",
+      "buy_t": "2026-03-17",
+      "ret": -0.023921024340399555,
+      "reason": "到期",
+      "circ_mv": 32478391953.91,
+      "div_yield": 1.21,
+      "cap_rank": 88.4745090259869,
+      "div_rank": 69.33743455683344,
+      "cap_bucket": "大盘",
+      "div_bucket": "高红利",
+      "cap_q": 5,
+      "div_q": 4
+    },
+    {
+      "code": "600114",
+      "buy_t": "2026-03-19",
+      "ret": 0.08599275967697007,
+      "reason": "到期",
+      "circ_mv": 21400834321.44,
+      "div_yield": 1.67,
+      "cap_rank": 82.28526086094028,
+      "div_rank": 81.93306860077715,
+      "cap_bucket": "大盘",
+      "div_bucket": "高红利",
+      "cap_q": 5,
+      "div_q": 5
+    },
+    {
+      "code": "000021",
+      "buy_t": "2026-03-31",
+      "ret": 0.10699975996602595,
+      "reason": "到期",
+      "circ_mv": 52633498734.0,
+      "div_yield": 1.03,
+      "cap_rank": 93.43384249156912,
+      "div_rank": 62.80128719693687,
+      "cap_bucket": "大盘",
+      "div_bucket": "高红利",
+      "cap_q": 5,
+      "div_q": 4
+    }
+  ]
+}
