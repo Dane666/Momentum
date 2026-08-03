@@ -16,6 +16,7 @@
 import json, logging, os, sys, sqlite3
 from datetime import datetime
 from pathlib import Path
+import numpy as np
 
 _PROJ = Path(__file__).resolve().parent.parent
 _sys_parent = str(_PROJ.parent)
@@ -46,6 +47,12 @@ SCAN_CFG = dict(mode="deep", dd=-0.15, gap=0.03, rsi_th=35,
 TOP_N = 15
 SL_RATIO = 0.85   # 止损 -15% (对齐发布组合)
 TP_RATIO = 1.15   # 反弹目标 +15%
+
+# 小盘倾斜(因子回测验证: 正向 edge) —— 作为"排序偏好"(加分), 非硬过滤:
+# 同等条件下小盘股优先(因子回测显示小盘交易平均收益显著高于大盘, 且回撤更低).
+# 加分按市值分位分层(≤50%/≤30%/≤20%), 与回测阈值一致. 可用环境变量关闭/调权.
+SMALL_CAP_BONUS = float(os.environ.get("LOW_QUALITY_SMALL_CAP_BONUS", "8"))
+ENABLE_SMALL_CAP = os.environ.get("LOW_QUALITY_SMALL_CAP", "1") not in ("0", "off", "false", "no")
 
 
 # --------------------------------------------------------------------------- #
@@ -108,6 +115,27 @@ def _load_names():
     except Exception:
         pass
     return names
+
+
+# --------------------------------------------------------------------------- #
+# 小盘倾斜: 取扫描日所属月末快照的流通市值分位阈值(point-in-time, 对齐因子回测)
+# --------------------------------------------------------------------------- #
+def _small_cap_tiers(mmap, today):
+    """返回 (snap_date, {0.2:分位值, 0.3, 0.5}) 或 None(无市值数据).
+
+    阈值基于 '小于等于 today 的最近月末快照' 的全市场流通市值分布, 与因子回测
+    build_month_dist 口径一致, 因此扫描排序偏好与回测结论可直接对应.
+    """
+    snaps = sorted({rec["trade_date"] for recs in mmap.values() for rec in recs
+                    if rec["trade_date"] <= today})
+    if not snaps:
+        return None
+    snap = snaps[-1]
+    arr = np.array([rec["circ_mv"] for recs in mmap.values() for rec in recs
+                    if rec["trade_date"] == snap and rec["circ_mv"]], float)
+    if arr.size == 0:
+        return None
+    return snap, {p: float(np.percentile(arr, p * 100)) for p in (0.2, 0.3, 0.5)}
 
 
 # --------------------------------------------------------------------------- #
@@ -227,6 +255,22 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
     today = str(last)[:10]
     logger.info(f"[低位绩优] 扫描日={today} 标的数={len(ctx)}")
 
+    # 小盘倾斜偏好: 加载市值分位阈值(point-in-time). 失败则优雅降级(小盘倾向不生效).
+    # 必须在 today 确定之后执行(today 在上方才赋值, 否则局部变量未绑定).
+    cap_tiers = None
+    mmap = {}
+    if ENABLE_SMALL_CAP:
+        try:
+            mmap = H.load_market_stats()
+            if mmap:
+                cap_tiers = _small_cap_tiers(mmap, today)
+                if cap_tiers:
+                    logger.info(f"[低位绩优] 小盘倾斜已启用(扫描日 {today} 市值快照 {cap_tiers[0]})")
+                else:
+                    logger.warning("[低位绩优] 无市值快照, 小盘倾斜不生效")
+        except Exception as e:
+            logger.warning(f"[低位绩优] market_stats 读取失败, 小盘倾斜不生效: {e}")
+
     # 热门题材(加分项)
     hot_at = H.build_hot_themes(ctx, [last])
     hot_codes = hot_at.get(today, (set(), [], {}))[0]
@@ -252,14 +296,31 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
         if _is_garbage(name, close):
             continue
 
+        # 小盘倾斜偏好(因子回测: 正向 edge) —— 排序加分, 非硬过滤
+        cap_tier = "无数据"
+        sc_bonus = 0.0
+        if cap_tiers:
+            snap, qd = cap_tiers
+            rec = H.market_stats_at(mmap, code, today)
+            cm = rec["circ_mv"] if (rec and rec["circ_mv"]) else None
+            if cm:
+                if cm <= qd[0.2]:
+                    sc_bonus = SMALL_CAP_BONUS * 1.5; cap_tier = "小盘≤20%"
+                elif cm <= qd[0.3]:
+                    sc_bonus = SMALL_CAP_BONUS * 1.2; cap_tier = "小盘≤30%"
+                elif cm <= qd[0.5]:
+                    sc_bonus = SMALL_CAP_BONUS; cap_tier = "小盘≤50%"
+                else:
+                    cap_tier = "大盘"
+
         if quality_available:
             # 绩优(真实基本面 point-in-time)
             ok, pe, pb, roe, np_yoy = H.quality_ok(fmap, code, today, close, True)
             if not ok:
                 continue
-            # 评分: 深度*0.5 + ROE*0.3 + 净利同比(封顶100)*0.1 + 热门+10
+            # 评分: 深度*0.5 + ROE*0.3 + 净利同比(封顶100)*0.1 + 热门+10 + 小盘倾斜加分
             score = (-dd60 * 100) * 0.5 + (roe or 0) * 0.3 \
-                + min(np_yoy or 0, 100) * 0.1 + (10 if is_hot else 0)
+                + min(np_yoy or 0, 100) * 0.1 + (10 if is_hot else 0) + sc_bonus
             picks.append(dict(
                 code=code, name=name, price=round(close, 2),
                 dd60=round(float(dd60) * 100, 1),
@@ -267,17 +328,17 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
                 roe=roe, np_yoy=np_yoy,
                 pe=round(float(pe), 1) if pe else None,
                 pb=round(float(pb), 1) if pb else None,
-                hot=is_hot, score=round(score, 2), quality_unverified=False))
+                hot=is_hot, cap_tier=cap_tier, score=round(score, 2), quality_unverified=False))
         else:
             # 基本面缺失: 仅按低位(深度超跌)筛选, 绩优未验证(保证 CI 不崩溃且有候选)
             # 垃圾过滤已由 _is_garbage(name, close) 统一处理
-            score = (-dd60 * 100) * 0.5 + (10 if is_hot else 0)
+            score = (-dd60 * 100) * 0.5 + (10 if is_hot else 0) + sc_bonus
             picks.append(dict(
                 code=code, name=name, price=round(close, 2),
                 dd60=round(float(dd60) * 100, 1),
                 dd250=round(float(dd250) * 100, 1),
                 roe=None, np_yoy=None, pe=None, pb=None,
-                hot=is_hot, score=round(score, 2), quality_unverified=True))
+                hot=is_hot, cap_tier=cap_tier, score=round(score, 2), quality_unverified=True))
 
     picks.sort(key=lambda x: -x['score'])
     picks = picks[:top_n]
@@ -296,24 +357,28 @@ def _build_report(picks, today):
     unverified = bool(picks) and bool(picks[0].get('quality_unverified'))
     if unverified:
         sub = "低位=深度超跌(距60日高≤-15%&RSI<35) [基本面缺失: 仅按低位筛选, 绩优未验证]"
-        score_desc = "评分=超跌深度×0.5+热门+10 (低位+热门)"
+        score_desc = "评分=超跌深度×0.5+热门+10 (低位+热门)" + ("+小盘加分" if ENABLE_SMALL_CAP else "")
     else:
         sub = "低位=深度超跌(距60日高≤-15%&RSI<35) + 绩优(ROE≥8%&净利>0&PE≤50&PB≤10)"
-        score_desc = "评分=超跌深度×0.5+ROE×0.3+净利×0.1+热门+10"
+        score_desc = "评分=超跌深度×0.5+ROE×0.3+净利×0.1+热门+10" + ("+小盘加分" if ENABLE_SMALL_CAP else "")
     lines = [f"📉 低位绩优股筛选 | {today}", sub,
-             f"命中 {len(picks)} 只 (按 超跌深度/ROE/净利/热门 评分)"]
+             f"命中 {len(picks)} 只 (按 超跌深度/ROE/净利/热门/小盘 评分)"]
+    # 小盘倾斜已启用提示
+    if ENABLE_SMALL_CAP and picks and any(p.get('cap_tier') and p['cap_tier'] != '无数据' for p in picks):
+        lines.append("📐 小盘倾斜已启用(同等条件下优先小盘, 因子回测正向 edge)")
     if not picks:
         lines.append("（今日无满足双条件的标的）")
         return "\n".join(lines)
     lines.append("─" * 40)
     for i, p in enumerate(picks, 1):
         hot = " 🔥" if p['hot'] else ""
+        cap_s = f" [{p.get('cap_tier','-')}]" if p.get('cap_tier') and p['cap_tier'] != '无数据' else ""
         pe_s = f"PE{p['pe']}" if p.get('pe') else "PE-"
         pb_s = f"PB{p['pb']}" if p.get('pb') else "PB-"
         roe_s = f"ROE{p['roe']:.0f}%" if p.get('roe') is not None else "ROE-"
         np_s = f"净利{p['np_yoy']:.0f}%" if p.get('np_yoy') is not None else "净利-"
         lines.append(
-            f"{i:>2}. {p['code']} {p['name']}{hot}\n"
+            f"{i:>2}. {p['code']} {p['name']}{hot}{cap_s}\n"
             f"    ¥{p['price']:.2f}  超跌{p['dd60']:.0f}%  250低{p['dd250']:.0f}%  "
             f"{roe_s}  {np_s}  {pe_s} {pb_s}")
     lines.append("─" * 40)

@@ -91,6 +91,56 @@ def simulate_on(ctx, cal_slice, inv, hot_at, fmap, theme_cap, stop):
     return trades, eq, m
 
 
+def _build_cap_dist(mmap):
+    """返回 (month_q, month_arr): 各月末快照流通市值分位阈值与原始数组(point-in-time)."""
+    from collections import defaultdict
+    month_circ = defaultdict(list)
+    for code, recs in mmap.items():
+        for rec in recs:
+            if rec["circ_mv"]:
+                month_circ[rec["trade_date"]].append(rec["circ_mv"])
+    month_q, month_arr = {}, {}
+    for d, lst in month_circ.items():
+        a = np.array(lst, float)
+        month_arr[d] = a
+        month_q[d] = {p: float(np.percentile(a, p * 100)) for p in (0.2, 0.3, 0.5, 0.7, 0.8)}
+    return month_q, month_arr
+
+
+def _tilt_inv_small(inv, mmap, month_q, p_small=0.5):
+    """将候选过滤为流通市值 <= 该月末 p_small 分位的"小盘"(point-in-time)."""
+    from collections import defaultdict
+    out = defaultdict(list)
+    for ts, codes in inv.items():
+        for code in codes:
+            rec = H.market_stats_at(mmap, code, ts)
+            if not rec or not rec["circ_mv"] or rec["circ_mv"] <= 0:
+                continue
+            q = month_q.get(rec["trade_date"], {}).get(p_small)
+            if q is None or rec["circ_mv"] > q:
+                continue
+            out[ts].append(code)
+    return out
+
+
+def _tag_cap(trades, mmap, month_arr):
+    """对成交逐笔标注流通市值分位(小盘/大盘), 返回 [{code,ret,bucket,rank}]."""
+    rows = []
+    for t in trades:
+        ts = str(t["buy_t"])[:10]
+        rec = H.market_stats_at(mmap, t["code"], ts)
+        cm = rec["circ_mv"] if rec else None
+        snap = rec["trade_date"] if rec else None
+        arr = month_arr.get(snap) if snap else None
+        if cm and arr is not None and len(arr):
+            rank = float((arr < cm).mean() * 100)
+            bucket = "小盘" if rank <= 50 else "大盘"
+        else:
+            rank = float("nan"); bucket = "无数据"
+        rows.append(dict(code=t["code"], ret=t["ret"], bucket=bucket, rank=rank))
+    return rows
+
+
 def load_all():
     print("加载K线...", flush=True)
     ctx = H.load_kline()
@@ -296,6 +346,39 @@ th{{background:#f4f6f8}} .num{{text-align:right}}
              "<th>收益</th><th>股数</th><th>持有日</th><th>退出</th><th>ROE%</th><th>净利同比%</th></tr>"
              f"{tr_rows}</table>")
 
+    # 小盘倾斜 edge 复核段
+    edge_html = ""
+    edge = R.get("smallcap_edge")
+    if edge:
+        if edge.get("note"):
+            edge_body = f"<div class='note'>{edge['note']}</div>"
+        else:
+            holds_txt = {True: "✅ 小盘优于大盘(方向一致)", False: "⛔ 小盘弱于大盘(方向相反)",
+                         None: "— 样本不足无法判定"}[edge.get("holds")]
+            sp = "pos" if (edge.get("small_avg") or 0) > 0 else "neg"
+            lp = "pos" if (edge.get("large_avg") or 0) > 0 else "neg"
+            edge_body = f"""
+<table><tr><th>分组</th><th>笔数</th><th>平均收益</th></tr>
+<tr><td>小盘(≤市值50%分位)</td><td>{edge['small_n']}</td><td class='num {sp}'>{edge['small_avg']}%</td></tr>
+<tr><td>大盘(>市值50%分位)</td><td>{edge['large_n']}</td><td class='num {lp}'>{edge['large_avg']}%</td></tr>
+</table>
+<div class='kpi'>
+  <div class='card'><b>{edge['tilt_total_ret']}%</b>小盘过滤变体·总收益</div>
+  <div class='card'><b>{edge['tilt_n']}</b>小盘过滤变体·笔数</div>
+  <div class='card'><b>{edge['tilt_winrate']}%</b>小盘过滤变体·胜率</div>
+  <div class='card'><b>{edge['tilt_sharpe']}</b>小盘过滤变体·夏普</div>
+</div>
+<div class='verdict' style='margin-top:10px'>{holds_txt}</div>
+<div class='note' style='margin-top:8px'>方法: 在样本外/前瞻窗口的已发布组合成交上, 按流通市值分位标注小盘/大盘并比较平均收益;
+同时跑"已发布组合 + 小盘底部50%硬过滤"变体(阈值与样本内选参一致). 当前为 holdout 模式(无 2026H2 真·前瞻数据),
+且小盘样本仅 {edge['small_n']} 笔, 结论<b>仅方向性参考</b>; 待数据库更新后切 forward 真·前瞻再复核.</div>
+"""
+        edge_html = (f"<h2>小盘倾斜 Edge 复核（样本外/前瞻）</h2>"
+                     f"<p style='font-size:12px;color:#666'>OOS 总成交 {edge.get('oos_n')} 笔; "
+                     f"样本内结论=小盘正向 edge(小盘交易平均 +15.4% vs 大盘 +1.2%), 此处复核是否稳健.</p>"
+                     f"{edge_body}")
+    html += edge_html
+
     html += (f"<h2>累积样本跟踪(oos_tracker.json)</h2><div class='note'>{agg}</div>"
              "<table><tr><th>运行时间</th><th>窗口</th><th>笔数</th><th>总收益</th><th>胜率</th>"
              "<th>夏普</th><th>回撤</th></tr>" + tk_rows + "</table>")
@@ -443,6 +526,45 @@ def cmd_validate(args):
               f"夏普={pub_test_m['sharpe']}", flush=True)
 
     R["tracker"] = tracker
+
+    # ---- 小盘倾斜 edge 复核(样本外/前瞻) ----
+    # 在 OOS/前瞻窗口的已发布组合成交上: (1) 按市值分位标注, 比较小盘 vs 大盘交易平均收益;
+    # (2) 跑"已发布组合 + 小盘底部50%过滤"变体, 看小盘过滤在 OOS 是否仍提升。
+    # 阈值沿用样本内选出的底部50%, 与因子回测一致。数据不足时诚实标注"无法判定"。
+    edge = None
+    try:
+        mmap = H.load_market_stats()
+        if mmap:
+            month_q, month_arr = _build_cap_dist(mmap)
+            oos_trades = R.get("forward_trades") or []
+            oos_cal = R.get("key_cal") or []
+            if oos_trades and oos_cal:
+                tagged = _tag_cap(oos_trades, mmap, month_arr)
+                small = [r for r in tagged if r["bucket"] == "小盘"]
+                large = [r for r in tagged if r["bucket"] == "大盘"]
+                def _avg(rs):
+                    return round(100 * float(np.mean([r["ret"] for r in rs])), 2) if rs else None
+                inv_tilted = _tilt_inv_small(inv, mmap, month_q, 0.5)
+                _, _, tilt_m = simulate_on(ctx, oos_cal, inv_tilted, hot_at, fmap,
+                                           PUB_THEME_CAP, PUB_STOP)
+                small_avg, large_avg = _avg(small), _avg(large)
+                holds = (small_avg > large_avg) if (small and large
+                        and small_avg is not None and large_avg is not None) else None
+                edge = dict(oos_n=len(oos_trades), small_n=len(small), small_avg=small_avg,
+                            large_n=len(large), large_avg=large_avg,
+                            tilt_total_ret=tilt_m["total_ret"], tilt_n=tilt_m["n"],
+                            tilt_winrate=tilt_m["winrate"], tilt_sharpe=tilt_m["sharpe"],
+                            holds=holds)
+                print(f"[edge] OOS 小盘倾斜: 小盘(n={edge['small_n']})={small_avg}% vs "
+                      f"大盘(n={edge['large_n']})={large_avg}% | 小盘过滤变体 总收益={tilt_m['total_ret']}% "
+                      f"n={tilt_m['n']}", flush=True)
+            else:
+                edge = dict(oos_n=len(oos_trades), holds=None, note="OOS 无成交, 样本不足")
+                print(f"[edge] OOS 成交 {len(oos_trades)} 笔, 样本不足, 无法判定小盘倾斜", flush=True)
+    except Exception as e:
+        print(f"[edge] 小盘倾斜复核跳过: {e}", flush=True)
+    R["smallcap_edge"] = edge
+
     build_html_validate(R, os.path.join(OUT_DIR, "forward_validation_report.html"))
 
     # CSV
@@ -460,7 +582,8 @@ def cmd_validate(args):
                    data_end=full_end, in_sample_end=in_end, coverage_universe=universe,
                    auto_note=R.get("auto_note", ""), forward_window_days=R.get("forward_window_days", 0),
                    published_combo=dict(base="V2", theme_cap=PUB_THEME_CAP, stop=PUB_STOP, regime="none"),
-                   in_sample_baseline=ins_m, forward=R["forward"], holdout=R["holdout"], tracker=tracker)
+                   in_sample_baseline=ins_m, forward=R["forward"], holdout=R["holdout"],
+                   tracker=tracker, smallcap_edge=R.get("smallcap_edge"))
     json.dump(summary, open(os.path.join(OUT_DIR, "forward_validation_metrics.json"), "w"),
               ensure_ascii=False, indent=2, default=lambda o: float(o) if isinstance(o, (np.floating, np.integer)) else o)
 
