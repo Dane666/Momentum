@@ -48,6 +48,13 @@ jobs:
           restore-keys: |
             state-v1-${{ runner.os }}-
 
+      - name: Warm full-universe K-line cache (self-sufficient, 拿最新收盘)
+        # 与 momentum-scan 共享 state-v1 缓存; 此步让本 workflow 不依赖 momentum-scan 当天是否跑过,
+        # 自行把最新交易日收盘补进 kline_cache. 失败不阻断(回退已缓存数据).
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: python -c "from tools.kline_warm import warm_universe; warm_universe()"
+
       - name: Check China trading day
         id: calendar
         run: |
