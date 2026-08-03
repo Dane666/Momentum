@@ -27,3 +27,5 @@ opt_study/live_watchlist.html
 opt_study/live_watchlist.csv
 opt_study/kdj_factor_study_result.json
 data/stock_names.json
+# 价量盘后计划池(每日扫描产物, 由 volume_price_scan 生成, 不入库)
+data/volume_price_plan.json

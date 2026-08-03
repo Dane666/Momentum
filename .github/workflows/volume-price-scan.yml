@@ -1,0 +1,60 @@
+name: volume-price-scan
+#
+# 价量口诀·盘后选股(做计划)扫描 —— 独立于 momentum-scan, 避免并发 push picks_tracking.json 冲突。
+# 盘后(15:30 CST 后)对最新交易日收盘定型数据跑信号, 选突破放量/缩量回踩预选池,
+# 给出次日盘中回踩支撑位买点, 脚本自带 Bark 推送计划池 + 写 data/volume_price_plan.json。
+# 不做盘中执行(人工次日盘中按量比确认回踩后低吸)。
+#
+# Triggers:
+#   Primary:  GitHub schedule cron               15:30 CST (工作日盘后)
+#   Manual:   GitHub UI "Run workflow" button
+#
+on:
+  schedule:
+    - cron: '30 7 * * 1-5'     # 07:30 UTC = 15:30 CST, 周一至周五
+  workflow_dispatch:
+
+concurrency:
+  group: volume-price-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TZ: Asia/Shanghai
+      BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Restore K-line cache
+        uses: actions/cache@v4
+        with:
+          path: qlib_pro_v16.db
+          key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          restore-keys: |
+            state-v1-${{ runner.os }}-
+
+      - name: Check China trading day
+        id: calendar
+        run: |
+          IS_OPEN=$(python -c "import chinese_calendar as cc; from datetime import date; print(str(cc.is_workday(date.today())).lower())")
+          echo "is_open=$IS_OPEN" >> "$GITHUB_OUTPUT"
+          echo "Date trading_day=$IS_OPEN"
+
+      - name: Run volume-price post-close scan (Bark plan pool)
+        if: steps.calendar.outputs.is_open == 'true'
+        run: python tools/volume_price_scan.py --no-track

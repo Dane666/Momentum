@@ -2,32 +2,33 @@
   "hold": 20,
   "stop": -0.05,
   "quality_on": true,
+  "entry": "open",
   "summary": {
     "breakout": {
       "metrics": {
         "n": 16,
         "winrate": 31.2,
-        "avg_ret": 0.56,
-        "avg_win": 16.65,
-        "avg_loss": -6.74,
-        "best": 36.94,
-        "worst": -11.2,
-        "total_ret": 0.8,
-        "annual": 0.33,
-        "sharpe": 0.087,
-        "maxdd": -17.62,
+        "avg_ret": -0.55,
+        "avg_win": 13.98,
+        "avg_loss": -7.16,
+        "best": 23.53,
+        "worst": -11.28,
+        "total_ret": -4.39,
+        "annual": -1.82,
+        "sharpe": -0.1,
+        "maxdd": -16.44,
         "label": "突破放量"
       },
       "env": {
         "ranging": {
-          "n": 1,
+          "n": 2,
           "winrate": 0.0,
-          "avg": -9.3
+          "avg": -7.2
         },
         "bull": {
-          "n": 15,
-          "winrate": 33.3,
-          "avg": 1.22
+          "n": 14,
+          "winrate": 35.7,
+          "avg": 0.4
         }
       }
     },
@@ -35,27 +36,27 @@
       "metrics": {
         "n": 13,
         "winrate": 15.4,
-        "avg_ret": -2.39,
-        "avg_win": 24.61,
-        "avg_loss": -7.29,
-        "best": 37.55,
+        "avg_ret": -2.94,
+        "avg_win": 21.13,
+        "avg_loss": -7.31,
+        "best": 33.89,
         "worst": -11.64,
-        "total_ret": -10.54,
-        "annual": -4.45,
-        "sharpe": -0.542,
-        "maxdd": -15.43,
+        "total_ret": -12.71,
+        "annual": -5.4,
+        "sharpe": -0.649,
+        "maxdd": -16.12,
         "label": "缩量回踩"
       },
       "env": {
         "bull": {
-          "n": 9,
-          "winrate": 22.2,
-          "avg": -0.96
+          "n": 10,
+          "winrate": 20.0,
+          "avg": -1.12
         },
         "ranging": {
-          "n": 4,
+          "n": 3,
           "winrate": 0.0,
-          "avg": -5.58
+          "avg": -8.98
         }
       }
     },
@@ -63,27 +64,27 @@
       "metrics": {
         "n": 28,
         "winrate": 21.4,
-        "avg_ret": -2.13,
-        "avg_win": 15.82,
-        "avg_loss": -7.02,
-        "best": 36.94,
+        "avg_ret": -2.89,
+        "avg_win": 13.04,
+        "avg_loss": -7.24,
+        "best": 23.53,
         "worst": -11.64,
-        "total_ret": -20.51,
-        "annual": -8.95,
-        "sharpe": -0.672,
-        "maxdd": -27.62,
+        "total_ret": -24.18,
+        "annual": -10.69,
+        "sharpe": -0.849,
+        "maxdd": -26.25,
         "label": "合并(突破+回踩)"
       },
       "env": {
         "ranging": {
           "n": 5,
           "winrate": 0.0,
-          "avg": -6.33
+          "avg": -8.27
         },
         "bull": {
           "n": 23,
           "winrate": 26.1,
-          "avg": -1.21
+          "avg": -1.72
         }
       }
     }

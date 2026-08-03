@@ -2,8 +2,8 @@
 """
 价量口诀策略回测
 ================
-买点: 信号日(t)次日收盘(对齐"盘后选股做计划, 盘中验证做执行"——此处用次日收盘近似盘中确认,
-      因日频回测无盘中数据; 实盘扫描层给人工盘中确认入口)。
+买点: 信号日(t)盘后定型 → 次日(T+1)开盘买入(对齐通达信/同花顺"盘后选股做计划, 次日开盘执行"语义,
+      对应 entry='open'; 可选 'close' 为次日收盘买入近似)。不使用盘中 14:45 快照数据。
 卖点: 固定持有 HOLD 交易日 或 跌破止损 STOP(默认 -8%)。
 分策略: breakout(突破放量) / pullback(缩量回踩) 单独回测, 并合并。
 分环境: 用大盘 proxy 把每笔交易划入 牛/熊/震荡, 看各环境胜率。
@@ -32,8 +32,8 @@ H = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(H)
 H.DB = os.path.join(ROOT, "qlib_pro_v16.db")
 H.ROOT = ROOT
-H.WINDOW_START = "2024-01-01"
-H.WINDOW_END = "2099-12-31"
+H.WINDOW_START = "2024-07-01"
+H.WINDOW_END = "2026-07-22"  # 钉死到 kline_cache 实际盘后覆盖(严格 ≤ 最新收盘)
 
 import opt_study.volume_price_strategy as VS  # noqa: E402
 
@@ -49,6 +49,9 @@ def _load_names():
         except Exception:
             pass
     return {}
+
+
+ENTRY = "open"  # 模块级, 由 main 的 --entry 覆写
 
 
 def run(hold=15, stop=-0.08, quality_on=True):
@@ -73,7 +76,8 @@ def run(hold=15, stop=-0.08, quality_on=True):
     def sim(inv_map):
         # 把信号索引喂给 harness.simulate: 它要求 inv 的候选在 hot_on 关闭时不限热门,
         # 但我们的 inv 已含板块过滤, 故 hot_on=False, quality_on 透传。
-        return H.simulate(ctx, cal, inv_map, hot_at, fmap, hold, "close", stop, cfg)
+        # entry 默认 'open' = 信号次日(T+1)开盘买入, 对应盘后选股"次日开盘前出池、盘中执行"语义。
+        return H.simulate(ctx, cal, inv_map, hot_at, fmap, hold, ENTRY, stop, cfg)
 
     res = {}
     for key in ("breakout", "pullback"):
@@ -107,7 +111,7 @@ def run(hold=15, stop=-0.08, quality_on=True):
                          avg=round(100 * np.mean(v), 2)) for k, v in env_all.items()}
     res["merged"] = dict(metrics=m_all, env=env_all_m, trades=tr_all)
 
-    return dict(res=res, regime=regime, hold=hold, stop=stop, quality_on=quality_on)
+    return dict(res=res, regime=regime, hold=hold, stop=stop, quality_on=quality_on, entry=ENTRY)
 
 
 def build_html(R):
@@ -158,11 +162,11 @@ th{{background:#f4f6f8}}
 .note{{background:#fff8e6;border:1px solid #f0d27a;padding:10px 14px;border-radius:8px;font-size:13px;line-height:1.6;margin-top:10px}}
 </style></head><body>
 <h1>价量口诀选股策略 · 回测报告</h1>
-<p>买点=信号次日收盘 ｜ 卖点=固定持有 {R['hold']} 日 或 止损 {int(R['stop']*100)}% ｜
+<p>买点=信号次日({ '开盘' if R['entry']=='open' else '收盘' }买入) ｜ 卖点=固定持有 {R['hold']} 日 或 止损 {int(R['stop']*100)}% ｜
 质量过滤={ '开' if R['quality_on'] else '关' } ｜ 窗口 {H.WINDOW_START}~{H.WINDOW_END}</p>
 <div class='note'>大盘环境分布: 牛 {n_bull} 日 / 熊 {n_bear} 日 / 震荡 {n_ran} 日。
 策略已叠加三大过滤器: 大盘(熊市放弃突破/回踩信号) + 板块主线共振(信号股须属当日热门题材) + 平台长度(突破前≥40日横盘)。
-买点用次日收盘近似"盘中验证执行"(日频无盘中数据)。</div>
+买点用信号次日{'开盘' if R['entry']=='open' else '收盘'}买入, 对应"盘后选股做计划、次日开盘执行"语义; 不使用盘中14:45快照。</div>
 {sec}
 <div class='note' style='margin-top:18px'><b>说明:</b>
 ① 板块共振依赖 stock_sector_cache 行业分类 + 资金流 proxy, 与已发布组合一致;
@@ -176,9 +180,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--hold", type=int, default=15)
     ap.add_argument("--stop", type=float, default=-0.08)
+    ap.add_argument("--entry", choices=["open", "close"], default="open",
+                    help="入场价: open=信号次日开盘买入(盘后选股真实语义), close=次日收盘买入")
     ap.add_argument("--no-quality", action="store_true")
     args = ap.parse_args()
 
+    global ENTRY
+    ENTRY = args.entry
     R = run(hold=args.hold, stop=args.stop, quality_on=not args.no_quality)
 
     res = R["res"]
@@ -188,6 +196,7 @@ def main():
         summary[key] = dict(metrics=d["metrics"], env=d["env"])
 
     json.dump(dict(hold=R["hold"], stop=R["stop"], quality_on=R["quality_on"],
+                   entry=R["entry"],
                    summary=summary),
               open(os.path.join(OUT_DIR, "volume_price_backtest_metrics.json"), "w"),
               ensure_ascii=False, indent=2,
