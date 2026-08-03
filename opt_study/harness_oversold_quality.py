@@ -103,6 +103,32 @@ def load_fundamentals():
     for k in fmap: fmap[k].sort(key=lambda x:x["avail_from"])
     return fmap
 
+def load_market_stats():
+    """读取 market_stats(月频 总市值/流通市值/股息率), 返回 point-in-time 可查结构.
+    与 load_fundamentals 同口径: code -> [{trade_date,total_mv,circ_mv,dividend_yield}] 按日期升序.
+    数据来源见 opt_study/market_stats.py (AKShare stock_value_em + stock_history_dividend)."""
+    con = sqlite3.connect(DB)
+    df = pd.read_sql_query(
+        "SELECT code,trade_date,total_mv,circ_mv,dividend_yield FROM market_stats", con)
+    con.close()
+    mmap = defaultdict(list)
+    for _, r in df.iterrows():
+        mmap[r["code"]].append(dict(
+            trade_date=r["trade_date"], total_mv=r["total_mv"],
+            circ_mv=r["circ_mv"], dividend_yield=r["dividend_yield"]))
+    for k in mmap: mmap[k].sort(key=lambda x: x["trade_date"])
+    return mmap
+
+def market_stats_at(mmap, code, date_str):
+    """返回 code 在 <=date_str 最近一个月末快照(月频, 向前取最近月首). 无则返回 None."""
+    recs = mmap.get(code)
+    if not recs: return None
+    cur = None
+    for rec in recs:
+        if rec["trade_date"] <= date_str: cur = rec
+        else: break
+    return cur
+
 def quality_ok(fmap, code, date_str, close, pe_pb_on):
     recs = fmap.get(code)
     if not recs: return (False,None,None,None,None)
