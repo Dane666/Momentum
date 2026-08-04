@@ -7,8 +7,9 @@ name: volume-price-scan
 #
 # 数据来源(关键修复): 历史 K线 来自 GitHub Release db-baseline-v1 全量基准库
 #   (含完整历史 kline_cache + 基本面); 板块共振所需的 stock_sector_cache 由提交的 CSV 导入;
-#   再由"仅 bulk 实时"的轻量预热补最新交易日 bar(网络可用时), 失败优雅降级沿用基准库历史。
-#   此前版本只依赖不存在的 state-v1 缓存 + 会超时的全量回退, 导致空库 no such table: kline_cache。
+#   运行时"增量全市场预热"用腾讯公开历史 K线接口(mootdx/tencent, 已本地实测 CI 可用、返回当日数据)
+#   把基准库补到当日收盘, 彻底消除"每日数据滞后". 此前的"批量实时行情"路径在 CI 不可达(缓存回声),
+#   是滞后的根因, 已弃用. 首次/缓存未命中则下载基准库, 后续命中 state-vpscan 缓存仅补 1 日, 极快.
 #
 # Triggers:
 #   Primary:  GitHub schedule cron               15:30 CST (工作日盘后)
@@ -26,7 +27,7 @@ concurrency:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       TZ: Asia/Shanghai
       BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
@@ -96,37 +97,50 @@ jobs:
           con.close()
           PY
 
-      - name: Warm latest bar (仅 bulk 实时, 失败优雅降级)
-        # 仅做一次 bulk 实时行情 upsert 当日 bar 补最新交易日; 不触发全市场逐只慢回退.
-        # 网络不可用时静默失败 -> 扫描沿用基准库历史(最多 1 日滞后), 不阻断主流程.
+      - name: Warm full-universe K-line to latest (腾讯历史接口, 消除滞后)
+        # 增量全市场预热: 对 kline_cache 现有代码逐只走 load_or_fetch_kline ->
+        # fetch_kline_from_api (腾讯公开 HTTP 接口, 本地实测 CI 可用、返回当日数据, 无需本地代理).
+        # 仅补基准库之后的新交易日 bar(写库幂等增量), 把数据库补到当日收盘, 彻底消除滞后.
+        # 命中 state-vpscan 缓存时库已到昨日, 此步仅补 1 日 -> 极快; 全市场首跑约数分钟.
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         continue-on-error: true
         run: |
           python <<'PY'
-          import logging, sys
+          import logging, sys, sqlite3, time
           from pathlib import Path
+          from concurrent.futures import ThreadPoolExecutor, as_completed
           logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
           p = Path('.').resolve(); sys.path.insert(0, str(p.parent))
           import importlib.util
           s = importlib.util.spec_from_file_location('momentum', p/'__init__.py', submodule_search_locations=[str(p)])
           m = importlib.util.module_from_spec(s); sys.modules['momentum']=m; s.loader.exec_module(m)
           try:
-              from momentum.data import fetch_realtime_quotes, init_db
-              from momentum.data.cache import upsert_kline_bars
-              from tools.kline_warm import _real_bulk_to_bars
+              from momentum.data import load_or_fetch_kline, fetch_kline_from_api, init_db
               init_db()
-              df = fetch_realtime_quotes(fs='沪深A股')
-              if df is not None and not df.empty and '_from_cache' not in df.columns:
-                  bars = _real_bulk_to_bars(df)
-                  if bars is not None and len(bars) > 100:
-                      n = upsert_kline_bars(bars)
-                      print(f"bulk 实时预热: {n} 只当日 bar 入缓存")
-                  else:
-                      print("bulk 实时无有效 bar, 跳过(沿用基准库历史)")
-              else:
-                  print("bulk 实时不可用(空/缓存回声), 跳过(沿用基准库历史)")
+              con = sqlite3.connect('qlib_pro_v16.db')
+              codes = [r[0] for r in con.execute(
+                  "SELECT DISTINCT code FROM kline_cache WHERE code GLOB '60*' OR code GLOB '00*' OR code GLOB '30*' OR code GLOB '68*'").fetchall()]
+              con.close()
+              codes = [c for c in codes if 'ST' not in c]
+              print(f"[warm] 目标 {len(codes)} 只 (kline_cache 现有, 增量补最新交易日)", flush=True)
+              t0 = time.time(); ok = fail = 0
+              def w(c):
+                  try:
+                      df = load_or_fetch_kline(c, fetch_kline_from_api, '2024-01-01')
+                      return 1 if (df is not None and not df.empty) else 0
+                  except Exception:
+                      return 0
+              with ThreadPoolExecutor(max_workers=20) as pool:
+                  futs = {pool.submit(w, c): c for c in codes}
+                  for f in as_completed(futs):
+                      r = f.result()
+                      ok += 1 if r else 0; fail += 0 if r else 1
+              print(f"[warm] 完成: {ok} ok / {fail} fail in {time.time()-t0:.0f}s", flush=True)
+              con = sqlite3.connect('qlib_pro_v16.db')
+              print(f"[warm] kline_cache 最新交易日: {con.execute('SELECT MAX(trade_date) FROM kline_cache').fetchone()[0]}", flush=True)
+              con.close()
           except Exception as e:
-              print(f"warm 失败(继续, 沿用基准库历史): {e}")
+              print(f"[warm] 预热异常(继续, 扫描将沿用已有数据): {e}")
           PY
 
       - name: Check China trading day
