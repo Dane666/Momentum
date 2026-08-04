@@ -222,6 +222,17 @@ def _is_garbage(name, close):
 def run(scan_date=None, top_n=TOP_N, prefetch=True):
     logger.info("=" * 50)
     logger.info("[低位绩优] 尾盘扫描启动")
+    # 尾部风险门禁: 系统性暴跌时暂停选股(不改动选股逻辑, 仅尾部保护)
+    try:
+        from tools.risk_gate import crash_guard
+        from tools.tracking_utils import bark_notify
+        _halt, _reason = crash_guard()
+        if _halt:
+            logger.warning("风险门禁触发, 暂停选股: %s", _reason)
+            bark_notify("⛔ 风险门禁·暂停选股", _reason)
+            return [], _reason
+    except Exception as _e:
+        logger.warning("风险门禁检查异常(放行): %s", _e)
     H = _load_harness()
     if prefetch:
         warm_cache()

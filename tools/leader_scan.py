@@ -70,6 +70,18 @@ def run():
     logger.info("=" * 50)
     logger.info("[Leader] 龙头策略扫描启动")
 
+    # 尾部风险门禁: 系统性暴跌时暂停选股(不改动选股逻辑, 仅尾部保护)
+    try:
+        from tools.risk_gate import crash_guard
+        from tools.tracking_utils import bark_notify
+        _halt, _reason = crash_guard()
+        if _halt:
+            logger.warning("风险门禁触发, 暂停选股: %s", _reason)
+            bark_notify("⛔ 风险门禁·暂停选股", _reason)
+            return [], _reason
+    except Exception as _e:
+        logger.warning("风险门禁检查异常(放行): %s", _e)
+
     # 已有活跃龙头持仓 → 不重复选股, 发状态卡片
     if has_active_leaders():
         logger.info("[Leader] 已有活跃龙头, 等待持仓解决后再选新龙头")
