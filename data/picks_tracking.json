@@ -418,16 +418,6 @@
   },
   {
     "date": "2026-07-22",
-    "code": "000430",
-    "name": "张家界",
-    "price": 5.89,
-    "sl_price": 5.01,
-    "tp_price": 6.77,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY"
-  },
-  {
-    "date": "2026-07-22",
     "code": "000010",
     "name": "*ST美丽",
     "price": 1.43,
@@ -440,55 +430,5 @@
     "trigger_type": "TP",
     "trigger_time": "2026-08-03 14:01:39",
     "pnl_ratio": 14.69
-  },
-  {
-    "date": "2026-07-22",
-    "code": "002709",
-    "name": "天赐材料",
-    "price": 35.26,
-    "sl_price": 29.97,
-    "tp_price": 40.55,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY"
-  },
-  {
-    "date": "2026-07-23",
-    "code": "000430",
-    "name": "张家界",
-    "price": 6.0,
-    "sl_price": 5.1,
-    "tp_price": 6.9,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY"
-  },
-  {
-    "date": "2026-07-24",
-    "code": "000430",
-    "name": "张家界",
-    "price": 5.86,
-    "sl_price": 4.98,
-    "tp_price": 6.74,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY"
-  },
-  {
-    "date": "2026-07-24",
-    "code": "300390",
-    "name": "300390",
-    "price": 56.73,
-    "sl_price": 48.22,
-    "tp_price": 65.24,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY"
-  },
-  {
-    "date": "2026-07-28",
-    "code": "300390",
-    "name": "300390",
-    "price": 56.1,
-    "sl_price": 47.69,
-    "tp_price": 64.52,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY"
   }
 ]
