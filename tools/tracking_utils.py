@@ -82,7 +82,12 @@ def _sync_db(recs, db_path=None):
             exit_price REAL, pnl_pct REAL, trigger_type TEXT, trigger_time TEXT,
             pnl_ratio REAL, track_status TEXT DEFAULT 'TRACKING',
             track_count INTEGER DEFAULT 0, day1_pnl REAL, day2_pnl REAL,
-            day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0)''')
+            day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0, weight REAL DEFAULT NULL)''')
+        # 兼容旧库: 缺 weight 列则补(不重建表)
+        try:
+            cur.execute("ALTER TABLE stock_picks ADD COLUMN weight REAL DEFAULT NULL")
+        except Exception:
+            pass
         for r in recs:
             cur.execute('SELECT id FROM stock_picks WHERE date=? AND code=?',
                         (r['date'], r['code']))
@@ -90,11 +95,11 @@ def _sync_db(recs, db_path=None):
                 continue
             cur.execute('''INSERT INTO stock_picks
                 (date,code,name,price,status,sl_price,tp_price,type,
-                 track_status,track_count,max_pnl_3d)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)''',
+                 track_status,track_count,max_pnl_3d,weight)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',
                 (r['date'], r['code'], r['name'], r['price'], r['status'],
                  r['sl_price'], r['tp_price'], r['type'],
-                 'TRACKING', 0, 0.0))
+                 'TRACKING', 0, 0.0, r.get('weight')))
         con.commit()
         con.close()
         logger.info("[tracking] DB 同步 %d 只", len(recs))
@@ -211,7 +216,8 @@ def add_picks(picks: list, pick_type: str, sl_ratio: float = 0.95,
                    tp_price=round(p.get('tp_price', price * tp_ratio), 2),
                    status=p.get('status', status), type=pick_type,
                    support=round(p['support'], 2) if p.get('support') is not None else None,
-                   pressure=round(p['pressure'], 2) if p.get('pressure') is not None else None)
+                   pressure=round(p['pressure'], 2) if p.get('pressure') is not None else None,
+                   weight=round(p['weight'], 4) if p.get('weight') is not None else None)
         tracking.append(rec)
         new_recs.append(rec)
         seen.add(key)

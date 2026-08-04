@@ -353,18 +353,22 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
 
     picks.sort(key=lambda x: -x['score'])
     picks = picks[:top_n]
-    report = _build_report(picks, today)
+    # 仓位管理(建议④): 给出"建议同时持仓 ≤MAX_HOLDINGS 只"的子集 + 风险平价权重,
+    # 仅把该子集登记到监控(与实盘持仓上限一致); 报告仍展示全部 top_n 候选。
+    from momentum.tools.position_sizing import build_portfolio, MAX_HOLDINGS
+    sized = build_portfolio(picks, DB_PATH, max_n=MAX_HOLDINGS, method='risk_parity')
+    report = _build_report(picks, today, sized)
     print(report)
     if picks and os.environ.get('LOW_QUALITY_NO_TRACK') != '1':
         from momentum.tools.tracking_utils import add_picks
-        add_picks(picks, 'LOW_QUALITY', SL_RATIO, TP_RATIO, date=today)
+        add_picks(sized, 'LOW_QUALITY', SL_RATIO, TP_RATIO, date=today)
     title = f"📉 低位绩优股 {today}" if picks else f"📉 低位绩优股 {today}(空)"
     bark_push(title, report)
     logger.info("[低位绩优] 完成")
     return picks, report
 
 
-def _build_report(picks, today):
+def _build_report(picks, today, sized=None):
     unverified = bool(picks) and bool(picks[0].get('quality_unverified'))
     if unverified:
         sub = "低位=深度超跌(距60日高≤-15%&RSI<35) [基本面缺失: 仅按低位筛选, 绩优未验证]"
@@ -384,6 +388,7 @@ def _build_report(picks, today):
     for i, p in enumerate(picks, 1):
         hot = " 🔥" if p['hot'] else ""
         cap_s = f" [{p.get('cap_tier','-')}]" if p.get('cap_tier') and p['cap_tier'] != '无数据' else ""
+        w_s = (f"  建议仓位{p.get('alloc_pct'):.0f}%" if p.get('alloc_pct') is not None else "")
         pe_s = f"PE{p['pe']}" if p.get('pe') else "PE-"
         pb_s = f"PB{p['pb']}" if p.get('pb') else "PB-"
         roe_s = f"ROE{p['roe']:.0f}%" if p.get('roe') is not None else "ROE-"
@@ -391,10 +396,13 @@ def _build_report(picks, today):
         lines.append(
             f"{i:>2}. {p['code']} {p['name']}{hot}{cap_s}\n"
             f"    ¥{p['price']:.2f}  超跌{p['dd60']:.0f}%  250低{p['dd250']:.0f}%  "
-            f"{roe_s}  {np_s}  {pe_s} {pb_s}")
+            f"{roe_s}  {np_s}  {pe_s} {pb_s}{w_s}")
     lines.append("─" * 40)
     lines.append(score_desc)
     lines.append(f"止损¥{picks[0]['price']*SL_RATIO:.2f} 反弹目标¥{picks[0]['price']*TP_RATIO:.2f}(参考)")
+    if sized:
+        from momentum.tools.position_sizing import MAX_HOLDINGS
+        lines.append(f"💼 仓位管理: 建议同时持仓 ≤{MAX_HOLDINGS} 只(风险平价权重, 见上『建议仓位』)")
     return "\n".join(lines)
 
 

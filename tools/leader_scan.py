@@ -110,7 +110,9 @@ def run():
 
     if leaders:
         from momentum.tools.tracking_utils import add_picks
-        add_picks(leaders, 'LEADER', 0.95, 1.10)
+        from momentum.tools.position_sizing import build_portfolio, MAX_HOLDINGS
+        sized = build_portfolio(leaders, max_n=MAX_HOLDINGS, method='risk_parity')
+        add_picks(sized, 'LEADER', 0.95, 1.10)
 
     print(report)
     title = '🐉 龙头策略选股' if leaders else '🐉 龙头策略'

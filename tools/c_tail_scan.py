@@ -63,7 +63,9 @@ def run():
     picks, hot, report, is_bull = run_c_scan()
     if picks:
         from momentum.tools.tracking_utils import add_picks
-        add_picks(picks, 'C_TAIL', 0.95, 1.10)
+        from momentum.tools.position_sizing import build_portfolio, MAX_HOLDINGS
+        sized = build_portfolio(picks, max_n=MAX_HOLDINGS, method='risk_parity')
+        add_picks(sized, 'C_TAIL', 0.95, 1.10)
     print(report)
     title = '🎯 C·偷袭板' if picks else '🎯 C·偷袭板(空)'
     bark_push(title, report)

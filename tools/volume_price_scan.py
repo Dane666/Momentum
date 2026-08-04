@@ -162,6 +162,7 @@ def build_picks(cands):
                           sl_price=sl_price, tp_price=tp_price, kind=c["kind"],
                           support=c["support"], pressure=c["pressure"],
                           close=c["close"], gap=c["gap"], upside=c["upside"],
+                          score=c["upside"],
                           status="PLAN", note=note))
     return picks
 
@@ -249,6 +250,11 @@ def run(scan_date=None, top_n=20, no_track=False, no_bark=False, bull_only=True)
                         sorted(set(str(c["code"]) for c in cands) & held))
         cands = kept
     picks = build_picks(cands)
+
+    # 仓位管理(建议④): 价量计划池同样给出"建议同时持仓 ≤MAX_HOLDINGS 只"子集 + 风险平价权重。
+    # 计划池非实盘持仓, 但权重可辅助人工选股时分配精力/资金。
+    from momentum.tools.position_sizing import build_portfolio, MAX_HOLDINGS
+    picks = build_portfolio(picks, max_n=MAX_HOLDINGS, method='risk_parity')
 
     # ---- 控制台报告 ----
     rg = regime.get(ts, "ranging")
