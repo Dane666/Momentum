@@ -88,21 +88,28 @@ def run():
         if triggered:
             pick_type = p.get('type', 'STRATEGY')
             direction = '止盈' if trigger_type == 'TP' else '止损'
+            # 压力位卖点上下文: 记录带 pressure 字段即表示以压力位为卖出目标
+            pctx = ''
+            if p.get('pressure') is not None:
+                pctx = (f"\n买点(支撑)¥{p.get('support', p['price']):.2f}  "
+                        f"卖点(压力)¥{p['pressure']:.2f}")
             if pick_type == 'MANUAL':
+                vmark = '压力位卖出' if p.get('pressure') is not None else '止盈'
                 line = (
                     f"⚠️ 【实际持仓警告】您的持仓 {p['name']}({p['code']})"
-                    f" 已达{direction}点！\n"
-                    f"当前价: ¥{current:.2f}  实际盈亏: {pnl:+.1f}%\n"
+                    f" 已达{vmark}点！\n"
+                    f"当前价: ¥{current:.2f}  实际盈亏: {pnl:+.1f}%{pctx}\n"
                     f"请速去券商手动操作！"
                 )
             else:
                 tlabel = {'LOW_QUALITY': '低位绩优', 'C_TAIL': 'C尾盘',
                           'LEADER': '龙头', 'STRATEGY': '策略'}.get(
                     pick_type, '策略')
+                dmark = '压力位卖出' if (trigger_type == 'TP' and p.get('pressure') is not None) else direction
                 line = (
                     f"📊 【{tlabel}模拟提示】观察股 {p['name']}({p['code']})"
-                    f" 已触发{direction}信号。\n"
-                    f"当前价: ¥{current:.2f}  模拟盈亏: {pnl:+.1f}%"
+                    f" 已触发{dmark}信号。\n"
+                    f"当前价: ¥{current:.2f}  模拟盈亏: {pnl:+.1f}%{pctx}"
                 )
             alerts.append(line)
         else:

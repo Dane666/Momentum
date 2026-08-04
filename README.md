@@ -77,6 +77,7 @@
 | eod-analysis.yml | GitHub cron | 16:00 |
 | momentum-backtest.yml | GitHub cron | 周五 15:05(动量回测) + 每月1日 16:00(含超跌绩优前向验证) |
 | add-manual-position.yml | repository_dispatch | 手动录入持仓（手机 Webhook） |
+| volume-price-scan.yml | cron-job.org | 15:30 | 盘后价量计划池（突破放量 / 缩量回踩） |
 
 ## CI 健壮性优化
 
@@ -114,6 +115,44 @@ add_picks(picks, 'MY_STRATEGY', sl_ratio=0.92, tp_ratio=1.12)   # 自动算止�
 > 仍满足筛选条件（仍在超跌区），并非自动"更值得买"；需结合是否真正止跌反弹
 > （RSI 拐头、不再创新低）判断，谨防"越跌越买"的价值陷阱。
 
+## 价量口诀 · 盘后计划池（压力位卖点）
+
+盘后（15:00 后）对最新交易日收盘定型数据跑 signals，选出「突破放量 / 缩量回踩」预选池，
+给出**次日盘中买点（回踩支撑位低吸）**与**卖点（压力位止盈）**参考，次日盘中执行。
+
+**买卖点机制（已回测验证）**
+- **买点** = 次日盘中回踩支撑位附近低吸（`dip_buf`，±2% 缓冲，量比企稳才买，不回踩不买）。
+  机械次日追开/收为负，改回踩低吸后翻正：突破放量 胜率 60% / +27.8%（持有10日，止损-8%）；
+  缩量回踩 胜率 44% / +47.3%（持有20日，止损-5%）。
+- **卖点** = 触及**压力位（前 60 日最高价；突破放量取 ×1.10）**附近即止盈。
+  相对「固定持有」全面改善：胜率 32.6%→52%、收益 +16.15%→+22.89%、夏普 0.39→0.84、
+  回撤 -14.27%→-6.72%（回测样本内）。
+
+**前向验证（Forward Validation，确认样本外有效，非过拟合）**
+- 脚本：`opt_study/volume_price_forward_validation.py`，严格零泄漏切分（样本内 ≤2026-01-31 选参，样本外 2026-02~08 测试）。
+- 结论：压力位卖点相对固定持有**改善 +5.8pp、胜率 +18pp**（OOS 持有 -5.99% vs 压力位 -0.21%），
+  样本内选出的最优配置 (sell_buf=0.02, cap=20) 在两段样本内均稳定最优 → 证实泛化。
+
+**实盘链路（盘后计划 → 次日买入 → 压力位卖出提醒）**
+1. 盘后 `volume-price-scan.yml`（cron-job.org 15:30 触发）产出计划池，登记为 `PLAN` 状态，
+   `tp_price` = 压力位、`support` = 支撑位，Bark 推送「买点(支撑) / 卖点(压力)」。
+2. 次日盘中：按量比确认**回踩支撑位附近 + 抛压衰竭**后低吸买入（人工判断，不自动下单）。
+3. 买入后登记真实持仓（压力位卖点接入实盘提醒）：
+   ```bash
+   python add_manual_position.py <代码> <买入价> --vp
+   ```
+   `--vp` 自动从计划池读取该股「支撑/压力位」作为止损/止盈，登记为 `HOLDING` 真实持仓，
+   并清除对应的 PLAN 计划记录（避免「计划提醒」与「实盘卖出提醒」重复推送）。
+4. `position_monitor`（交易时段每 30 分钟）监控：价格**触及压力位**时推送
+   `⚠️ 实际持仓·压力位卖出` 提醒，含买点(支撑)/卖点(压力)/当前价/盈亏。
+
+**相关脚本**
+- `tools/volume_price_scan.py` — 盘后扫描 + Bark（有信号推计划池 / 0 候选推回执）
+- `opt_study/volume_price_entry_study.py` — 买点（回踩低吸）研究
+- `opt_study/volume_price_exit_study.py` — 卖点（压力位）研究
+- `opt_study/volume_price_forward_validation.py` — 前向验证（样本外）
+- `docs/cron-job-volume-price-scan.md` — cron-job.org 配置模板
+
 ## 因子研究
 
 **KDJ 底部金叉（不采纳）**
@@ -127,6 +166,11 @@ add_picks(picks, 'MY_STRATEGY', sl_ratio=0.92, tp_ratio=1.12)   # 自动算止�
 尾盘: `.../momentum-scan.yml/dispatches` POST `{"ref":"main","inputs":{"run_mode":"full"}}` Cron `25 14 * * 1-5` Asia/Shanghai
 
 竞价: `.../auction-scan.yml/dispatches` POST `{"ref":"main"}` Cron `25 1 * * 1-5` Asia/Shanghai
+
+价量盘后计划池: `.../volume-price-scan.yml/dispatches` POST `{"ref":"main"}` Cron `30 15 * * 1-5` Asia/Shanghai
+
+> 详细模板（URL / Header / Body / 时区换算）见 [`docs/cron-job-volume-price-scan.md`](docs/cron-job-volume-price-scan.md)。
+> 本仓库 GitHub 原生 `schedule` 触发器不可靠，上述作业均改由 cron-job.org 主触发，GitHub schedule 仅兜底。
 
 > 竞价外部盘的相关 A 股清单（锂矿股 / 存储-HBM 股）集中在 `tools/auction_extra_config.json`，**无需改代码即可增删**；缺失时回退内置默认。相关 A 股高开正反馈复用竞价主扫描已抓的实时行情（零额外网络）。
 
