@@ -3,11 +3,16 @@ name: volume-price-scan
 # 价量口诀·盘后选股(做计划)扫描 —— 独立于 momentum-scan, 避免并发 push picks_tracking.json 冲突。
 # 盘后(15:30 CST 后)对最新交易日收盘定型数据跑信号, 选突破放量/缩量回踩预选池,
 # 给出次日盘中回踩支撑位买点, 脚本自带 Bark 推送计划池 + 写 data/volume_price_plan.json。
-# 不做盘中执行(人工次日盘中按量比确认回踩后低吸)。
+# 无信号日也推送 Bark 回执(避免静默误以为未跑)。不做盘中执行(人工次日盘中按量比确认回踩后低吸)。
+#
+# 数据来源(关键修复): 历史 K线 来自 GitHub Release db-baseline-v1 全量基准库
+#   (含完整历史 kline_cache + 基本面); 板块共振所需的 stock_sector_cache 由提交的 CSV 导入;
+#   再由"仅 bulk 实时"的轻量预热补最新交易日 bar(网络可用时), 失败优雅降级沿用基准库历史。
+#   此前版本只依赖不存在的 state-v1 缓存 + 会超时的全量回退, 导致空库 no such table: kline_cache。
 #
 # Triggers:
 #   Primary:  GitHub schedule cron               15:30 CST (工作日盘后)
-#   Manual:   GitHub UI "Run workflow" button
+#   Manual:   GitHub UI "Run workflow" button / gh workflow run
 #
 on:
   schedule:
@@ -21,7 +26,7 @@ concurrency:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       TZ: Asia/Shanghai
       BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
@@ -38,22 +43,91 @@ jobs:
           cache-dependency-path: requirements.txt
 
       - name: Install dependencies
-        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt && pip install mootdx>=0.11
 
-      - name: Restore K-line cache
+      - name: Restore state cache (DB, dedicated vpscan key)
+        # 与 momentum-scan / backtest 的 state-v1 隔离, 避免彼此缓存覆盖导致的空库.
+        # 首次运行缓存未命中 -> 下方下载基准库 -> 任务结束自动存入缓存; 后续命中跳过下载.
         uses: actions/cache@v4
         with:
           path: qlib_pro_v16.db
-          key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          key: state-vpscan-${{ runner.os }}-${{ hashFiles('config.py') }}
           restore-keys: |
-            state-v1-${{ runner.os }}-
+            state-vpscan-${{ runner.os }}-
 
-      - name: Warm full-universe K-line cache (self-sufficient, 拿最新收盘)
-        # 与 momentum-scan 共享 state-v1 缓存; 此步让本 workflow 不依赖 momentum-scan 当天是否跑过,
-        # 自行把最新交易日收盘补进 kline_cache. 失败不阻断(回退已缓存数据).
+      - name: Download DB baseline (full-market, 消除历史漂移)
+        # 仅当缓存未命中/库过小才从 release db-baseline-v1 下载全量基准库
+        # (含完整历史K线+基本面), 使 CI 与本地库历史价一致. 命中缓存则跳过.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -f qlib_pro_v16.db ] || [ "$(stat -c%s qlib_pro_v16.db 2>/dev/null || echo 0)" -lt 104857600 ]; then
+            echo "DB 缺失或过小(<100MB), 从 release db-baseline-v1 下载全量基准库..."
+            gh release download db-baseline-v1 -p qlib_pro_v16.db --clobber
+            echo "下载完成: $(du -h qlib_pro_v16.db | cut -f1)"
+          else
+            echo "DB 已存在(缓存命中), 跳过下载 ($(du -h qlib_pro_v16.db | cut -f1))"
+          fi
+
+      - name: Import sector cache into DB (if missing)
+        # 板块主线共振(build_hot_themes)需要 stock_sector_cache; 该表不在 CI 缓存里(仅本地/基准库),
+        # 从提交的 CSV 导入使主题共振在 CI 中可用. 表已存在则跳过(幂等).
+        continue-on-error: true
+        run: |
+          python <<'PY'
+          import os, sqlite3, csv
+          db = 'qlib_pro_v16.db'
+          if not os.path.exists(db):
+              print("DB 不存在, 跳过导入"); raise SystemExit(0)
+          con = sqlite3.connect(db)
+          def rows(name):
+              try: return con.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]
+              except Exception: return 0
+          if rows('stock_sector_cache') == 0 and os.path.exists('data/stock_sector_cache.csv'):
+              print("stock_sector_cache 缺失, 从 CSV 导入...", flush=True)
+              con.execute("CREATE TABLE IF NOT EXISTS stock_sector_cache (code TEXT, sector TEXT, update_time TEXT)")
+              with open('data/stock_sector_cache.csv', newline='', encoding='utf-8') as f:
+                  recs = [(r['code'], r['sector'], r['update_time']) for r in csv.DictReader(f)]
+              con.executemany("INSERT OR REPLACE INTO stock_sector_cache VALUES (?,?,?)", recs)
+              con.commit()
+              print(f"  导入 stock_sector_cache {len(recs)} 行", flush=True)
+          else:
+              print(f"stock_sector_cache: {rows('stock_sector_cache')} 行 (已存在/跳过)", flush=True)
+          con.close()
+          PY
+
+      - name: Warm latest bar (仅 bulk 实时, 失败优雅降级)
+        # 仅做一次 bulk 实时行情 upsert 当日 bar 补最新交易日; 不触发全市场逐只慢回退.
+        # 网络不可用时静默失败 -> 扫描沿用基准库历史(最多 1 日滞后), 不阻断主流程.
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         continue-on-error: true
-        run: python -c "from tools.kline_warm import warm_universe; warm_universe()"
+        run: |
+          python <<'PY'
+          import logging, sys
+          from pathlib import Path
+          logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+          p = Path('.').resolve(); sys.path.insert(0, str(p.parent))
+          import importlib.util
+          s = importlib.util.spec_from_file_location('momentum', p/'__init__.py', submodule_search_locations=[str(p)])
+          m = importlib.util.module_from_spec(s); sys.modules['momentum']=m; s.loader.exec_module(m)
+          try:
+              from momentum.data import fetch_realtime_quotes, init_db
+              from momentum.data.cache import upsert_kline_bars
+              from tools.kline_warm import _real_bulk_to_bars
+              init_db()
+              df = fetch_realtime_quotes(fs='沪深A股')
+              if df is not None and not df.empty and '_from_cache' not in df.columns:
+                  bars = _real_bulk_to_bars(df)
+                  if bars is not None and len(bars) > 100:
+                      n = upsert_kline_bars(bars)
+                      print(f"bulk 实时预热: {n} 只当日 bar 入缓存")
+                  else:
+                      print("bulk 实时无有效 bar, 跳过(沿用基准库历史)")
+              else:
+                  print("bulk 实时不可用(空/缓存回声), 跳过(沿用基准库历史)")
+          except Exception as e:
+              print(f"warm 失败(继续, 沿用基准库历史): {e}")
+          PY
 
       - name: Check China trading day
         id: calendar
@@ -62,6 +136,6 @@ jobs:
           echo "is_open=$IS_OPEN" >> "$GITHUB_OUTPUT"
           echo "Date trading_day=$IS_OPEN"
 
-      - name: Run volume-price post-close scan (Bark plan pool)
+      - name: Run volume-price post-close scan (Bark plan pool + 无信号回执)
         if: steps.calendar.outputs.is_open == 'true'
         run: python tools/volume_price_scan.py --no-track
