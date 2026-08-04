@@ -5,6 +5,11 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger('monitor')
 TRACK_FILE = 'data/picks_tracking.json'
+try:
+    import momentum.tools.tracking_utils as _tu
+    TRACK_FILE = _tu.TRACK_FILE  # 统一用绝对路径, 与 expire_old_picks 同源
+except Exception:
+    pass
 
 def load():
     try:
@@ -45,6 +50,15 @@ def notify(title, msg):
 
 def run():
     logger.info("[Monitor] scanning...")
+    # 定时清理: 删除 N 天前的过期计划/观察记录(保护 MANUAL/HOLDING 真实持仓)
+    try:
+        from momentum.tools.tracking_utils import expire_old_picks
+        ttl = int(os.environ.get('PICK_TTL_DAYS', '5'))
+        n_exp = expire_old_picks(ttl_days=ttl)
+        if n_exp:
+            logger.info("[Monitor] 自动清理 %d 只过期记录(>%d天)", n_exp, ttl)
+    except Exception as e:
+        logger.warning("[Monitor] 过期清理失败(跳过): %s", e)
     tracking = load()
     updated = False; alerts = []
     for i, p in enumerate(tracking):

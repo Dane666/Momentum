@@ -1,0 +1,214 @@
+{
+  "baseline": {
+    "hold": 20,
+    "stop": -0.05,
+    "n": 43,
+    "winrate": 32.6,
+    "avg_ret": 1.81,
+    "total_ret": 16.15,
+    "sharpe": 0.394,
+    "maxdd": -14.27,
+    "reasons": {
+      "止损": 23,
+      "持有到期": 20
+    }
+  },
+  "pressure_best": {
+    "sell_buf": 0.02,
+    "cap": 20,
+    "n": 50,
+    "winrate": 52.0,
+    "avg_ret": 1.4,
+    "total_ret": 22.89,
+    "sharpe": 0.84,
+    "maxdd": -6.72,
+    "reasons": {
+      "止损": 20,
+      "压力位卖出": 22,
+      "未达压力到期": 8
+    }
+  },
+  "pressure_grid": [
+    {
+      "sell_buf": 0.0,
+      "cap": 20,
+      "n": 47,
+      "winrate": 42.6,
+      "avg_ret": 1.13,
+      "total_ret": 15.84,
+      "sharpe": 0.592,
+      "maxdd": -9.11,
+      "reasons": {
+        "止损": 22,
+        "压力位卖出": 14,
+        "未达压力到期": 11
+      }
+    },
+    {
+      "sell_buf": 0.0,
+      "cap": 30,
+      "n": 43,
+      "winrate": 34.9,
+      "avg_ret": -0.37,
+      "total_ret": -7.95,
+      "sharpe": -0.208,
+      "maxdd": -18.8,
+      "reasons": {
+        "止损": 28,
+        "压力位卖出": 13,
+        "未达压力到期": 2
+      }
+    },
+    {
+      "sell_buf": 0.0,
+      "cap": 45,
+      "n": 41,
+      "winrate": 31.7,
+      "avg_ret": -1.04,
+      "total_ret": -16.15,
+      "sharpe": -0.583,
+      "maxdd": -25.93,
+      "reasons": {
+        "止损": 28,
+        "压力位卖出": 11,
+        "未达压力到期": 2
+      }
+    },
+    {
+      "sell_buf": 0.01,
+      "cap": 20,
+      "n": 49,
+      "winrate": 46.9,
+      "avg_ret": 1.2,
+      "total_ret": 17.69,
+      "sharpe": 0.676,
+      "maxdd": -9.05,
+      "reasons": {
+        "止损": 22,
+        "压力位卖出": 19,
+        "未达压力到期": 8
+      }
+    },
+    {
+      "sell_buf": 0.01,
+      "cap": 30,
+      "n": 47,
+      "winrate": 44.7,
+      "avg_ret": 0.57,
+      "total_ret": 4.55,
+      "sharpe": 0.228,
+      "maxdd": -13.72,
+      "reasons": {
+        "止损": 26,
+        "压力位卖出": 19,
+        "未达压力到期": 2
+      }
+    },
+    {
+      "sell_buf": 0.01,
+      "cap": 45,
+      "n": 46,
+      "winrate": 43.5,
+      "avg_ret": 0.46,
+      "total_ret": 2.12,
+      "sharpe": 0.144,
+      "maxdd": -13.59,
+      "reasons": {
+        "止损": 26,
+        "压力位卖出": 18,
+        "未达压力到期": 2
+      }
+    },
+    {
+      "sell_buf": 0.02,
+      "cap": 20,
+      "n": 50,
+      "winrate": 52.0,
+      "avg_ret": 1.4,
+      "total_ret": 22.89,
+      "sharpe": 0.84,
+      "maxdd": -6.72,
+      "reasons": {
+        "止损": 20,
+        "压力位卖出": 22,
+        "未达压力到期": 8
+      }
+    },
+    {
+      "sell_buf": 0.02,
+      "cap": 30,
+      "n": 47,
+      "winrate": 48.9,
+      "avg_ret": 0.75,
+      "total_ret": 8.06,
+      "sharpe": 0.376,
+      "maxdd": -11.61,
+      "reasons": {
+        "止损": 22,
+        "压力位卖出": 21,
+        "未达压力到期": 4
+      }
+    },
+    {
+      "sell_buf": 0.02,
+      "cap": 45,
+      "n": 46,
+      "winrate": 47.8,
+      "avg_ret": 0.6,
+      "total_ret": 5.24,
+      "sharpe": 0.272,
+      "maxdd": -11.68,
+      "reasons": {
+        "止损": 23,
+        "压力位卖出": 20,
+        "未达压力到期": 3
+      }
+    },
+    {
+      "sell_buf": 0.03,
+      "cap": 20,
+      "n": 52,
+      "winrate": 51.9,
+      "avg_ret": 1.01,
+      "total_ret": 15.84,
+      "sharpe": 0.585,
+      "maxdd": -9.78,
+      "reasons": {
+        "止损": 21,
+        "压力位卖出": 24,
+        "未达压力到期": 7
+      }
+    },
+    {
+      "sell_buf": 0.03,
+      "cap": 30,
+      "n": 49,
+      "winrate": 49.0,
+      "avg_ret": 0.61,
+      "total_ret": 7.37,
+      "sharpe": 0.326,
+      "maxdd": -13.27,
+      "reasons": {
+        "止损": 23,
+        "压力位卖出": 23,
+        "未达压力到期": 3
+      }
+    },
+    {
+      "sell_buf": 0.03,
+      "cap": 45,
+      "n": 48,
+      "winrate": 50.0,
+      "avg_ret": 0.69,
+      "total_ret": 8.24,
+      "sharpe": 0.358,
+      "maxdd": -12.47,
+      "reasons": {
+        "止损": 23,
+        "压力位卖出": 23,
+        "未达压力到期": 2
+      }
+    }
+  ],
+  "conclusion": "压力位卖出提高收益"
+}

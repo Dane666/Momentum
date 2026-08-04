@@ -24,7 +24,7 @@ import json
 import logging
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO,
@@ -100,6 +100,69 @@ def _sync_db(recs, db_path=None):
         logger.info("[tracking] DB 同步 %d 只", len(recs))
     except Exception as e:
         logger.warning("[tracking] DB 同步失败(不影响 json 监控): %s", e)
+
+
+def _delete_from_db(recs, db_path=None):
+    """从 stock_picks 表删除指定记录(与 json 清理保持一致)。"""
+    if not recs:
+        return
+    try:
+        con = sqlite3.connect(_db_path(db_path))
+        cur = con.cursor()
+        for r in recs:
+            cur.execute(
+                'DELETE FROM stock_picks WHERE date=? AND code=? AND type=?',
+                (r.get('date'), r.get('code'), r.get('type')))
+        con.commit()
+        con.close()
+    except Exception as e:
+        logger.warning("[tracking] DB 清理失败(不影响 json): %s", e)
+
+
+def expire_old_picks(ttl_days: int = 5, statuses: tuple = ('PLAN', 'WATCHING'),
+                     track_file: str = None, db_path: str = None) -> int:
+    """定时清理: 删除 date 早于 ttl_days 天且 status 在 statuses 内的旧记录。
+
+    设计: 仅清理"计划/观察类"记录(PLAN 盘后计划池, WATCHING 模拟观察股)。
+    真实持仓(MANUAL / HOLDING)永不被自动删除, 避免误清导致止损监控丢失。
+    date 字段缺失或格式异常者保守保留(不删)。
+    返回被删除条数。
+    """
+    track_file = track_file or TRACK_FILE
+    if not os.path.exists(track_file):
+        return 0
+    try:
+        tracking = json.loads(Path(track_file).read_text(encoding='utf-8'))
+    except Exception:
+        return 0
+    if not tracking:
+        return 0
+    cutoff = datetime.now() - timedelta(days=ttl_days)
+    kept, removed = [], []
+    for p in tracking:
+        st = p.get('status')
+        if st in statuses:
+            d = p.get('date', '')
+            try:
+                pd_ = datetime.strptime(d, '%Y-%m-%d')
+            except Exception:
+                kept.append(p)  # 无有效日期 -> 保留
+                continue
+            if pd_ < cutoff:
+                removed.append(p)
+                continue
+        kept.append(p)
+    if removed:
+        try:
+            Path(track_file).write_text(
+                json.dumps(kept, ensure_ascii=False, indent=2), encoding='utf-8')
+            logger.info("[tracking] 清理 %d 只过期记录(>%d天, status=%s)",
+                        len(removed), ttl_days, statuses)
+        except Exception as e:
+            logger.error("[tracking] 写入清理结果失败: %s", e)
+            return 0
+        _delete_from_db(removed, db_path)
+    return len(removed)
 
 
 def add_picks(picks: list, pick_type: str, sl_ratio: float = 0.95,
