@@ -159,6 +159,19 @@ jobs:
           echo "is_open=$IS_OPEN" >> "$GITHUB_OUTPUT"
           echo "Date trading_day=$IS_OPEN"
 
-      - name: Run volume-price post-close scan (Bark plan pool + 无信号回执)
+      - name: Run volume-price post-close scan (登记计划池 PLAN + Bark + 无信号回执)
+        # 注意: 此处不再使用 --no-track, 让价量 PLAN 写入 data/picks_tracking.json(统一真相源),
+        #       由 position-monitor 的 5天自动清理(expire_old_picks)负责过期移除, 并随下方 push 回流仓库.
         if: steps.calendar.outputs.is_open == 'true'
-        run: python tools/volume_price_scan.py --no-track
+        run: python tools/volume_price_scan.py
+
+      - name: Push plan pool (PLAN) to repo
+        # 把 CI 登记的价量 PLAN 写回仓库, 使 GitHub 上的 data/picks_tracking.json 能体现
+        # "出现 -> 5天后被 expire_old_picks 清理" 的真实效果. 与 momentum-scan/position-monitor
+        # 的 push 同样先 rebase 再提交, 规避并发 push 冲突.
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/picks_tracking.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "No changes"; else git pull --rebase origin main && git commit -m "auto: volume-price scan plan pool" && git push origin main; fi

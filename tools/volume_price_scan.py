@@ -182,6 +182,30 @@ def bark_push(title, body):
         logger.warning(f"Bark 推送失败: {e}")
 
 
+def _held_codes():
+    """返回已在真实持仓(HOLDING/MANUAL/TRIGGERED)中的股票代码集合, 供扫描排除噪音。
+
+    用途: 已买入并登记真实持仓的票, 次日盘后不应再出现在计划池(避免重复提醒)。
+    读取统一真相源 data/picks_tracking.json(绝对路径, 与 expire_old_picks 同源)。
+    """
+    try:
+        from tools.tracking_utils import TRACK_FILE
+        from pathlib import Path as _Path
+        import json as _json
+        if not _Path(TRACK_FILE).exists():
+            return set()
+        recs = _json.loads(_Path(TRACK_FILE).read_text(encoding="utf-8"))
+        out = set()
+        for r in recs:
+            if r.get("status") in ("HOLDING", "MANUAL", "TRIGGERED"):
+                code = str(r.get("code") or "").strip()
+                if code:
+                    out.add(code)
+        return out
+    except Exception:
+        return set()
+
+
 def run(scan_date=None, top_n=20, no_track=False, no_bark=False, bull_only=True):
     H = _load_harness()
     ctx = H.load_kline()
@@ -204,6 +228,15 @@ def run(scan_date=None, top_n=20, no_track=False, no_bark=False, bull_only=True)
 
     cands = detect(ctx, cal, ts, names, hot_at, regime, bull_only=bull_only)
     cands = rank(cands, top_n)
+    # 排除已在真实持仓(HOLDING/MANUAL/TRIGGERED)的票, 避免计划池噪音与重复登记
+    held = _held_codes()
+    if held:
+        kept = [c for c in cands if str(c["code"]) not in held]
+        if len(kept) != len(cands):
+            logger.info("排除已在持仓的 %d 只: %s",
+                        len(cands) - len(kept),
+                        sorted(set(str(c["code"]) for c in cands) & held))
+        cands = kept
     picks = build_picks(cands)
 
     # ---- 控制台报告 ----
