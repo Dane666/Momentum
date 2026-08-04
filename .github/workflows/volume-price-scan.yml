@@ -12,7 +12,16 @@ name: volume-price-scan
 #   是滞后的根因, 已弃用. 首次/缓存未命中则下载基准库, 后续命中 state-vpscan 缓存仅补 1 日, 极快.
 #
 # Triggers:
-#   Primary:  GitHub schedule cron               15:30 CST (工作日盘后)
+#   Primary:  cron-job.org → POST workflow_dispatch API   15:30 CST (precision ±1s, 可靠)
+#             (本项目 momentum-scan 即用此方式作主触发; GitHub 原生 schedule 已证实在本仓库
+#              不可靠 —— momentum-scan 的 schedule 自 2026-07 起停发, volume-price-scan 从未被
+#              schedule 触发过. 故本 workflow 依赖 GitHub schedule 会"漏跑", 必须靠 cron-job.org.)
+#             cron-job.org 作业示例(POST):
+#               URL:  https://api.github.com/repos/Dane666/Momentum/actions/workflows/volume-price-scan.yml/dispatches
+#               Method: POST   Headers: Accept: application/vnd.github+json
+#                        Authorization: Bearer <GH_PAT_with_workflow_scope>
+#               Body(JSON): {"ref":"main"}
+#   Backup:   GitHub schedule cron               15:30 CST (本文件下方, 仅作兜底, 可能漏跑)
 #   Manual:   GitHub UI "Run workflow" button / gh workflow run
 #
 on:
