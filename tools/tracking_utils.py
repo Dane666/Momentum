@@ -207,9 +207,11 @@ def add_picks(picks: list, pick_type: str, sl_ratio: float = 0.95,
             continue
         rec = dict(date=date, code=code, name=p.get('name') or code,
                    price=round(price, 2),
-                   sl_price=round(price * sl_ratio, 2),
-                   tp_price=round(price * tp_ratio, 2),
-                   status=p.get('status', status), type=pick_type)
+                   sl_price=round(p.get('sl_price', price * sl_ratio), 2),
+                   tp_price=round(p.get('tp_price', price * tp_ratio), 2),
+                   status=p.get('status', status), type=pick_type,
+                   support=round(p['support'], 2) if p.get('support') is not None else None,
+                   pressure=round(p['pressure'], 2) if p.get('pressure') is not None else None)
         tracking.append(rec)
         new_recs.append(rec)
         seen.add(key)

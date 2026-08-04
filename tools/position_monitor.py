@@ -107,6 +107,32 @@ def run():
             alerts.append(line)
         else:
             logger.info(f"  {p['code']} {p['name']} ¥{current:.2f} {pnl:+.1f}% SL=¥{sl:.2f}")
+
+    # ---- 计划池(VP_*) 止盈目标提醒: 仅提醒"触及压力位", 不做止损(计划非实盘持仓) ----
+    for i, p in enumerate(tracking):
+        if p.get('status') != 'PLAN':
+            continue
+        if p.get('type') not in ('VP_BREAKOUT', 'VP_PULLBACK'):
+            continue
+        tp = p.get('tp_price')
+        if not tp:
+            continue
+        if p.get('tp_notified'):
+            continue
+        current = fetch_price(p['code'])
+        if current is None:
+            continue
+        if current >= tp:
+            tracking[i]['tp_notified'] = True
+            updated = True
+            sup = p.get('support') or p.get('price')
+            pres = p.get('pressure') or tp
+            alerts.append(
+                f"🎯 【价量计划·止盈目标达成】{p['name']}({p['code']})\n"
+                f"已触及压力位 ¥{tp:.2f}！\n"
+                f"买点(支撑): ¥{sup:.2f}  卖点(压力): ¥{pres:.2f}  当前: ¥{current:.2f}\n"
+                f"可考虑逢高止盈(涨至压力位附近卖出)。")
+
     if updated:
         save(tracking)
         notify("💼 持仓提醒", "\n".join(alerts))
