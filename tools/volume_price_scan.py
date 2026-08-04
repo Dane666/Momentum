@@ -209,18 +209,27 @@ def run(scan_date=None, top_n=20, no_track=False, no_bark=False, bull_only=True)
         n2 = add_picks(p, "VP_PULLBACK", sl_ratio=0.95, tp_ratio=1.10, status="PLAN") if p else 0
         logger.info(f"登记计划池: 突破{n1} 回踩{n2}")
 
-    # ---- 直接 Bark 结构化计划池 ----
-    if not no_bark and picks:
-        lines = [f"📐 价量盘后计划池 | {ts}", f"环境:{rg}"]
-        for k, label in (("breakout", "突破放量"), ("pullback", "缩量回踩")):
-            sub = [c for c in cands if c["kind"] == k]
-            if not sub:
-                continue
-            lines.append(f"【{label}】(次日盘中回踩支撑位低吸)")
-            for c in sub:
-                lines.append(f"  {c['code']} {c['name']} 支撑¥{c['support']} 空间{c['gap']}%")
-        lines.append("操作: 盘中量比确认回踩支撑位附近低吸, 不回踩不买")
-        bark_push(f"价量盘后计划池 {ts}", "\n".join(lines))
+    # ---- 直接 Bark 结构化计划池(含"无信号"回执) ----
+    if not no_bark:
+        if picks:
+            lines = [f"📐 价量盘后计划池 | {ts}", f"环境:{rg}"]
+            for k, label in (("breakout", "突破放量"), ("pullback", "缩量回踩")):
+                sub = [c for c in cands if c["kind"] == k]
+                if not sub:
+                    continue
+                lines.append(f"【{label}】(次日盘中回踩支撑位低吸)")
+                for c in sub:
+                    lines.append(f"  {c['code']} {c['name']} 支撑¥{c['support']} 空间{c['gap']}%")
+            lines.append("操作: 盘中量比确认回踩支撑位附近低吸, 不回踩不买")
+            bark_push(f"价量盘后计划池 {ts}", "\n".join(lines))
+            logger.info(f"已推送计划池 Bark ({len(picks)} 只)")
+        else:
+            # 无信号回执: 让用户确认扫描已执行(熊市/无板块共振等均可能为空, 避免静默误以为未跑)
+            reason = ("熊市门禁已放弃所有信号" if (bull_only and rg == "bear")
+                      else "无符合板块主线共振的价量信号")
+            bark_push(f"价量盘后计划池 {ts}",
+                      f"✅ 扫描完成 | 大盘环境:{rg}\n今日无符合条件信号\n({reason})\n次日继续监控")
+            logger.info("已推送无信号回执 Bark")
 
     # ---- 存计划池 JSON(含操作提示) ----
     try:
