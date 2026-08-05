@@ -27,8 +27,24 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-sys.path.insert(0, str(ROOT))
+# opt_study 同级纯信号模块(volume_price_strategy)按文件路径 import
 sys.path.insert(0, str(ROOT / "opt_study"))
+# 让 `import momentum` 在 CI 可解析: 兼容仓库目录名大写 Momentum 与大小写敏感文件系统。
+#   把仓库父目录加入 sys.path, 并兜底用 importlib 直接把 ROOT/__init__.py 注册为 momentum 包。
+#   (其余 scan 脚本 c_tail_scan/low_quality_scan/leader_scan 均用此引导; 此前本文件只加了 ROOT
+#    自身且缺兜底, 导致 CI 上 `from momentum.tools.position_sizing import ...` 抛 ModuleNotFoundError)
+_sys_parent = str(ROOT.parent)
+if _sys_parent not in sys.path:
+    sys.path.insert(0, _sys_parent)
+try:
+    import momentum as _m  # noqa: F401
+except ImportError:
+    _spec = importlib.util.spec_from_file_location(
+        "momentum", ROOT / "__init__.py", submodule_search_locations=[str(ROOT)])
+    if _spec and _spec.loader:
+        _mod = importlib.util.module_from_spec(_spec)
+        sys.modules["momentum"] = _mod
+        _spec.loader.exec_module(_mod)
 
 logger = logging.getLogger("vol_price_scan")
 
