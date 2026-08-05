@@ -24,13 +24,13 @@ import pandas as pd
 
 # 信号参数(对应通达信公式默认/文中建议)
 N_BREAK = 60            # 突破天数
-VOL_RATIO = 2.0         # 放量倍数(相对5日均量)
-SOLID_MIN_PCT = 3.0     # 中阳最低涨幅%
+VOL_RATIO = 1.5         # 放量倍数(相对5日均量)
+SOLID_MIN_PCT = 4.0     # 中阳最低涨幅%
 HAD_RAISE_PCT = 4.0     # 近10日放量拉升阈值
 HAD_RAISE_VOL = 1.5     # 放量拉升量比(相对5日均量)
 NEAR_MA_LO = 0.98       # 回踩20日线下沿
 NEAR_MA_HI = 1.03       # 回踩20日线上沿
-VOL_SHRINK = 0.6        # 缩量阈值(相对5日均量)
+VOL_SHRINK = 0.7        # 缩量阈值(相对5日均量)
 PLAT_MIN = 40           # 突破前横盘最小天数(平台长度过滤)
 
 
@@ -189,7 +189,7 @@ def build_regime(cal, nav):
 # 通达信/同花顺公式源码(供用户直接复制使用, 见报告)
 TDX_FORMULAS = {
     "突破放量": """
-{N:=60; VOL_RATIO:=2.0;}
+{N:=60; VOL_RATIO:=1.5;}
 PRE_HHV:=REF(HHV(MAX(C,O), 60), 1);
 BREAKOUT:=C > PRE_HHV;
 VOL_UP:=VOL > REF(MA(VOL,5), 1) * 2.0;
@@ -202,7 +202,7 @@ MA60:=MA(C,60);
 TREND:=MA20 > MA60 AND C > MA60;
 HAD_RAISE:=COUNT((C-REF(C,1))/REF(C,1)*100 > 4 AND VOL > MA(VOL,5)*1.5, 10) >= 1;
 NEAR_MA:=BETWEEN(L, MA20 * 0.98, MA20 * 1.03) AND C >= MA20;
-VOL_SHRINK:=VOL < MA(VOL,5) * 0.6;
+VOL_SHRINK:=VOL < MA(VOL,5) * 0.7;
 XG: TREND AND HAD_RAISE AND NEAR_MA AND VOL_SHRINK;
 """,
 }
