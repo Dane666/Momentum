@@ -206,7 +206,7 @@ def _held_codes():
     读取统一真相源 data/picks_tracking.json(绝对路径, 与 expire_old_picks 同源)。
     """
     try:
-        from tools.tracking_utils import TRACK_FILE
+        from momentum.tools.tracking_utils import TRACK_FILE
         from pathlib import Path as _Path
         import json as _json
         if not _Path(TRACK_FILE).exists():
@@ -226,8 +226,8 @@ def _held_codes():
 def run(scan_date=None, top_n=20, no_track=False, no_bark=False, bull_only=True):
     # 尾部风险门禁: 系统性暴跌时暂停选股(不改动选股逻辑, 仅尾部保护)
     try:
-        from tools.risk_gate import crash_guard
-        from tools.tracking_utils import bark_notify
+        from momentum.tools.risk_gate import crash_guard
+        from momentum.tools.tracking_utils import bark_notify
         _halt, _reason = crash_guard()
         if _halt:
             logger.warning("风险门禁触发, 暂停选股: %s", _reason)
@@ -287,7 +287,7 @@ def run(scan_date=None, top_n=20, no_track=False, no_bark=False, bull_only=True)
 
     # ---- 登记计划池(PLAN 状态, position_monitor 仅监控压力位止盈提醒, 不做止损) ----
     if not no_track and picks:
-        from tools.tracking_utils import add_picks
+        from momentum.tools.tracking_utils import add_picks
         b = [dict(code=p["code"], name=p["name"], price=p["support"], status="PLAN",
                   sl_price=p["sl_price"], tp_price=p["tp_price"],
                   support=p["support"], pressure=p["pressure"])
