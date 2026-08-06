@@ -35,7 +35,7 @@ jobs:
           python -m pip install -q --upgrade pip
           # lightgbm 固定为训练版本 4.7.0: 模型 pkl 用 4.7.0 训练, 跨版本反序列化会报
           # 'super' object has no attribute 'get_params' (sklearn 包装器类层级不匹配).
-          pip install -q "pandas" "numpy" "lightgbm==4.7.0" "pyarrow"
+          pip install -q "pandas" "numpy" "lightgbm==4.7.0" "pyarrow" "requests"
 
       - name: Restore market DB (release db-baseline-v1)
         run: |
@@ -131,19 +131,21 @@ jobs:
           BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
         run: |
           python - <<'PY'
-          import json, os, urllib.request
+          import sys, json, glob
           from pathlib import Path
-          import glob
-          fs=sorted(glob.glob("tasks/model_inference/output/topk_*.json"))
+          import importlib.util
+          # 引导 momentum 包以复用已验证的 bark_notify(POST /push, 正确处理 device_key)
+          p = Path('.').resolve(); sys.path.insert(0, str(p.parent))
+          s = importlib.util.spec_from_file_location('momentum', p/'__init__.py', submodule_search_locations=[str(p)])
+          m = importlib.util.module_from_spec(s); sys.modules['momentum']=m; s.loader.exec_module(m)
+          from momentum.tools.tracking_utils import bark_notify
+          fs = sorted(glob.glob("tasks/model_inference/output/topk_*.json"))
           if not fs:
               print("无 topk 文件"); raise SystemExit(0)
-          data=json.loads(Path(fs[-1]).read_text())
-          picks=data.get("picks",[])
-          key=os.environ.get("BARK_DEVICE_KEY","")
-          if not key: print("未配置 BARK_DEVICE_KEY"); raise SystemExit(0)
-          title=f"🤖 LightGBM 模型推荐 Top{len(picks)} ({data.get('date')})"
-          body="\n".join(f"{p['code']} 分{p['score']:.3f} @{p['close']}" for p in picks) or "无候选"
-          url=f"https://api.day.app/{key}/{urllib.parse.quote(title)}/{urllib.parse.quote(body)}"
-          urllib.request.urlopen(url, timeout=10)
-          print("Bark 推送成功")
+          data = json.loads(Path(fs[-1]).read_text())
+          picks = data.get("picks", [])
+          title = f"🤖 LightGBM 模型推荐 Top{len(picks)} ({data.get('date')})"
+          body = "\n".join(f"{pk['code']} 分{pk['score']:.3f} @{pk['close']}" for pk in picks) or "无候选"
+          bark_notify(title, body)
+          print("Bark 推送完成")
           PY
