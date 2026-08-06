@@ -32,7 +32,9 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install -q --upgrade pip
-          pip install -q pandas numpy lightgbm pyarrow
+          # lightgbm 固定为训练版本 4.7.0: 模型 pkl 用 4.7.0 训练, 跨版本反序列化会报
+          # 'super' object has no attribute 'get_params' (sklearn 包装器类层级不匹配).
+          pip install -q "pandas" "numpy" "lightgbm==4.7.0" "pyarrow"
 
       - name: Restore market DB (release db-baseline-v1)
         run: |
