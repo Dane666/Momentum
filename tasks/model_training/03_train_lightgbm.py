@@ -91,6 +91,13 @@ def main():
     with open(MODELS / 'model_v1.pkl', 'wb') as f:
         pickle.dump({'model': final, 'features': feats, 'target': TARGET,
                      'trained_on': 'train+val', 'metrics': metrics}, f)
+    # 原生 Booster 文本格式(版本无关): 避免 sklearn 包装器 pickle 跨版本 get_params 报错.
+    # CI 推理端 load_model 优先加载 model_v1.txt.
+    try:
+        final.booster_.save_model(str(MODELS / 'model_v1.txt'))
+        print(f'[ok] -> {MODELS/"model_v1.txt"} (Booster 文本格式, 版本无关)')
+    except Exception as e:
+        print(f'[skip] Booster 文本导出失败: {e}')
     (OUT / 'best_params.json').write_text(json.dumps(metrics, indent=2))
     print(f'     train RMSE={metrics["train_rmse"]:.5f}  val RMSE={metrics["val_rmse"]:.5f}'
           f'  过拟合比={metrics["overfit_ratio"]:.3f}')

@@ -95,7 +95,11 @@ def generate_scores(panel_path=None, model_path=None):
 
     pan = pan.dropna(subset=feats)
     pan = pan[pan['close'] >= 1.5]
-    pan['pred'] = model.predict(pan[feats])
+    # Booster.predict 接收 numpy 数组(按训练特征顺序); 兼容 sklearn LGBMRegressor(DataFrame).
+    try:
+        pan['pred'] = model.predict(pan[feats].values)
+    except Exception:
+        pan['pred'] = model.predict(pan[feats])
     date = pd.to_datetime(pan['trade_date']).max().strftime('%Y%m%d')
     OUT = Path('tasks/model_inference/output')
     OUT.mkdir(parents=True, exist_ok=True)

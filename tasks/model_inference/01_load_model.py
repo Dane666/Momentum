@@ -12,6 +12,8 @@ import json
 import pickle
 from pathlib import Path
 
+import lightgbm as lgb
+
 
 def resolve_model_path(override=None):
     if override:
@@ -24,6 +26,15 @@ def resolve_model_path(override=None):
 
 def load_model(model_path=None):
     mp = resolve_model_path(model_path)
+    # 优先用原生 Booster 文本格式(model_v1.txt): 版本无关, 规避 sklearn 包装器
+    # pickle 跨版本卸载时 'super' object has no attribute 'get_params' 报错.
+    txt = mp.parent / (mp.stem + '.txt')
+    if txt.exists():
+        booster = lgb.Booster(model_file=str(txt))
+        meta_path = mp.parent / 'model_meta.json'
+        meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
+        return booster, meta.get('features', []), meta.get('target', 'fwd20'), meta
+    # 兜底: sklearn LGBMRegressor pickle bundle
     if not mp.exists():
         raise FileNotFoundError(f'模型文件不存在: {mp}')
     with open(mp, 'rb') as f:

@@ -3,7 +3,8 @@
 # 作用: 从 GitHub Release 下载最新模型 -> 对当日因子数据打分 -> 输出 Top-K 推荐 -> Bark 推送。
 # 注意: 本工作流独立于现有 volume-price-scan(规则策略), 产出单独通道的模型推荐,
 #       不写入生产选股/不修改现有策略(纯只读 Bark 推荐, 不自动交易)。
-# 模型资产: 已发布至 release `lgbm-model-v1` (model_v1.pkl + model_meta.json), 本工作流运行时下载。
+# 模型资产: 已发布至 release `lgbm-model-v1` (model_v1.txt 原生 Booster 文本 + model_v1.pkl 兜底 + model_meta.json),
+#       本工作流运行时下载. 推理端 load_model 优先用 model_v1.txt(版本无关, 规避 sklearn 包装器 pickle 跨版本报错).
 # 激活: 已启用 schedule(15:30 CST 兜底) + workflow_dispatch(主触发由 cron-job.org POST, 见 docs/cron-job-daily-inference.md).
 name: daily-inference
 
@@ -111,9 +112,11 @@ jobs:
         run: |
           gh release download lgbm-model-v1 -p "model_v1.pkl" --clobber
           gh release download lgbm-model-v1 -p "model_meta.json" --clobber
+          gh release download lgbm-model-v1 -p "model_v1.txt" --clobber
           mkdir -p tasks/model_training/models
           mv model_v1.pkl tasks/model_training/models/
           mv model_meta.json tasks/model_training/models/
+          mv model_v1.txt tasks/model_training/models/
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
