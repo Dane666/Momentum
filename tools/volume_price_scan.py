@@ -24,6 +24,7 @@ from datetime import datetime
 
 import importlib.util
 import numpy as np
+import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
