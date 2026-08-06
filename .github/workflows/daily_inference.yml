@@ -1,17 +1,16 @@
-# Phase 2: LightGBM 每日推理工作流 (模板, 待用户激活)
+# Phase 2: LightGBM 每日推理工作流 (已激活, 只读推荐通道)
 # ---------------------------------------------------------------
 # 作用: 从 GitHub Release 下载最新模型 -> 对当日因子数据打分 -> 输出 Top-K 推荐 -> Bark 推送。
 # 注意: 本工作流独立于现有 volume-price-scan(规则策略), 产出单独通道的模型推荐,
-#       不写入生产选股/不修改现有策略, 直到用户评估通过后手动切换。
-# 模型资产发布: 由开发者本地跑 tasks/model_training/05_export_model.py 后,
-#               `gh release upload lgbm-model-v1 tasks/model_training/models/model_v1.pkl tasks/model_training/models/model_meta.json`
-# 激活: 当前 on.push 关闭, 仅 workflow_dispatch + schedule(注释中), 由用户决定何时开启。
+#       不写入生产选股/不修改现有策略(纯只读 Bark 推荐, 不自动交易)。
+# 模型资产: 已发布至 release `lgbm-model-v1` (model_v1.pkl + model_meta.json), 本工作流运行时下载。
+# 激活: 已启用 schedule(15:30 CST 兜底) + workflow_dispatch(主触发由 cron-job.org POST, 见 docs/cron-job-daily-inference.md).
 name: daily-inference
 
 on:
+  schedule:
+    - cron: '30 7 * * 1-5'     # 07:30 UTC = 15:30 CST, 周一至周五 (兜底; 主触发见 cron-job.org)
   workflow_dispatch:
-  # schedule:
-  #   - cron: "30 15 * * mon-fri"   # 收盘后 15:30 CST (需 cron-job.org 主触发更稳)
   # repository_dispatch:
   #   types: [daily-inference]
 

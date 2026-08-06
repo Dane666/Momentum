@@ -40,6 +40,11 @@ jobs:
     env:
       TZ: Asia/Shanghai
       BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
+      # (B) 回踩低波动确认: 仅保留 vol60 横截面低分位(健康缩量回踩), 提升回踩胜率.
+      # 回测: 组合胜率 50.6%->59.3%, 20日收益 3.04%->5.30%, 信号 686->369.
+      # 关闭只需删除/清空这两个变量.
+      VP_PULLBACK_LOWVOL: "1"
+      VP_PULLBACK_VOL_THR: "0.33"
 
     steps:
       - name: Checkout
