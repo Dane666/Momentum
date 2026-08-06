@@ -1,0 +1,41 @@
+{
+  "features": [
+    "hist_vol_60",
+    "bias_60",
+    "regime",
+    "cmf_20",
+    "boll_pctb_20",
+    "boll_width_20",
+    "obv",
+    "atr_pct_14",
+    "kdj_j",
+    "hist_vol_ratio",
+    "macd_hist_slope",
+    "obv_ma_ratio",
+    "main_flow_ratio",
+    "mfi_14",
+    "kdj_d",
+    "turn_rank_60",
+    "turn_ma_ratio",
+    "turn_zscore_20",
+    "turn_chg_5",
+    "breakout",
+    "pullback"
+  ],
+  "train_rmse": 0.1388536008659806,
+  "val_rmse": 0.13017290361235262,
+  "best_params": {
+    "n_estimators": 400,
+    "learning_rate": 0.04196786586169485,
+    "num_leaves": 62,
+    "min_child_samples": 400,
+    "subsample": 0.9625753638453614,
+    "colsample_bytree": 0.7222843531092831,
+    "reg_lambda": 0.17503381968343637
+  },
+  "optuna_best_val_rmse": 0.13309820341171844,
+  "n_train": 974941,
+  "n_val": 390608,
+  "n_trainval": 1365549,
+  "overfit_ratio": 0.9374830958686736
+}

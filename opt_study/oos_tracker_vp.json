@@ -2,11 +2,11 @@
   {
     "window_start": "2026-01-31",
     "window_end": "2026-08-04",
-    "n": 9,
-    "total_ret": -0.21,
-    "winrate": 55.6,
-    "sharpe": 0.017,
-    "maxdd": -7.04,
-    "run_at": "2026-08-04T16:24:44"
+    "n": 14,
+    "total_ret": -0.42,
+    "winrate": 50.0,
+    "sharpe": 0.021,
+    "maxdd": -10.68,
+    "run_at": "2026-08-05T10:25:02"
   }
 ]

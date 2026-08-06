@@ -106,8 +106,37 @@ def platform_filter(g, t):
     return (amp < 0.25) and (run_up < 0.40)
 
 
+def build_vol_pct(ctx, cal):
+    """返回 {date_str: {code: vol60_pct}} —— 每只股票60日历史波动率的当日横截面分位。
+    供 pullback 低波动确认使用(低波动回踩=更健康的缩量回踩)。"""
+    vol = {}
+    for code, g in ctx.items():
+        g = ensure_ctx_indicators(g)
+        if g.empty:
+            continue
+        r = np.log(g['close'] / g['close'].shift(1))
+        vol[code] = r.rolling(60).std() * np.sqrt(252)
+    out = {}
+    for t in cal:
+        ts = str(t)[:10]
+        row = {}
+        for code, v in vol.items():
+            try:
+                val = v.loc[t]
+            except Exception:
+                continue
+            if pd.notna(val):
+                row[code] = float(val)
+        if not row:
+            continue
+        pct = pd.Series(row).rank(pct=True)
+        out[ts] = pct.to_dict()
+    return out
+
+
 def build_inv(ctx, cal, names, hot_at, regime, min_history=120,
-              use_theme_resonance=True, bull_only=True):
+              use_theme_resonance=True, bull_only=True,
+              pullback_lowvol=False, vol_pct_at=None, pullback_vol_thr=0.5):
     """构建两套信号索引(已叠加过滤器), 返回 dict:
         {'breakout': {date:[codes]}, 'pullback': {date:[codes]}}
     regime: {date: 'bull'/'bear'/'ranging'} 由调用方用 build_market_proxy 判定。
@@ -158,6 +187,13 @@ def build_inv(ctx, cal, names, hot_at, regime, min_history=120,
             if bool(sig_p.iloc[i]):
                 if not bull_only and rg == "bear":
                     continue
+                # 低波动确认(可选): 仅保留当日 vol60 横截面低分位(健康缩量回踩)
+                if pullback_lowvol:
+                    if vol_pct_at is None:
+                        continue
+                    pct = vol_pct_at.get(ts, {}).get(code)
+                    if pct is None or pct > pullback_vol_thr:
+                        continue
                 inv_p.setdefault(ts, []).append(code)
     return dict(breakout=inv_b, pullback=inv_p)
 

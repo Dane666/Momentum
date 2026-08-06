@@ -108,8 +108,11 @@ def pressure_level(g, i, kind="pullback", N=60):
 
 
 def detect(ctx, cal, ts, names, hot_at, regime,
-           min_history=120, use_theme=True, bull_only=True):
-    """对扫描日 ts 产出候选 list: {code,name,kind,support,close}。"""
+           min_history=120, use_theme=True, bull_only=True,
+           pullback_lowvol=False, vol_pct_at=None, pullback_vol_thr=0.5):
+    """对扫描日 ts 产出候选 list: {code,name,kind,support,close}。
+    pullback_lowvol: 给回踩信号加低波动确认(仅保留 vol60 横截面低分位, 健康缩量回踩)。
+    vol_pct_at: {code: vol60_pct} (扫描日 ts 的横截面分位), 由 run() 预计算。"""
     out = []
     rg = regime.get(ts, "ranging")
     if bull_only and rg == "bear":
@@ -140,6 +143,13 @@ def detect(ctx, cal, ts, names, hot_at, regime,
                             support=round(sup, 2), pressure=round(pres, 2),
                             close=round(close, 2)))
         if sp:
+            # 低波动确认(可选): 仅保留当日 vol60 横截面低分位(健康缩量回踩)
+            if pullback_lowvol:
+                if vol_pct_at is None:
+                    continue
+                pct = vol_pct_at.get(code)
+                if pct is None or pct > pullback_vol_thr:
+                    continue
             sup = support_pullback(g, i)
             pres = pressure_level(g, i, "pullback", 60)
             out.append(dict(code=code, name=name, kind="pullback",
@@ -254,7 +264,29 @@ def run(scan_date=None, top_n=20, no_track=False, no_bark=False, bull_only=True)
     nav = H.build_market_proxy(ctx, cal)
     regime = VS.build_regime(cal, nav)
 
-    cands = detect(ctx, cal, ts, names, hot_at, regime, bull_only=bull_only)
+    # 回踩低波动确认(可选, 默认关): 预计算扫描日 vol60 横截面分位
+    pullback_lowvol = os.environ.get("VP_PULLBACK_LOWVOL", "").lower() in ("1", "true", "yes")
+    vol_pct_at = None
+    pullback_vol_thr = float(os.environ.get("VP_PULLBACK_VOL_THR", "0.5"))
+    if pullback_lowvol:
+        import numpy as _np
+        _vol_map = {}
+        for _code, _g in ctx.items():
+            _g = VS.ensure_ctx_indicators(_g)
+            if _g.empty or ts not in _g.index:
+                continue
+            _r = _np.log(_g["close"] / _g["close"].shift(1))
+            _v = _r.rolling(60).std() * _np.sqrt(252)
+            _val = _v.get(ts)
+            if pd.notna(_val):
+                _vol_map[_code] = float(_val)
+        if _vol_map:
+            vol_pct_at = pd.Series(_vol_map).rank(pct=True).to_dict()
+        logger.info("回踩低波动确认已启用(阈值=%.2f, 覆盖%d只)", pullback_vol_thr, len(_vol_map))
+
+    cands = detect(ctx, cal, ts, names, hot_at, regime, bull_only=bull_only,
+                   pullback_lowvol=pullback_lowvol, vol_pct_at=vol_pct_at,
+                   pullback_vol_thr=pullback_vol_thr)
     cands = rank(cands, top_n)
     # 排除已在真实持仓(HOLDING/MANUAL/TRIGGERED)的票, 避免计划池噪音与重复登记
     held = _held_codes()
@@ -347,7 +379,14 @@ if __name__ == "__main__":
     ap.add_argument("--no-bark", action="store_true")
     ap.add_argument("--no-bull-filter", action="store_true",
                    help="演示/验证用: 关闭熊市放弃(真实盘后扫描应保持默认开)")
+    ap.add_argument("--pullback-lowvol", action="store_true",
+                   help="回踩低波动确认: 仅保留 vol60 横截面低分位(健康缩量回踩), 提升回踩胜率")
+    ap.add_argument("--pullback-vol-thr", type=float, default=0.5,
+                   help="回踩低波动分位阈值(默认0.5)")
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    if a.pullback_lowvol:
+        os.environ["VP_PULLBACK_LOWVOL"] = "1"
+        os.environ["VP_PULLBACK_VOL_THR"] = str(a.pullback_vol_thr)
     run(scan_date=a.date, top_n=a.top, no_track=a.no_track, no_bark=a.no_bark,
         bull_only=not a.no_bull_filter)

@@ -29,3 +29,7 @@ opt_study/kdj_factor_study_result.json
 data/stock_names.json
 # 价量盘后计划池(每日扫描产物, 由 volume_price_scan 生成, 不入库)
 data/volume_price_plan.json
+# LightGBM 模型二进制: 经 GitHub Release 分发(daily_inference.yml 下载), 不入 git
+tasks/model_training/models/
+# 研究中间产物 parquet(可再生, 由 tasks/ 管线生成): 不入 git
+tasks/**/output/*.parquet

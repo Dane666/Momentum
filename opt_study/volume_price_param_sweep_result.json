@@ -1,0 +1,749 @@
+{
+  "in_sample_end": "2026-01-31",
+  "data_end": "2026-08-04",
+  "kinds": {
+    "breakout": {
+      "base": {
+        "params": {
+          "N_BREAK": 60,
+          "VOL_RATIO": 2.0,
+          "SOLID_MIN_PCT": 3.0,
+          "PLAT": [
+            0.25,
+            0.4
+          ],
+          "TOP_K_THEMES": 8
+        },
+        "oos": {
+          "n": 3,
+          "ret": -1.39,
+          "win": 33.3
+        }
+      },
+      "joint_best": {
+        "params": {
+          "N_BREAK": 20,
+          "VOL_RATIO": 1.5,
+          "SOLID_MIN_PCT": 2.0,
+          "PLAT": [
+            0.25,
+            0.4
+          ],
+          "TOP_K_THEMES": 8
+        },
+        "in_sample": {
+          "n": 64,
+          "ret": 88.62,
+          "win": 64.1
+        },
+        "oos": {
+          "n": 12,
+          "ret": 2.96,
+          "win": 41.7
+        }
+      },
+      "knob_in_sample": {
+        "N_BREAK": {
+          "levels": [
+            {
+              "level": 20,
+              "n_ins": 37,
+              "ins_ret": 30.23,
+              "ins_win": 62.2,
+              "oos_n": 6,
+              "oos_ret": -2.23,
+              "oos_win": 50.0
+            },
+            {
+              "level": 30,
+              "n_ins": 36,
+              "ins_ret": 29.78,
+              "ins_win": 61.1,
+              "oos_n": 6,
+              "oos_ret": -2.23,
+              "oos_win": 50.0
+            },
+            {
+              "level": 60,
+              "n_ins": 20,
+              "ins_ret": 22.65,
+              "ins_win": 65.0,
+              "oos_n": 3,
+              "oos_ret": -1.39,
+              "oos_win": 33.3
+            },
+            {
+              "level": 120,
+              "n_ins": 13,
+              "ins_ret": 4.02,
+              "ins_win": 61.5,
+              "oos_n": 2,
+              "oos_ret": 1.45,
+              "oos_win": 50.0
+            }
+          ],
+          "best_level": 20,
+          "best_ins_ret": 30.23,
+          "best_ins_n": 37
+        },
+        "VOL_RATIO": {
+          "levels": [
+            {
+              "level": 1.5,
+              "n_ins": 58,
+              "ins_ret": 59.93,
+              "ins_win": 62.1,
+              "oos_n": 12,
+              "oos_ret": 7.71,
+              "oos_win": 50.0
+            },
+            {
+              "level": 2.0,
+              "n_ins": 37,
+              "ins_ret": 30.23,
+              "ins_win": 62.2,
+              "oos_n": 6,
+              "oos_ret": -2.23,
+              "oos_win": 50.0
+            },
+            {
+              "level": 2.5,
+              "n_ins": 15,
+              "ins_ret": 21.53,
+              "ins_win": 73.3,
+              "oos_n": 1,
+              "oos_ret": 1.93,
+              "oos_win": 100.0
+            }
+          ],
+          "best_level": 1.5,
+          "best_ins_ret": 59.93,
+          "best_ins_n": 58
+        },
+        "SOLID_MIN_PCT": {
+          "levels": [
+            {
+              "level": 2.0,
+              "n_ins": 64,
+              "ins_ret": 88.62,
+              "ins_win": 64.1,
+              "oos_n": 12,
+              "oos_ret": 2.96,
+              "oos_win": 41.7
+            },
+            {
+              "level": 3.0,
+              "n_ins": 58,
+              "ins_ret": 59.93,
+              "ins_win": 62.1,
+              "oos_n": 12,
+              "oos_ret": 7.71,
+              "oos_win": 50.0
+            },
+            {
+              "level": 4.0,
+              "n_ins": 51,
+              "ins_ret": 56.46,
+              "ins_win": 62.7,
+              "oos_n": 9,
+              "oos_ret": 15.04,
+              "oos_win": 66.7
+            }
+          ],
+          "best_level": 2.0,
+          "best_ins_ret": 88.62,
+          "best_ins_n": 64
+        },
+        "PLAT": {
+          "levels": [
+            {
+              "level": [
+                0.2,
+                0.4
+              ],
+              "n_ins": 56,
+              "ins_ret": 38.88,
+              "ins_win": 57.1,
+              "oos_n": 7,
+              "oos_ret": -5.12,
+              "oos_win": 28.6
+            },
+            {
+              "level": [
+                0.25,
+                0.4
+              ],
+              "n_ins": 64,
+              "ins_ret": 88.62,
+              "ins_win": 64.1,
+              "oos_n": 12,
+              "oos_ret": 2.96,
+              "oos_win": 41.7
+            },
+            {
+              "level": [
+                0.35,
+                0.6
+              ],
+              "n_ins": 74,
+              "ins_ret": 44.31,
+              "ins_win": 52.7,
+              "oos_n": 17,
+              "oos_ret": 6.69,
+              "oos_win": 52.9
+            }
+          ],
+          "best_level": [
+            0.25,
+            0.4
+          ],
+          "best_ins_ret": 88.62,
+          "best_ins_n": 64
+        },
+        "TOP_K_THEMES": {
+          "levels": [
+            {
+              "level": 5,
+              "n_ins": 53,
+              "ins_ret": 37.66,
+              "ins_win": 56.6,
+              "oos_n": 10,
+              "oos_ret": 12.32,
+              "oos_win": 60.0
+            },
+            {
+              "level": 8,
+              "n_ins": 64,
+              "ins_ret": 88.62,
+              "ins_win": 64.1,
+              "oos_n": 12,
+              "oos_ret": 2.96,
+              "oos_win": 41.7
+            },
+            {
+              "level": 12,
+              "n_ins": 71,
+              "ins_ret": 18.71,
+              "ins_win": 49.3,
+              "oos_n": 16,
+              "oos_ret": 17.0,
+              "oos_win": 68.8
+            }
+          ],
+          "best_level": 8,
+          "best_ins_ret": 88.62,
+          "best_ins_n": 64
+        }
+      },
+      "knob_oos_sens": {
+        "N_BREAK": {
+          "levels": [
+            {
+              "level": 20,
+              "oos_n": 12,
+              "oos_ret": 2.96,
+              "oos_win": 41.7
+            },
+            {
+              "level": 30,
+              "oos_n": 11,
+              "oos_ret": 0.31,
+              "oos_win": 45.5
+            },
+            {
+              "level": 60,
+              "oos_n": 6,
+              "oos_ret": -1.79,
+              "oos_win": 50.0
+            },
+            {
+              "level": 120,
+              "oos_n": 5,
+              "oos_ret": -5.43,
+              "oos_win": 40.0
+            }
+          ],
+          "oos_best_level": 20,
+          "oos_best_ret": 2.96,
+          "oos_best_n": 12
+        },
+        "VOL_RATIO": {
+          "levels": [
+            {
+              "level": 1.5,
+              "oos_n": 12,
+              "oos_ret": 2.96,
+              "oos_win": 41.7
+            },
+            {
+              "level": 2.0,
+              "oos_n": 6,
+              "oos_ret": -2.23,
+              "oos_win": 50.0
+            },
+            {
+              "level": 2.5,
+              "oos_n": 1,
+              "oos_ret": 1.93,
+              "oos_win": 100.0
+            }
+          ],
+          "oos_best_level": 1.5,
+          "oos_best_ret": 2.96,
+          "oos_best_n": 12
+        },
+        "SOLID_MIN_PCT": {
+          "levels": [
+            {
+              "level": 2.0,
+              "oos_n": 12,
+              "oos_ret": 2.96,
+              "oos_win": 41.7
+            },
+            {
+              "level": 3.0,
+              "oos_n": 12,
+              "oos_ret": 7.71,
+              "oos_win": 50.0
+            },
+            {
+              "level": 4.0,
+              "oos_n": 9,
+              "oos_ret": 15.04,
+              "oos_win": 66.7
+            }
+          ],
+          "oos_best_level": 4.0,
+          "oos_best_ret": 15.04,
+          "oos_best_n": 9
+        },
+        "PLAT": {
+          "levels": [
+            {
+              "level": [
+                0.2,
+                0.4
+              ],
+              "oos_n": 7,
+              "oos_ret": -5.12,
+              "oos_win": 28.6
+            },
+            {
+              "level": [
+                0.25,
+                0.4
+              ],
+              "oos_n": 12,
+              "oos_ret": 2.96,
+              "oos_win": 41.7
+            },
+            {
+              "level": [
+                0.35,
+                0.6
+              ],
+              "oos_n": 17,
+              "oos_ret": 6.69,
+              "oos_win": 52.9
+            }
+          ],
+          "oos_best_level": [
+            0.35,
+            0.6
+          ],
+          "oos_best_ret": 6.69,
+          "oos_best_n": 17
+        },
+        "TOP_K_THEMES": {
+          "levels": [
+            {
+              "level": 5,
+              "oos_n": 10,
+              "oos_ret": 12.32,
+              "oos_win": 60.0
+            },
+            {
+              "level": 8,
+              "oos_n": 12,
+              "oos_ret": 2.96,
+              "oos_win": 41.7
+            },
+            {
+              "level": 12,
+              "oos_n": 16,
+              "oos_ret": 17.0,
+              "oos_win": 68.8
+            }
+          ],
+          "oos_best_level": 12,
+          "oos_best_ret": 17.0,
+          "oos_best_n": 16
+        }
+      }
+    },
+    "pullback": {
+      "base": {
+        "params": {
+          "HAD_RAISE_PCT": 4.0,
+          "HAD_RAISE_VOL": 1.5,
+          "NEAR": [
+            0.98,
+            1.03
+          ],
+          "VOL_SHRINK": 0.6,
+          "TOP_K_THEMES": 8
+        },
+        "oos": {
+          "n": 9,
+          "ret": -0.21,
+          "win": 55.6
+        }
+      },
+      "joint_best": {
+        "params": {
+          "HAD_RAISE_PCT": 4.0,
+          "HAD_RAISE_VOL": 1.2,
+          "NEAR": [
+            0.98,
+            1.03
+          ],
+          "VOL_SHRINK": 0.7,
+          "TOP_K_THEMES": 5
+        },
+        "in_sample": {
+          "n": 70,
+          "ret": 82.49,
+          "win": 57.1
+        },
+        "oos": {
+          "n": 17,
+          "ret": 2.7,
+          "win": 47.1
+        }
+      },
+      "knob_in_sample": {
+        "HAD_RAISE_PCT": {
+          "levels": [
+            {
+              "level": 3.0,
+              "n_ins": 42,
+              "ins_ret": 11.2,
+              "ins_win": 50.0,
+              "oos_n": 9,
+              "oos_ret": -0.21,
+              "oos_win": 55.6
+            },
+            {
+              "level": 4.0,
+              "n_ins": 41,
+              "ins_ret": 14.68,
+              "ins_win": 51.2,
+              "oos_n": 9,
+              "oos_ret": -0.21,
+              "oos_win": 55.6
+            },
+            {
+              "level": 5.0,
+              "n_ins": 33,
+              "ins_ret": 4.02,
+              "ins_win": 45.5,
+              "oos_n": 9,
+              "oos_ret": -0.21,
+              "oos_win": 55.6
+            }
+          ],
+          "best_level": 4.0,
+          "best_ins_ret": 14.68,
+          "best_ins_n": 41
+        },
+        "HAD_RAISE_VOL": {
+          "levels": [
+            {
+              "level": 1.2,
+              "n_ins": 51,
+              "ins_ret": 17.32,
+              "ins_win": 49.0,
+              "oos_n": 13,
+              "oos_ret": -3.21,
+              "oos_win": 46.2
+            },
+            {
+              "level": 1.5,
+              "n_ins": 41,
+              "ins_ret": 14.68,
+              "ins_win": 51.2,
+              "oos_n": 9,
+              "oos_ret": -0.21,
+              "oos_win": 55.6
+            },
+            {
+              "level": 2.0,
+              "n_ins": 19,
+              "ins_ret": 0.78,
+              "ins_win": 31.6,
+              "oos_n": 3,
+              "oos_ret": -1.08,
+              "oos_win": 33.3
+            }
+          ],
+          "best_level": 1.2,
+          "best_ins_ret": 17.32,
+          "best_ins_n": 51
+        },
+        "NEAR": {
+          "levels": [
+            {
+              "level": [
+                0.95,
+                1.05
+              ],
+              "n_ins": 56,
+              "ins_ret": 12.33,
+              "ins_win": 48.2,
+              "oos_n": 12,
+              "oos_ret": -6.08,
+              "oos_win": 50.0
+            },
+            {
+              "level": [
+                0.98,
+                1.03
+              ],
+              "n_ins": 51,
+              "ins_ret": 17.32,
+              "ins_win": 49.0,
+              "oos_n": 13,
+              "oos_ret": -3.21,
+              "oos_win": 46.2
+            },
+            {
+              "level": [
+                0.97,
+                1.04
+              ],
+              "n_ins": 53,
+              "ins_ret": 7.19,
+              "ins_win": 47.2,
+              "oos_n": 12,
+              "oos_ret": -6.08,
+              "oos_win": 50.0
+            }
+          ],
+          "best_level": [
+            0.98,
+            1.03
+          ],
+          "best_ins_ret": 17.32,
+          "best_ins_n": 51
+        },
+        "VOL_SHRINK": {
+          "levels": [
+            {
+              "level": 0.5,
+              "n_ins": 21,
+              "ins_ret": -11.22,
+              "ins_win": 33.3,
+              "oos_n": 5,
+              "oos_ret": -5.17,
+              "oos_win": 60.0
+            },
+            {
+              "level": 0.6,
+              "n_ins": 51,
+              "ins_ret": 17.32,
+              "ins_win": 49.0,
+              "oos_n": 13,
+              "oos_ret": -3.21,
+              "oos_win": 46.2
+            },
+            {
+              "level": 0.7,
+              "n_ins": 70,
+              "ins_ret": 48.66,
+              "ins_win": 52.9,
+              "oos_n": 19,
+              "oos_ret": 9.16,
+              "oos_win": 52.6
+            }
+          ],
+          "best_level": 0.7,
+          "best_ins_ret": 48.66,
+          "best_ins_n": 70
+        },
+        "TOP_K_THEMES": {
+          "levels": [
+            {
+              "level": 5,
+              "n_ins": 70,
+              "ins_ret": 82.49,
+              "ins_win": 57.1,
+              "oos_n": 17,
+              "oos_ret": 2.7,
+              "oos_win": 47.1
+            },
+            {
+              "level": 8,
+              "n_ins": 70,
+              "ins_ret": 48.66,
+              "ins_win": 52.9,
+              "oos_n": 19,
+              "oos_ret": 9.16,
+              "oos_win": 52.6
+            },
+            {
+              "level": 12,
+              "n_ins": 74,
+              "ins_ret": 21.62,
+              "ins_win": 47.3,
+              "oos_n": 20,
+              "oos_ret": 5.03,
+              "oos_win": 45.0
+            }
+          ],
+          "best_level": 5,
+          "best_ins_ret": 82.49,
+          "best_ins_n": 70
+        }
+      },
+      "knob_oos_sens": {
+        "HAD_RAISE_PCT": {
+          "levels": [
+            {
+              "level": 3.0,
+              "oos_n": 17,
+              "oos_ret": 2.7,
+              "oos_win": 47.1
+            },
+            {
+              "level": 4.0,
+              "oos_n": 17,
+              "oos_ret": 2.7,
+              "oos_win": 47.1
+            },
+            {
+              "level": 5.0,
+              "oos_n": 16,
+              "oos_ret": -0.5,
+              "oos_win": 43.8
+            }
+          ],
+          "oos_best_level": 3.0,
+          "oos_best_ret": 2.7,
+          "oos_best_n": 17
+        },
+        "HAD_RAISE_VOL": {
+          "levels": [
+            {
+              "level": 1.2,
+              "oos_n": 17,
+              "oos_ret": 2.7,
+              "oos_win": 47.1
+            },
+            {
+              "level": 1.5,
+              "oos_n": 15,
+              "oos_ret": -9.36,
+              "oos_win": 33.3
+            },
+            {
+              "level": 2.0,
+              "oos_n": 6,
+              "oos_ret": -7.33,
+              "oos_win": 16.7
+            }
+          ],
+          "oos_best_level": 1.2,
+          "oos_best_ret": 2.7,
+          "oos_best_n": 17
+        },
+        "NEAR": {
+          "levels": [
+            {
+              "level": [
+                0.95,
+                1.05
+              ],
+              "oos_n": 19,
+              "oos_ret": -4.69,
+              "oos_win": 42.1
+            },
+            {
+              "level": [
+                0.98,
+                1.03
+              ],
+              "oos_n": 17,
+              "oos_ret": 2.7,
+              "oos_win": 47.1
+            },
+            {
+              "level": [
+                0.97,
+                1.04
+              ],
+              "oos_n": 18,
+              "oos_ret": 4.05,
+              "oos_win": 50.0
+            }
+          ],
+          "oos_best_level": [
+            0.97,
+            1.04
+          ],
+          "oos_best_ret": 4.05,
+          "oos_best_n": 18
+        },
+        "VOL_SHRINK": {
+          "levels": [
+            {
+              "level": 0.5,
+              "oos_n": 7,
+              "oos_ret": -12.37,
+              "oos_win": 28.6
+            },
+            {
+              "level": 0.6,
+              "oos_n": 10,
+              "oos_ret": -8.06,
+              "oos_win": 40.0
+            },
+            {
+              "level": 0.7,
+              "oos_n": 17,
+              "oos_ret": 2.7,
+              "oos_win": 47.1
+            }
+          ],
+          "oos_best_level": 0.7,
+          "oos_best_ret": 2.7,
+          "oos_best_n": 17
+        },
+        "TOP_K_THEMES": {
+          "levels": [
+            {
+              "level": 5,
+              "oos_n": 17,
+              "oos_ret": 2.7,
+              "oos_win": 47.1
+            },
+            {
+              "level": 8,
+              "oos_n": 19,
+              "oos_ret": 9.16,
+              "oos_win": 52.6
+            },
+            {
+              "level": 12,
+              "oos_n": 20,
+              "oos_ret": 5.03,
+              "oos_win": 45.0
+            }
+          ],
+          "oos_best_level": 8,
+          "oos_best_ret": 9.16,
+          "oos_best_n": 19
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "features": [
+    "hist_vol_60",
+    "bias_60",
+    "regime",
+    "cmf_20",
+    "boll_pctb_20",
+    "boll_width_20",
+    "obv",
+    "atr_pct_14",
+    "kdj_j",
+    "hist_vol_ratio",
+    "macd_hist_slope",
+    "obv_ma_ratio",
+    "main_flow_ratio",
+    "mfi_14",
+    "kdj_d",
+    "turn_rank_60",
+    "turn_ma_ratio",
+    "turn_zscore_20",
+    "turn_chg_5",
+    "breakout",
+    "pullback"
+  ],
+  "n": 21
+}
