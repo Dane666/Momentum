@@ -61,12 +61,44 @@ jobs:
           PY
 
       - name: Warm latest K-lines (Tencent history API)
+        # 复用 volume-price-scan.yml 已验证的增量预热逻辑(importlib 注册 momentum + 腾讯历史接口补到当日).
         run: |
-          python - <<'PY'
-          import os
-          os.environ["WINDOW_END"]="2099"
-          from momentum.tools.volume_price_scan import _warm_klines_if_needed
-          _warm_klines_if_needed()
+          python <<'PY'
+          import logging, sys, sqlite3, time
+          from pathlib import Path
+          from concurrent.futures import ThreadPoolExecutor, as_completed
+          logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+          p = Path('.').resolve(); sys.path.insert(0, str(p.parent))
+          import importlib.util
+          s = importlib.util.spec_from_file_location('momentum', p/'__init__.py', submodule_search_locations=[str(p)])
+          m = importlib.util.module_from_spec(s); sys.modules['momentum']=m; s.loader.exec_module(m)
+          try:
+              from momentum.data import load_or_fetch_kline, fetch_kline_from_api, init_db
+              init_db()
+              con = sqlite3.connect('qlib_pro_v16.db')
+              codes = [r[0] for r in con.execute(
+                  "SELECT DISTINCT code FROM kline_cache WHERE code GLOB '60*' OR code GLOB '00*' OR code GLOB '30*' OR code GLOB '68*'").fetchall()]
+              con.close()
+              codes = [c for c in codes if 'ST' not in c]
+              print(f"[warm] 目标 {len(codes)} 只 (kline_cache 现有, 增量补最新交易日)", flush=True)
+              t0 = time.time(); ok = fail = 0
+              def w(c):
+                  try:
+                      df = load_or_fetch_kline(c, fetch_kline_from_api, '2024-01-01')
+                      return 1 if (df is not None and not df.empty) else 0
+                  except Exception:
+                      return 0
+              with ThreadPoolExecutor(max_workers=20) as pool:
+                  futs = {pool.submit(w, c): c for c in codes}
+                  for f in as_completed(futs):
+                      r = f.result()
+                      ok += 1 if r else 0; fail += 0 if r else 1
+              print(f"[warm] 完成: {ok} ok / {fail} fail in {time.time()-t0:.0f}s", flush=True)
+              con = sqlite3.connect('qlib_pro_v16.db')
+              print(f"[warm] kline_cache 最新交易日: {con.execute('SELECT MAX(trade_date) FROM kline_cache').fetchone()[0]}", flush=True)
+              con.close()
+          except Exception as e:
+              print(f"[warm] 预热异常(继续, 推理将沿用已有数据): {e}")
           PY
 
       - name: Generate factor panel (当日)
