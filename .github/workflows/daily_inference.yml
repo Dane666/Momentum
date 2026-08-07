@@ -176,12 +176,22 @@ jobs:
               print("无 topk 文件"); raise SystemExit(0)
           data = json.loads(Path(fs[-1]).read_text())
           picks = data.get("picks", [])
-          title = f"🤖 LightGBM 模型推荐 Top{len(picks)} ({data.get('date')})"
+          # 盘中警示: 定时跑在 19:07 CST(收盘后)数据是结算收盘价; 但若用户在盘中手动补跑,
+          # 增量预热拿到的是当日"未收盘"的实时快照 —— 因子/涨停判定都建立在半截 K 线上,
+          # 收盘前仍会变。此时给推送打标, 避免误当成最终推荐直接下单。
+          from datetime import datetime, timezone, timedelta
+          now_cst = datetime.now(timezone(timedelta(hours=8)))
+          intraday = (now_cst.weekday() < 5) and (9*60+15 <= now_cst.hour*60+now_cst.minute <= 15*60+5)
+          flag = "⚠️盘中快照 " if intraday else ""
+          title = f"{flag}🤖 LightGBM 模型推荐 Top{len(picks)} ({data.get('date')})"
           lines = [f"{pk['code']} 分{pk['score']:.3f} @{pk['close']}" for pk in picks] or ["无候选"]
           # 执行规则(已由 06_execution_feasibility 实证: 次日开盘可买 85.7%, 跳空中位数 0.00%;
           # 回踩限价单存在逆向选择, 不采用)。篮子等权, 勿单押。
           lines += ["", "买: 次日开盘价等权买入(勿追回踩低吸)",
                     "卖: 持有10日到期 / 止损-8%", "篮子分散, 单票勿超1/5仓"]
+          if intraday:
+              lines += ["", f"⚠️ 本次于盘中 {now_cst:%H:%M} 运行, 基于未收盘实时快照,",
+                        "收盘前名单仍会变。建议收盘后重跑或直接等 19:07 定时。"]
           body = "\n".join(lines)
           bark_notify(title, body)
           print("Bark 推送完成")
