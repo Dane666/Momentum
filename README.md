@@ -169,7 +169,16 @@ add_picks(picks, 'MY_STRATEGY', sl_ratio=0.92, tp_ratio=1.12)   # 自动算止�
 - 持有 10 日、不止损：**+11.21%**（夏普 0.91，超额 +18.42% vs 全市场 −7.2%）
 - 持有 10 日 + 止损 −8%（报告推荐）：**+3.47%**（夏普 0.39）——止损控回撤但拖累收益
 
-> ⚠️ **部署脱节**：当前 `add_manual_position.py` 默认止损 −5% / `position_monitor` 默认 `HOLD_MAX_DAYS=20`，与研究口径不一致，实际收益率暂无回测背书。模型信号只推 Bark、不自动登记，需手动录入并套用上述参数（详见报告 §6.5 / §6.7）。
+> ✅ **部署已对齐（2026-08-07）**：`add_manual_position.py` 止损 −5%→−8%，新增 `--model` 标志（不叠加止盈、持有 10 日）；`position_monitor` 按每笔 `hold_max_days` 到期（模型=10）。手动录入模型信号即自动套用研究口径（详见报告 §6.7 / §6.5）。
+
+**市场择时闸门：Top10 并非每天都值得买（报告 §6.8）**
+模型是横截面排序 alpha，绝对收益受大盘驱动。2026-H1 实证（116 个开仓日）：
+- 🟢 强势日（上证 ≥MA20，46 天）：Top10 持有10日均值 **+2.04%**、累计 +136%、夏普 5.86
+- 🔴 弱势日（上证 <MA60，69 天）：均值 **−0.59%**、中位 −1.25%、累计 −41%、夏普 −1.54
+- 独立样本 t 检验：弱势−强势均值差 −2.62%（**p=0.018**，显著更差）
+- 闸门价值：仅强势日开仓 总 +136%（夏普 5.86）vs 每天开仓 总 +35%（夏普 1.15）
+
+→ `daily_inference.yml` 的 Bark 推送已接入 `tools/market_timing.py` 三档 verdict（强势全买 / 中性半仓前5 / 弱势观望前3）+ `crash_guard` 暴跌熔断（熔断日推"暂停开仓"）。**弱势日不再无脑推全 10 只。**
 
 **⚠️ 回测数据完整性（重要）**：本地 K 线库自 **2026-07-01 起残缺**（当日仅 ~2300 只、07-29 起仅 ~28 只，正常 ~2950 只），回测须严格截断在 **2026-06-30**，不得触碰残缺段，否则净值会被伪造成 +20% 以上的荒谬值。护栏方法见 **[`docs/skills/backtest-integrity-guardrails/SKILL.md`](docs/skills/backtest-integrity-guardrails/SKILL.md)**（回测窗口严格截断 + 配对 t 检验）。
 
@@ -179,6 +188,8 @@ add_picks(picks, 'MY_STRATEGY', sl_ratio=0.92, tp_ratio=1.12)   # 自动算止�
 - `tasks/model_inference/04_backtest_entry_exit.py` / `05_portfolio_backtest.py`：买卖点 / 组合回测
 - `tasks/model_inference/06_execution_feasibility.py`：成交可行性（买点=次日开盘，回测买价 85.7% 可成交）
 - `tasks/model_inference/07_exit_rule_study.py` + `output/exit_rule_study.json`：卖点规则研究（19 条规则 + 配对 t 检验 + 滚动资金池）
+- `tasks/model_inference/08_timing_gate_study.py` + `output/timing_gate_study.json`：市场择时实证（Top10 非每天值得买）
+- `tools/market_timing.py`：三档择时 verdict + `tools/risk_gate.py`：暴跌硬熔断
 
 ## 因子研究
 

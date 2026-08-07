@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 """手动录入持仓 — Webhook 触发 → 补全名称/止盈止损 → 追加 picks_tracking.json → Bark 通知
 
-两种录入方式:
-  1) 普通持仓(默认): 固定止损 -5% / 止盈 +10% (与回测默认规则一致)
-  2) 价量计划池持仓(--vp): 从 data/volume_price_plan.json 读取该股"买点(支撑)/卖点(压力)",
-     以 压力位 作为实盘止盈目标(对应回测已验证的"触及压力位附近卖出"卖点),
-     止损锚定支撑位(突破 -8% / 缩量回踩 -5%)。登记后自动清除对应的 PLAN 计划池记录,
-     避免"计划提醒"与"实盘卖出提醒"重复推送。
+三种录入方式:
+  1) 普通持仓(默认): 固定止损 -8% / 止盈 +10%
+  2) 模型通道持仓(--model): LightGBM 模型信号实盘登记。
+     对齐 model_inference_report.md §6.7 研究结论 —— 持有 10 日到期 + 止损 -8%,
+     **不叠加止盈**(回测证明模型信号(横截面排序 alpha)叠加压力位/止盈是净负贡献)。
+     登记时写入 hold_max_days=10, position_monitor 据此在第 10 日推"到期减仓"提醒。
+  3) 价量计划池持仓(--vp): 从 data/volume_price_plan.json 读取该股"买点(支撑)/卖点(压力)",
+     以 压力位 作为实盘止盈目标, 止损锚定支撑位(突破 -8% / 缩量回踩 -5%)。
+     登记后自动清除对应的 PLAN 计划池记录, 避免"计划提醒"与"实盘卖出提醒"重复推送。
 
 监控端 position_monitor 在价格触及 压力位 时会推送"⚠️ 实际持仓·压力位卖出"提醒。
 """
@@ -22,8 +25,8 @@ import requests
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger('add_manual')
 
-FIXED_STOP_PCT = 0.05      # 止损 -5%
-TAKE_PROFIT_PCT = 0.10     # 止盈 +10%
+FIXED_STOP_PCT = 0.08      # 止损 -8% (模型通道研究结论: 回测最优止损位)
+TAKE_PROFIT_PCT = 0.10     # 止盈 +10% (普通手动持仓用; --model 不叠加止盈)
 
 # 引导 momentum 包, 复用统一跟踪公共方法(任何策略选股都走 tracking_utils)
 # 本脚本位于仓库根目录, data/ 为其子目录, 故 PROJ = 脚本所在目录(= 仓库根)
@@ -113,6 +116,8 @@ def main():
     ap.add_argument("price", type=float)
     ap.add_argument("--vp", action="store_true",
                     help="价量计划池模式: 用计划池的支撑/压力位作为止损/止盈(压力位卖出)")
+    ap.add_argument("--model", action="store_true",
+                    help="LightGBM 模型通道: 持有10日到期 + 止损-8%% + 不叠加止盈(对齐研究结论)")
     ap.add_argument("--support", type=float, default=None,
                     help="显式指定支撑位(买点), 覆盖/补充计划池")
     ap.add_argument("--pressure", type=float, default=None,
@@ -143,6 +148,7 @@ def main():
                      "请先跑 volume_price_scan 或手动 --support/--pressure")
         sys.exit(1)
 
+    model_mode = a.model and not vp_mode
     # 3. 计算止盈/止损
     if vp_mode:
         sl_ratio = 0.92 if kind == 'breakout' else 0.95  # 突破-8% / 回踩-5%
@@ -150,6 +156,12 @@ def main():
         tp_price = round(pressure, 2)
         note = (f"压力位卖出参考: 买(支撑)¥{support} 卖(压力)¥{pressure}"
                 f"({'突破放量' if kind=='breakout' else '缩量回踩'})")
+    elif model_mode:
+        # 模型通道: 研究结论 (report §6.7) —— 持有10日 + 止损-8% + 不叠加止盈
+        sl_price = round(price * (1 - FIXED_STOP_PCT), 2)
+        tp_price = 1e9          # 不叠加止盈: 价格永不触达, 仅由"持有10日到期"或"-8%止损"退出
+        note = (f"模型通道: 持有10日到期 / 止损-{FIXED_STOP_PCT*100:.0f}% "
+                f"(不叠加止盈, 横截面排序 alpha 叠加形态卖点净负贡献)")
     else:
         sl_price = round(price * (1 - FIXED_STOP_PCT), 2)
         tp_price = round(price * (1 + TAKE_PROFIT_PCT), 2)
@@ -170,12 +182,18 @@ def main():
         entry["support"] = round(support, 2)
         entry["pressure"] = round(pressure, 2)
         entry["vp_exit"] = "pressure"
+    if model_mode:
+        entry["hold_max_days"] = 10   # 对齐研究: 第10日推到期减仓提醒
+        entry["model_channel"] = True
 
     # 5. 统一注册到 position-monitor 监控(公共方法, 自动写 picks_tracking.json + DB)
-    add_picks([entry], 'MANUAL', 1 - FIXED_STOP_PCT, 1 + TAKE_PROFIT_PCT,
-              date=today, status='HOLDING')
+    add_picks([entry], 'MANUAL', 1 - FIXED_STOP_PCT,
+              (1e9 if model_mode else 1 + TAKE_PROFIT_PCT),
+              date=today, status='HOLDING',
+              hold_max_days=(10 if model_mode else None))
     logger.info(f"Added manual position: {code} {name} @ {price}, "
-                f"SL={sl_price}, TP={tp_price}{(' [VP·压力位卖出]' if vp_mode else '')}")
+                f"SL={sl_price}, TP={tp_price}{(' [VP·压力位卖出]' if vp_mode else '')}"
+                f"{(' [MODEL·持有10日]' if model_mode else '')}")
 
     # 6. 登记为真实持仓后, 清除 PLAN 计划池记录(避免重复提醒)
     if vp_mode:
@@ -190,6 +208,14 @@ def main():
             f"止损价: {sl_price}  止盈价(压力位): {tp_price}\n"
             f"日期: {today}\n"
             f"状态: HOLDING — 触及压力位将推送卖出提醒")
+    elif model_mode:
+        body = (
+            f"{name}({code}) 已加入监控(模型通道)\n"
+            f"买入价: {price}\n"
+            f"止损价: {sl_price} (-{FIXED_STOP_PCT*100:.0f}%)\n"
+            f"持有: 满 10 个交易日收盘清仓(不叠加止盈)\n"
+            f"日期: {today}\n"
+            f"状态: HOLDING — 第10日/触及止损将推送提醒")
     else:
         body = (
             f"{name}({code}) 已加入监控\n"

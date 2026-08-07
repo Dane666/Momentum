@@ -171,6 +171,7 @@ jobs:
           s = importlib.util.spec_from_file_location('momentum', p/'__init__.py', submodule_search_locations=[str(p)])
           m = importlib.util.module_from_spec(s); sys.modules['momentum']=m; s.loader.exec_module(m)
           from momentum.tools.tracking_utils import bark_notify
+          from momentum.tools.market_timing import timing_gate
           fs = sorted(glob.glob("tasks/model_inference/output/topk_*.json"))
           if not fs:
               print("无 topk 文件"); raise SystemExit(0)
@@ -182,17 +183,52 @@ jobs:
           from datetime import datetime, timezone, timedelta
           now_cst = datetime.now(timezone(timedelta(hours=8)))
           intraday = (now_cst.weekday() < 5) and (9*60+15 <= now_cst.hour*60+now_cst.minute <= 15*60+5)
+          # ---- 市场择时闸门: 暴跌熔断 / 强势·中性·弱势 ----
+          gate = timing_gate()
+          verdict = gate["verdict"]
+          state = verdict.get("state")
+          label = verdict.get("label", "未知")
+          action = verdict.get("action", "全买 Top10")
+          # 状态 emoji: 熔断⛔ 强势🟢 中性🟡 弱势🔴 未知⚪
+          state_emoji = {"熔断": "⛔", "强势": "🟢", "中性": "🟡",
+                         "弱势": "🔴", "未知": "⚪"}.get(label, "⚪")
+
+          # 暴跌硬熔断 -> 直接推"暂停开仓", 不推买点清单
+          if gate["halt"]:
+              title = f"⛔ LightGBM 暂停开仓 ({data.get('date')})"
+              body = (
+                  f"⛔ 风险门禁触发: {gate['reason']}\n"
+                  f"今日模型 Top{len(picks)} 推荐暂停推送, 不新开仓。\n"
+                  f"已有持仓继续按 持有10日 / 止损-8% 监控。")
+              bark_notify(title, body)
+              print("Bark 推送(熔断暂停):", title)
+              raise SystemExit(0)
+
           flag = "⚠️盘中快照 " if intraday else ""
-          title = f"{flag}🤖 LightGBM 模型推荐 Top{len(picks)} ({data.get('date')})"
-          lines = [f"{pk['code']} 分{pk['score']:.3f} @{pk['close']}" for pk in picks] or ["无候选"]
+          title = f"{flag}{state_emoji} LightGBM Top{len(picks)} {label} ({data.get('date')})"
+          # 按状态决定实际推荐买入的只数(弱势仅前3 / 中性前5 / 强势全10)
+          if state == 'bear':
+              buy_n = min(3, len(picks))
+          elif state == 'ranging':
+              buy_n = min(5, len(picks))
+          else:
+              buy_n = len(picks)
+          shown = picks[:buy_n]
+          lines = [f"{i+1}. {pk['code']} 分{pk['score']:.3f} @{pk['close']}"
+                   for i, pk in enumerate(shown)] or ["无候选"]
+          if buy_n < len(picks):
+              lines.append(f"…(弱势/中性市仅推前{buy_n}只, 余{len(picks)-buy_n}只暂不宜买)")
+          # 择时 verdict 一行
+          lines += ["", f"{state_emoji} 市场{label}: {verdict.get('msg','')}",
+                    f"👉 建议: {action}"]
           # 执行规则(已由 06_execution_feasibility 实证: 次日开盘可买 85.7%, 跳空中位数 0.00%;
           # 回踩限价单存在逆向选择, 不采用)。篮子等权, 勿单押。
           lines += ["", "买: 次日开盘价等权买入(勿追回踩低吸)",
-                    "卖: 持有10日到期 / 止损-8%", "篮子分散, 单票勿超1/5仓"]
+                    "卖: 持有10日到期 / 止损-8%(不叠加止盈)", "篮子分散, 单票勿超1/5仓"]
           if intraday:
               lines += ["", f"⚠️ 本次于盘中 {now_cst:%H:%M} 运行, 基于未收盘实时快照,",
                         "收盘前名单仍会变。建议收盘后重跑或直接等 19:07 定时。"]
           body = "\n".join(lines)
           bark_notify(title, body)
-          print("Bark 推送完成")
+          print("Bark 推送完成:", title)
           PY

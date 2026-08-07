@@ -76,10 +76,11 @@ def _scaled_tp_line(p, thr, current, pnl):
             f"建议卖出{tier}锁定利润, 余下跟随移动止盈。")
 
 
-def _expiry_line(p, days, current, pnl):
+def _expiry_line(p, days, current, pnl, cap=None):
+    cap = cap or HOLD_MAX_DAYS
     nm = p.get('name') or p.get('code', '?')
     w_s = f"  建议仓位{p['weight']*100:.0f}%" if p.get('weight') else ""
-    return (f"⏳ 【到期减仓提醒】{nm}({p['code']}) 已持仓 {days} 天(≥{HOLD_MAX_DAYS})\n"
+    return (f"⏳ 【到期减仓提醒】{nm}({p['code']}) 已持仓 {days} 天(≥{cap})\n"
             f"当前价 ¥{current:.2f}  浮动盈亏 {pnl:+.1f}%{w_s}\n"
             f"已达持仓上限周期, 建议减仓/落袋, 释放资金等待新信号。")
 
@@ -121,13 +122,14 @@ def run():
                 tracking[i][key] = True
                 updated = True
                 alerts.append(_scaled_tp_line(p, t, current, pnl))
-        # 4) 到期减仓提醒
+        # 4) 到期减仓提醒(优先用每笔持仓自己的 hold_max_days, 否则全局 HOLD_MAX_DAYS)
         days_held = _days_held(p.get('date'))
-        if HOLD_MAX_DAYS and days_held is not None and days_held >= HOLD_MAX_DAYS \
+        hold_cap = p.get('hold_max_days') or HOLD_MAX_DAYS
+        if hold_cap and days_held is not None and days_held >= hold_cap \
                 and not p.get('expiry_notified'):
             tracking[i]['expiry_notified'] = True
             updated = True
-            alerts.append(_expiry_line(p, days_held, current, pnl))
+            alerts.append(_expiry_line(p, days_held, current, pnl, hold_cap))
 
         # ---- 触发判定: 移动止盈 > 固定止盈 > 固定止损 ----
         triggered = False; trigger_type = ''

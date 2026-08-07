@@ -173,7 +173,7 @@ def expire_old_picks(ttl_days: int = 5, statuses: tuple = ('PLAN', 'WATCHING'),
 def add_picks(picks: list, pick_type: str, sl_ratio: float = 0.95,
               tp_ratio: float = 1.10, date: str = None,
               status: str = 'WATCHING', track_file: str = None,
-              db_path: str = None) -> int:
+              db_path: str = None, hold_max_days: int = None) -> int:
     """将策略选股统一注册到 position-monitor 监控。
 
     Args:
@@ -183,6 +183,8 @@ def add_picks(picks: list, pick_type: str, sl_ratio: float = 0.95,
         date: 选股日期(默认今天)。
         status: 监控初始状态(默认 WATCHING; 手动持仓用 HOLDING)。
         track_file / db_path: 测试或特殊部署可覆盖路径。
+        hold_max_days: 该笔持仓的"到期减仓提醒"天数(按策略覆盖全局 HOLD_MAX_DAYS,
+            如模型通道=10 / 价量回踩=20)。None 则不写, 由 position_monitor 用全局默认。
     Returns:
         新增条数(已存在的 date+code+type 组合自动跳过)。
     """
@@ -218,6 +220,10 @@ def add_picks(picks: list, pick_type: str, sl_ratio: float = 0.95,
                    support=round(p['support'], 2) if p.get('support') is not None else None,
                    pressure=round(p['pressure'], 2) if p.get('pressure') is not None else None,
                    weight=round(p['weight'], 4) if p.get('weight') is not None else None)
+        # 按策略覆盖全局持有上限(模型通道=10 / 价量回踩=20 等)
+        hmd = p.get('hold_max_days', hold_max_days)
+        if hmd is not None:
+            rec['hold_max_days'] = int(hmd)
         tracking.append(rec)
         new_recs.append(rec)
         seen.add(key)

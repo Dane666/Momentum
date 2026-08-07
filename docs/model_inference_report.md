@@ -270,10 +270,30 @@ P25 -0.75% / P75 +0.77%，低开占 46.7%，高开>3% 仅 6.7%。
 3. **禁止叠加**任何压力位 / 均线破位 / 价量衰竭 / 移动止盈卖点——它们对模型信号是负贡献或噪声。
 4. 原因：模型输出是横截面排序 alpha（强势延续），形态卖点会把 alpha 提前筛掉（类比 §5.3 回踩限价单的逆向选择）。
 
-> **附注 · 部署对齐（让实盘收益率 = 回测）**：上述结论与当前部署代码**默认参数不一致**（见 §6.5 部署脱节说明）。若要让"实盘滚动收益率"落到本章回测值（+3.47% 带止损 / +11.21% 不止损），需把两处默认改成本研究口径：
-> - `add_manual_position.py`：普通持仓 `FIXED_STOP_PCT` 由 `0.05` 改为 `0.08`（止损 −8%）；并新增"持有满 10 日强平"提示或 `MON_HOLD_MAX_DAYS` 默认 `10`。
-> - `tools/position_monitor.py`：`HOLD_MAX_DAYS` 默认 `20` → `10`（满 10 日提醒清仓，而非 20 日减仓提醒）。
-> 改完后，手动录入模型信号持仓即自动套用"持有 10 日 + 止损 −8%"。**不改则实盘是另一套未回测配置，收益率无法与本章对照。**
+> **附注 · 部署对齐（已落地，2026-08-07）**：上述结论已对齐到部署代码：
+> - `add_manual_position.py`：`FIXED_STOP_PCT` 由 `0.05` → `0.08`（止损 −8%）；新增 `--model` 标志——模型信号实盘登记时**不叠加止盈**（`tp_price=1e9`，仅由"持有10日到期 / −8%止损"退出）、写入 `hold_max_days=10`。
+> - `tools/tracking_utils.add_picks`：新增 `hold_max_days` 字段，按策略覆盖全局持有上限。
+> - `tools/position_monitor.py`：到期判断优先用每笔持仓自己的 `hold_max_days`（模型票=10，VP 回踩保留原 20 日），全局 `HOLD_MAX_DAYS` 默认维持 20 不变（避免误伤 VP 策略）。
+> 改完后，手动录入模型信号持仓即自动套用"持有 10 日 + 止损 −8%"，与本章回测一致。
+
+### 6.8 市场择时闸门：Top10 并非每天都值得买（08_timing_gate_study.py 实证）
+
+**用户追问**：持有 10 日不算钝，但"模型每天推 Top10，是不是每天都该无脑买？"
+
+**结论：不是。** 模型是横截面排序 alpha（强势延续），但绝对收益受大盘环境驱动——熊市里"最好的那批"往往只是"跌得少的那批"。实证（窗口 2026-H1，116 个开仓日，逐日"次日开盘买 Top10、持有 10 日"篮子收益）：
+
+| 市场状态(上证000001 vs MA20/MA60) | 开仓日数 | 均值收益 | 中位收益 | 累计 | 夏普 |
+|---|---|---|---|---|---|
+| 🟢 强势（≥MA20） | 46 | **+2.04%** | +2.15% | +136.4% | 5.86 |
+| 🟡 中性（MA60~MA20） | 1 | −2.92% | −2.92% | −2.9% | 0.00 |
+| 🔴 弱势（<MA60） | 69 | **−0.59%** | −1.25% | −41.2% | −1.54 |
+
+- **独立样本 t 检验**：弱势日 − 强势日 均值差 **−2.62%（p=0.018）** → 弱势日开仓显著更差。
+- **择时闸门价值**（同口径组合）：**每天开仓** 总 +35.0% / 夏普 1.15（n=116） vs **仅强势日开仓** 总 **+136.4% / 夏普 5.86**（n=46）。仅过滤掉弱势日，总收益翻 4 倍、夏普翻 5 倍。
+
+**部署落地**（2026-08-07）：新增 `tools/market_timing.py` 三档 verdict（强势全买 / 中性半仓前5 / 弱势观望前3），并复用 `tools/risk_gate.crash_guard` 做暴跌硬熔断；`daily_inference.yml` 的 Bark 推送已接入——**弱势日不再无脑推全 10 只，而改推"观望/仅前3"建议；暴跌熔断日直接推"暂停开仓"**。
+
+> 注意：本闸是**软建议**（推送给人决策），非自动禁止交易——与现有 `crash_only` 总闸一致。实证窗口 2026-H1 中 "中性" 日仅 1 天，三档阈值（MA20/MA60）在更宽样本上仍需观察，故保持 advisory 而非硬切。
 
 ---
 
@@ -288,3 +308,15 @@ P25 -0.75% / P75 +0.77%，低开占 46.7%，高开>3% 仅 6.7%。
   （ctx 的 `DataFrame.attrs` 为空 → 创业板(30)/科创板(68) 被按 10% 判涨停，误剔除涨幅 9.5%~19% 的正常票）。
 - `tasks/model_inference/06_execution_feasibility.py`（新增）：成交可行性检验，产出本文 §5。
 - 新增：`04_backtest_entry_exit.py`、`05_portfolio_backtest.py`、`opt_study/vp_lowvol_threshold_sweep.py` 及各自输出 JSON。
+
+### 7.1 本轮改动（2026-08-07）：部署对齐 + 择时闸门
+
+- `tasks/model_inference/07_exit_rule_study.py` + `output/exit_rule_study.json`：卖点规则研究（三层验证）。
+- `docs/skills/backtest-integrity-guardrails/SKILL.md`：回测护栏 skill（窗口截断 + 配对 t 检验 + 稳健性扫描）。
+- `add_manual_position.py`：`FIXED_STOP_PCT` 0.05→0.08；新增 `--model` 标志（不叠加止盈、持有10日）。
+- `tools/tracking_utils.py`：`add_picks` 新增 `hold_max_days` 字段。
+- `tools/position_monitor.py`：到期判断优先用每笔 `hold_max_days`（模型=10，VP 保留原值）。
+- `tools/market_timing.py`（新增）：三档择时 verdict（强势/中性/弱势）+ 复用 `crash_guard` 暴跌熔断。
+- `.github/workflows/daily_inference.yml`：Bark 推送接入择时闸门（弱势改推观望、熔断推暂停）+ 列表带排名/分数/价格。
+- `tasks/model_inference/08_timing_gate_study.py` + `output/timing_gate_study.json`：市场择时实证（Top10 非每天值得买）。
+- `README.md`：新增 LightGBM 模型通道章节 + 择时闸门说明。
