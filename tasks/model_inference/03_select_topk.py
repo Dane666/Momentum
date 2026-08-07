@@ -12,11 +12,17 @@ import importlib.util
 from pathlib import Path
 
 import pandas as pd
-import volume_price_scan as VPS
 
 SCRIPT = Path(__file__).resolve().parent
 OUT = Path('tasks/model_inference/output')
 K = 10
+
+# 路径注入(与 02 一致): 保证 tools/ 下模块在本地与 CI 均可导入
+ROOT = Path('.').resolve()
+for _p in [str(ROOT / 'tools'), str(ROOT / 'opt_study'), str(ROOT.parent)]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+import volume_price_scan as VPS
 
 
 def latest_scores():
