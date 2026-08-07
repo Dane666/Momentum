@@ -230,5 +230,13 @@ jobs:
                         "收盘前名单仍会变。建议收盘后重跑或直接等 19:07 定时。"]
           body = "\n".join(lines)
           bark_notify(title, body)
+          # 审计: 把实际推送的 code 列表打进日志, 便于事后核对(如 ST 过滤是否生效)
           print("Bark 推送完成:", title)
+          print("PUSH_CODES:", [p.get('code') for p in shown])
+          st_in_push = [p.get('code') for p in shown
+                        if 'ST' in str(p.get('name', '')).upper()]
+          if st_in_push:
+              print("!! ST LEAK IN PUSH:", st_in_push)
+          else:
+              print("ST_FILTER_OK: 推送无 ST/*ST")
           PY

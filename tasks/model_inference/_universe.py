@@ -14,6 +14,7 @@ _universe.py —— 候选池质量/风控过滤(共享)
 """
 from pathlib import Path
 import json
+import re
 
 
 def load_st_codes():
@@ -39,7 +40,7 @@ def load_st_codes():
 
 
 def filter_st(pan):
-    """剔除 ST/*ST 股票。pan 须含 'code'(零填充字符串或可被 zfill)。
+    """剔除 ST/*ST 股票。pan 须含 'code'(可为零填充字符串/带交易所后缀如 603272.SH)。
 
     返回过滤后的 DataFrame, 并打印丢弃数量。
     """
@@ -47,7 +48,13 @@ def filter_st(pan):
     if not st:
         return pan
     before = len(pan)
-    codes = pan['code'].astype(str).str.zfill(6)
+
+    def _norm(c):
+        s = str(c)
+        m = re.search(r'(\d{6})', s)   # 抗 '603272.SH' / 'sh603272' 等后缀
+        return m.group(1) if m else s.zfill(6)
+
+    codes = pan['code'].map(_norm)
     pan = pan[~codes.isin(st)].copy()
     dropped = before - len(pan)
     if dropped:
