@@ -156,6 +156,30 @@ add_picks(picks, 'MY_STRATEGY', sl_ratio=0.92, tp_ratio=1.12)   # 自动算止�
 - `opt_study/volume_price_forward_validation.py` — 前向验证（样本外）
 - `docs/cron-job-volume-price-scan.md` — cron-job.org 配置模板
 
+## LightGBM 模型通道（每日盘后推荐 / 买卖点 / 卖点研究）
+
+盘后跑 LightGBM 模型对全市场打分，剔除涨停/一字板/陈旧票后取 Top-K，次日开盘推荐。
+完整结论见 **[`docs/model_inference_report.md`](docs/model_inference_report.md)**。
+
+**买卖点（回测实证）**
+- **买点**：T+1 集合竞价以开盘价买入（不挂回踩限价单——模型是排序 alpha / 强势延续，等回踩会逆向选择只买到走弱的票）。
+- **卖点**：**持有满 10 个交易日收盘清仓 + 止损 −8%**；**禁止叠加**压力位 / 均线破位 / 价量衰竭 / 移动止盈——它们对模型信号是负贡献或噪声（配对 t 检验证伪，详见报告 §6）。
+
+**实盘滚动收益率（滚动资金池, max_pos=5, 2026-H1, 成本 0.35‰）**
+- 持有 10 日、不止损：**+11.21%**（夏普 0.91，超额 +18.42% vs 全市场 −7.2%）
+- 持有 10 日 + 止损 −8%（报告推荐）：**+3.47%**（夏普 0.39）——止损控回撤但拖累收益
+
+> ⚠️ **部署脱节**：当前 `add_manual_position.py` 默认止损 −5% / `position_monitor` 默认 `HOLD_MAX_DAYS=20`，与研究口径不一致，实际收益率暂无回测背书。模型信号只推 Bark、不自动登记，需手动录入并套用上述参数（详见报告 §6.5 / §6.7）。
+
+**⚠️ 回测数据完整性（重要）**：本地 K 线库自 **2026-07-01 起残缺**（当日仅 ~2300 只、07-29 起仅 ~28 只，正常 ~2950 只），回测须严格截断在 **2026-06-30**，不得触碰残缺段，否则净值会被伪造成 +20% 以上的荒谬值。护栏方法见 **[`docs/skills/backtest-integrity-guardrails/SKILL.md`](docs/skills/backtest-integrity-guardrails/SKILL.md)**（回测窗口严格截断 + 配对 t 检验）。
+
+**相关脚本**
+- `tasks/model_inference/02_generate_scores.py`：打分（涨停/一字板过滤 + code 零填充 + 新鲜度过滤）
+- `tasks/model_inference/03_select_topk.py`：Top-K 选取 + 去重
+- `tasks/model_inference/04_backtest_entry_exit.py` / `05_portfolio_backtest.py`：买卖点 / 组合回测
+- `tasks/model_inference/06_execution_feasibility.py`：成交可行性（买点=次日开盘，回测买价 85.7% 可成交）
+- `tasks/model_inference/07_exit_rule_study.py` + `output/exit_rule_study.json`：卖点规则研究（19 条规则 + 配对 t 检验 + 滚动资金池）
+
 ## 因子研究
 
 **KDJ 底部金叉（不采纳）**
