@@ -28,6 +28,7 @@
   - 初版曾把「压力位 ×0.98」列为首选卖点（同样是沿用价量策略）。配对 t 检验证明**压力位对模型信号是负贡献**：`pressure_sl8`(top5) Δ均笔 −0.81%（p=0.114）、`pressure_cap10` Δ−0.92% 且 **p=0.026 显著更差**。压力位卖点已删除。
   - 均线破位、移动止盈同样**显著更差**（移动止盈 Δ−2.82%，p<0.001）。禁止叠加。详见 §6。
 - **不可买入过滤**：信号日涨停（占 14.1%）与次日一字板（0.2%）直接剔除，不进篮子。
+- **ST/*ST 过滤**：候选池层剔除名称含 `ST`/`*ST` 的戴帽风险股（`tasks/model_inference/_universe.py` 的 `filter_st`，数据源 `data/stock_names.json`，共 209 只）。理由：① 5% 涨跌停（非模型假设的 10%/20%），止损 −8% / 突破判定失真；② 戴帽=财务/退市特质风险，横截面排序 alpha 不适用；③ 流动性差。与涨停过滤同属候选池质量闸，推送前 `03_select_topk` 还有名字级兜底。
 
 ---
 
@@ -299,7 +300,7 @@ P25 -0.75% / P75 +0.77%，低开占 46.7%，高开>3% 仅 6.7%。
 
 ## 7. 本次改动清单（待提交）
 
-- `tasks/model_inference/02_generate_scores.py`：涨停/一字板过滤 + code 零填充 + 新鲜度过滤。
+- `tasks/model_inference/02_generate_scores.py`：ST/*ST 过滤 + 涨停/一字板过滤 + code 零填充 + 新鲜度过滤。
 - `tasks/model_inference/03_select_topk.py`：code 零填充 + 去重类型对齐（修复静默失效）。
 - `.github/workflows/volume-price-scan.yml`：`VP_PULLBACK_VOL_THR` 0.33→0.50。
 - `.github/workflows/daily_inference.yml`：**移除 schedule，改为纯手动 `workflow_dispatch`**（按用户决定）。

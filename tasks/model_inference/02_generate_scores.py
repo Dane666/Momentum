@@ -39,6 +39,7 @@ except ImportError:
     s.loader.exec_module(m)
 import volume_price_scan as VPS
 import volume_price_strategy as VS
+from _universe import filter_st
 
 
 def latest_panel():
@@ -111,6 +112,9 @@ def generate_scores(panel_path=None, model_path=None):
 
     # 代码统一为零填充字符串(与 picks_tracking.json / ctx key 对齐, 避免去重/合并失效)
     pan['code'] = pan['code'].astype(str).str.zfill(6)
+
+    # ST/*ST 过滤: 戴帽风险票(5% 涨跌停/退市风险), 模型横截面 alpha 不适用, 直接剔除
+    pan = filter_st(pan)
 
     # 新鲜度过滤: 丢弃停牌/数据陈旧(最新交易日落后 asof 超过 7 个自然日)的票
     asof = pan['trade_date'].max()

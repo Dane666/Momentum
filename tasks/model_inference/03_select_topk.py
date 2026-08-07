@@ -12,6 +12,7 @@ import importlib.util
 from pathlib import Path
 
 import pandas as pd
+import volume_price_scan as VPS
 
 SCRIPT = Path(__file__).resolve().parent
 OUT = Path('tasks/model_inference/output')
@@ -64,14 +65,23 @@ def main():
     date = pd.to_datetime(top['trade_date']).max().strftime('%Y%m%d') if len(top) else 'NA'
 
     picks = []
+    names = VPS._load_names()
     for _, r in top.iterrows():
+        code = r['code']
         picks.append({
-            'code': r['code'],
+            'code': code,
+            'name': names.get(code, code),
             'strategy': 'LGBM_V1',
             'score': round(float(r['pred']), 6),
             'close': round(float(r['close']), 2),
             'date': str(r['trade_date'])[:10],
         })
+    # 最后兜底: 名字含 ST/*ST 的票绝不推送(02 候选池已过滤, 此处双保险)
+    before = len(picks)
+    picks = [p for p in picks if 'ST' not in str(p['name']).upper()]
+    if len(picks) < before:
+        print(f'[select] 兜底剔除 {before - len(picks)} 只 ST/*ST(02 应已过滤, 检查上游)')
+
     out_json = OUT / f'topk_{date}.json'
     out_csv = OUT / f'topk_{date}.csv'
     out_json.write_text(json.dumps(

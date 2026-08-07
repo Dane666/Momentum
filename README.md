@@ -158,7 +158,7 @@ add_picks(picks, 'MY_STRATEGY', sl_ratio=0.92, tp_ratio=1.12)   # 自动算止�
 
 ## LightGBM 模型通道（每日盘后推荐 / 买卖点 / 卖点研究）
 
-盘后跑 LightGBM 模型对全市场打分，剔除涨停/一字板/陈旧票后取 Top-K，次日开盘推荐。
+盘后跑 LightGBM 模型对全市场打分，剔除 ST/*ST、涨停/一字板、陈旧票后取 Top-K，次日开盘推荐。
 完整结论见 **[`docs/model_inference_report.md`](docs/model_inference_report.md)**。
 
 **买卖点（回测实证）**

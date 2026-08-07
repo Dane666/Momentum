@@ -51,6 +51,7 @@ except ImportError:
 
 import volume_price_scan as VPS      # noqa: E402
 import volume_price_strategy as VS   # noqa: E402
+from _universe import filter_st       # noqa: E402
 
 OUT = ROOT / 'tasks' / 'model_inference' / 'output'
 PANEL = ROOT / 'tasks' / 'factor_engineering' / 'output' / 'factors_panel_full.parquet'
@@ -185,6 +186,7 @@ def model_signals(ctx, cal, names, hot_at, regime, topk=10):
     pan = pd.read_parquet(PANEL)
     pan['trade_date'] = pd.to_datetime(pan['trade_date'])
     pan = pan[(pan['trade_date'] >= TEST_START) & (pan['trade_date'] <= TEST_END)].copy()
+    pan = filter_st(pan)              # 剔除 ST/*ST(戴帽风险, 与实盘候选池一致)
     pan['td'] = pan['trade_date'].dt.strftime('%Y-%m-%d')
 
     # 补 breakout/pullback/regime(与生产推理链路一致)

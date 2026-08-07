@@ -214,7 +214,7 @@ jobs:
           else:
               buy_n = len(picks)
           shown = picks[:buy_n]
-          lines = [f"{i+1}. {pk['code']} 分{pk['score']:.3f} @{pk['close']}"
+          lines = [f"{i+1}. {pk.get('name', pk['code'])} ({pk['code']}) 分{pk['score']:.3f} @{pk['close']}"
                    for i, pk in enumerate(shown)] or ["无候选"]
           if buy_n < len(picks):
               lines.append(f"…(弱势/中性市仅推前{buy_n}只, 余{len(picks)-buy_n}只暂不宜买)")
