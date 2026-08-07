@@ -236,6 +236,10 @@ def run_set(sigs, ctx, entry, exit_rule, hold_n=20, tp=None, sl=0.08, cap=20,
         g = ctx.get(code)
         if g is None or td not in g.index:
             continue
+        # 注入 code: is_limit_up/limit_ratio 依赖 attrs['code'] 区分 10%/20% 涨跌停幅度。
+        # ctx 的 DataFrame 默认 attrs 为空 -> 创业板(30)/科创板(68) 被误按 10% 判涨停,
+        # 使涨幅 9.5%~19% 的正常创业板票被误剔除(样本损失, 偏保守)。
+        g.attrs['code'] = code
         i = g.index.get_loc(td)
         if isinstance(i, slice):
             continue

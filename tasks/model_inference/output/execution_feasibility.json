@@ -1,0 +1,94 @@
+{
+  "window": "2026-01-01~2026-06-30",
+  "cost_roundtrip": 0.0035,
+  "hold_n": 10,
+  "A_buy_funnel": {
+    "total": 1160,
+    "no_data": 1,
+    "sig_limit_up": 163,
+    "next_one_word": 2,
+    "next_no_data": 0,
+    "tradable": 994,
+    "pct_sig_limit_up": 0.14051724137931035,
+    "pct_next_one_word": 0.0017241379310344827,
+    "pct_tradable": 0.8568965517241379
+  },
+  "B_open_gap": {
+    "name": "open_next/close_sig-1",
+    "n": 994,
+    "mean": -0.0001486343058809829,
+    "median": 0.0,
+    "p10": -0.019607843137254943,
+    "p25": -0.007478192485590979,
+    "p75": 0.0077366844531193135,
+    "p90": 0.02240380220602098,
+    "min": -0.37262542620555283,
+    "max": 0.10028929604628756
+  },
+  "B_open_gap_tail": {
+    "pct_gap_gt_3": 0.06740442655935613,
+    "pct_gap_gt_5": 0.023138832997987926,
+    "pct_gap_lt_0": 0.46680080482897385
+  },
+  "C_dip_limit_order": {
+    "buf_0.01": {
+      "fill_rate": 0.7142857142857143,
+      "filled_n": 710,
+      "unfilled_n": 284,
+      "filled_avg_ret": -0.0037272059209631963,
+      "filled_win_rate": 0.4225352112676056,
+      "missed_avg_ret_if_open": 0.034856874576857946,
+      "missed_win_rate_if_open": 0.5422535211267606
+    },
+    "buf_0.02": {
+      "fill_rate": 0.5150905432595574,
+      "filled_n": 512,
+      "unfilled_n": 482,
+      "filled_avg_ret": -0.00797909578317929,
+      "filled_win_rate": 0.4140625,
+      "missed_avg_ret_if_open": 0.026959560386097068,
+      "missed_win_rate_if_open": 0.5103734439834025
+    },
+    "buf_0.03": {
+      "fill_rate": 0.3591549295774648,
+      "filled_n": 357,
+      "unfilled_n": 637,
+      "filled_avg_ret": 0.0004019596600675316,
+      "filled_win_rate": 0.42857142857142855,
+      "missed_avg_ret_if_open": 0.013537181093045416,
+      "missed_win_rate_if_open": 0.47566718995290425
+    },
+    "buf_0.05": {
+      "fill_rate": 0.14386317907444668,
+      "filled_n": 143,
+      "unfilled_n": 851,
+      "filled_avg_ret": -0.009228021402532227,
+      "filled_win_rate": 0.38461538461538464,
+      "missed_avg_ret_if_open": 0.00805911830434755,
+      "missed_win_rate_if_open": 0.46298472385428907
+    }
+  },
+  "D_stoploss_slippage": {
+    "sl": 0.08,
+    "hit_n": 455,
+    "gap_break_n": 57,
+    "gap_break_rate": 0.12527472527472527,
+    "slippage": {
+      "name": "real/stop-1",
+      "n": 455,
+      "mean": -0.007983450686512288,
+      "median": 0.0,
+      "p10": -0.0033626257126649884,
+      "p25": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "min": -0.3985249714975382,
+      "max": 0.0
+    }
+  },
+  "E_sell_limit_down": {
+    "total": 994,
+    "blocked": 35,
+    "rate": 0.035211267605633804
+  }
+}
