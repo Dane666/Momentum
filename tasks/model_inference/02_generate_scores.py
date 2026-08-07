@@ -16,6 +16,7 @@ import glob
 import importlib.util
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 SCRIPT = Path(__file__).resolve().parent
@@ -63,6 +64,40 @@ def _load_ctx_features():
     return ctx, cal, names, hot_at, regime
 
 
+def _flag_untradable(ctx, pan):
+    """True = 当日涨停/一字板, 不可以合理价格买入。
+
+    基于 ctx kline: preclose=前一日收盘; 涨停 = 涨幅>=9.5% 且收在最高价(封板)。
+    一字板(开=高=收)亦满足该条件, 一并排除。
+    """
+    need = set(pan['code'].unique())
+    ctxmap = {}
+    for c, g in ctx.items():
+        if c not in need or len(g) == 0:
+            continue
+        d = g[['open', 'high', 'close']].copy()
+        d['prev'] = d['close'].shift(1)
+        ctxmap[c] = d
+    flags = []
+    for idx in pan.index:
+        c = pan.at[idx, 'code']
+        td = pan.at[idx, 'trade_date']
+        d = ctxmap.get(c)
+        if d is None or td not in d.index:
+            flags.append(False)
+            continue
+        row = d.loc[td]
+        pre = row['prev']
+        if pre is None or not np.isfinite(pre) or pre <= 0:
+            flags.append(False)
+            continue
+        close = float(row['close']); high = float(row['high']); open_ = float(row['open'])
+        pct = (close - pre) / pre
+        is_limit = (pct >= 0.095) and abs(close - high) < 1e-6
+        flags.append(bool(is_limit))
+    return pd.Series(flags, index=pan.index, dtype=bool)
+
+
 def generate_scores(panel_path=None, model_path=None):
     mp, kind = (panel_path, 'given') if panel_path else latest_panel()
     if mp is None:
@@ -73,6 +108,25 @@ def generate_scores(panel_path=None, model_path=None):
     pan = pan.sort_values(['code', 'trade_date']).groupby('code').tail(1)
     pan['td'] = pan['trade_date'].dt.strftime('%Y-%m-%d') \
         if hasattr(pan['trade_date'], 'dt') else pan['trade_date'].astype(str)
+
+    # 代码统一为零填充字符串(与 picks_tracking.json / ctx key 对齐, 避免去重/合并失效)
+    pan['code'] = pan['code'].astype(str).str.zfill(6)
+
+    # 新鲜度过滤: 丢弃停牌/数据陈旧(最新交易日落后 asof 超过 7 个自然日)的票
+    asof = pan['trade_date'].max()
+    fresh = pan['trade_date'] >= (asof - pd.Timedelta(days=7))
+    dropped_stale = int((~fresh).sum())
+    pan = pan[fresh].copy()
+    if dropped_stale:
+        print(f'[infer] 新鲜度过滤丢弃 {dropped_stale} 只陈旧票(asof={asof.date()})')
+
+    # 可交易性过滤: 剔除当日涨停/一字板(无法以合理价格买入)
+    ctx_k = VPS._load_harness().load_kline()
+    untradable = _flag_untradable(ctx_k, pan)
+    dropped_lu = int(untradable.sum())
+    pan = pan[~untradable].copy()
+    if dropped_lu:
+        print(f'[infer] 涨停/一字板过滤丢弃 {dropped_lu} 只不可买入票')
 
     model, feats, target, meta = _lm.load_model(model_path)
     missing = [f for f in feats if f not in pan.columns]

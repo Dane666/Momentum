@@ -1,5 +1,30 @@
 # Momentum v16 策略系统
 
+## 文档总览
+
+| 文档 | 内容 | 何时看 |
+|------|------|--------|
+| [README.md](README.md) | 本文档 — 模块结构、快速开始、参数配置 | 了解系统全貌 |
+| [FACTORS.md](FACTORS.md) | 因子定义与计算口径 | 新增/调试因子 |
+| [TUNING.md](TUNING.md) | 参数调优指南 | 优化策略参数 |
+| [GRID_TRADING_GUIDE.md](GRID_TRADING_GUIDE.md) | 网格交易策略说明 | 使用网格策略 |
+| [GRID_TRADING_OPERATION_GUIDE.md](GRID_TRADING_OPERATION_GUIDE.md) | 网格交易实操手册 | 网格实盘操作 |
+| [cron-job-volume-price-scan.md](cron-job-volume-price-scan.md) | 价量扫描的 cron-job.org 主触发配置 | 配置每日 15:30 价量扫描 |
+| [cron-job-daily-inference.md](cron-job-daily-inference.md) | LightGBM 推理的 cron-job.org 配置模板（**当前不启用**，手动触发） | 日后想恢复定时推理 |
+
+### 定时触发说明
+
+> **重要**：GitHub 原生 `schedule` 在本仓库已确诊不可靠（2026-08-04，cron 事件常不派发）。
+> 需要稳定定时的工作流一律用 **cron-job.org → POST `workflow_dispatch` API** 作为主触发，
+> GitHub `schedule` 仅作兜底。配置模板见上表两个 `cron-job-*.md`。
+
+| 工作流 | 触发方式 | 说明 |
+|--------|----------|------|
+| `volume-price-scan.yml` | cron-job.org 15:30 CST（主）+ GitHub schedule（兜底） | 价量口诀策略盘后扫描 |
+| `daily_inference.yml` | **仅手动** `workflow_dispatch` | LightGBM 模型推荐，观察期内不定时推送 |
+| `momentum-scan.yml` | cron-job.org（主） | 尾盘动量选股 |
+| `position-monitor.yml` | schedule 每 30min | 持仓止盈止损监控 |
+
 ## 概述
 
 Momentum v16 是一个基于动量和Alpha因子的短线量化交易策略系统，

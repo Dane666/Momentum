@@ -37,7 +37,9 @@ def load_held_codes():
     for rec in recs:
         st = rec.get('status')
         if st in ('HOLDING', 'MANUAL', 'PLAN', 'TRIGGERED'):
-            held.add(rec.get('code'))
+            code = rec.get('code')
+            if code is not None:
+                held.add(str(code).zfill(6))   # 与 scores 的零填充字符串对齐
     return held
 
 
@@ -52,9 +54,12 @@ def main():
     if sf is None:
         raise SystemExit('未找到 scores 文件, 请先运行 02_generate_scores.py')
     scores = pd.read_csv(sf)
+    # 代码统一为零填充字符串(CSV 中 int 会丢前导零, 须与 held 集合对齐)
+    scores['code'] = scores['code'].astype(str).str.zfill(6)
     held = load_held_codes()
     if held:
         scores = scores[~scores['code'].isin(held)]
+        print(f'[select] 已排除 {len(held)} 只在持仓/计划中的票')
     top = scores.head(a.k)
     date = pd.to_datetime(top['trade_date']).max().strftime('%Y%m%d') if len(top) else 'NA'
 

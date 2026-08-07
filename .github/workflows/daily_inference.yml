@@ -5,13 +5,16 @@
 #       不写入生产选股/不修改现有策略(纯只读 Bark 推荐, 不自动交易)。
 # 模型资产: 已发布至 release `lgbm-model-v1` (model_v1.txt 原生 Booster 文本 + model_v1.pkl 兜底 + model_meta.json),
 #       本工作流运行时下载. 推理端 load_model 优先用 model_v1.txt(版本无关, 规避 sklearn 包装器 pickle 跨版本报错).
-# 激活: 已启用 schedule(15:30 CST 兜底) + workflow_dispatch(主触发由 cron-job.org POST, 见 docs/cron-job-daily-inference.md).
+# 触发方式: **纯手动** (workflow_dispatch)。按用户决定不做定时扫描 —— 模型通道仍在观察期,
+#       由用户在需要时手动触发, 避免每日噪音推送。如日后要恢复定时, 取消 schedule 注释并
+#       按 docs/cron-job-daily-inference.md 配 cron-job.org 主触发(GitHub 原生 schedule 不可靠)。
 name: daily-inference
 
 on:
-  schedule:
-    - cron: '30 7 * * 1-5'     # 07:30 UTC = 15:30 CST, 周一至周五 (兜底; 主触发见 cron-job.org)
   workflow_dispatch:
+  # 定时已按用户要求关闭(手动触发即可)。恢复时取消下面注释:
+  # schedule:
+  #   - cron: '30 7 * * 1-5'     # 07:30 UTC = 15:30 CST, 周一至周五(仅兜底, 会漏跑)
   # repository_dispatch:
   #   types: [daily-inference]
 

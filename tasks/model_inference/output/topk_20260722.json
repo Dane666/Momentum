@@ -4,70 +4,70 @@
   "model": "model_v1",
   "picks": [
     {
-      "code": 600226,
+      "code": "600226",
       "strategy": "LGBM_V1",
       "score": 0.328896,
       "close": 5.66,
       "date": "2026-07-22"
     },
     {
-      "code": 600714,
+      "code": "600714",
       "strategy": "LGBM_V1",
       "score": 0.325403,
       "close": 13.4,
       "date": "2026-07-22"
     },
     {
-      "code": 657,
+      "code": "000657",
       "strategy": "LGBM_V1",
       "score": 0.323604,
       "close": 58.11,
       "date": "2026-07-22"
     },
     {
-      "code": 2080,
+      "code": "002080",
       "strategy": "LGBM_V1",
       "score": 0.319204,
       "close": 50.08,
       "date": "2026-07-22"
     },
     {
-      "code": 2655,
+      "code": "002655",
       "strategy": "LGBM_V1",
       "score": 0.307504,
       "close": 26.63,
       "date": "2026-07-22"
     },
     {
-      "code": 2297,
+      "code": "002297",
       "strategy": "LGBM_V1",
       "score": 0.306973,
       "close": 17.08,
       "date": "2026-07-22"
     },
     {
-      "code": 2222,
+      "code": "002222",
       "strategy": "LGBM_V1",
       "score": 0.303733,
       "close": 57.52,
       "date": "2026-07-22"
     },
     {
-      "code": 603011,
+      "code": "603011",
       "strategy": "LGBM_V1",
       "score": 0.29838,
       "close": 17.64,
       "date": "2026-07-22"
     },
     {
-      "code": 1267,
+      "code": "001267",
       "strategy": "LGBM_V1",
       "score": 0.295995,
       "close": 32.01,
       "date": "2026-07-22"
     },
     {
-      "code": 603256,
+      "code": "603256",
       "strategy": "LGBM_V1",
       "score": 0.294023,
       "close": 155.06,
