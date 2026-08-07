@@ -78,7 +78,7 @@
 | momentum-backtest.yml | GitHub cron | 周五 15:05(动量回测) + 每月1日 16:00(含超跌绩优前向验证) |
 | add-manual-position.yml | repository_dispatch | 手动录入持仓（手机 Webhook） |
 | volume-price-scan.yml | cron-job.org | 15:30 盘后价量计划池（突破放量 / 缩量回踩） |
-| daily_inference.yml | **仅手动** `workflow_dispatch` | LightGBM 模型推荐（观察期，不定时推送） |
+| daily_inference.yml | GitHub cron | 19:07 LightGBM 模型推荐（次日开盘用，漏跑可手动补） |
 
 > 📚 文档索引见 [`docs/README.md`](docs/README.md#文档总览)。
 
@@ -172,8 +172,10 @@ add_picks(picks, 'MY_STRATEGY', sl_ratio=0.92, tp_ratio=1.12)   # 自动算止�
 
 价量盘后计划池: `.../volume-price-scan.yml/dispatches` POST `{"ref":"main"}` Cron `30 15 * * 1-5` Asia/Shanghai
 
-LightGBM 推理: **不设定时**（手动 `gh workflow run daily_inference.yml --ref main`，或 GitHub 网页 Run workflow）。
-恢复定时的配置模板见 [`docs/cron-job-daily-inference.md`](docs/cron-job-daily-inference.md)。
+LightGBM 推理: **不走 cron-job.org**，直接用 GitHub 原生 `schedule`（`7 11 * * 1-5` UTC = 19:07 CST）。
+理由：产出的是次日开盘才用的推荐，对时延不敏感，可接受原生 cron 的延迟/偶发漏跑；
+当晚没收到 Bark 时，次日开盘前手动补跑即可（`gh workflow run daily_inference.yml --ref main` 或网页 Run workflow，结果同源一致）。
+若日后漏跑过于频繁，可按 [`docs/cron-job-daily-inference.md`](docs/cron-job-daily-inference.md) 升级为 cron-job.org 精确触发。
 
 > 详细模板（URL / Header / Body / 时区换算）见 [`docs/cron-job-volume-price-scan.md`](docs/cron-job-volume-price-scan.md)。
 > 本仓库 GitHub 原生 `schedule` 触发器不可靠，上述作业均改由 cron-job.org 主触发，GitHub schedule 仅兜底。

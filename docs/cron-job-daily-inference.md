@@ -1,17 +1,23 @@
 # cron-job.org 配置模板 — LightGBM 每日推理 (`daily_inference.yml`)
 
-> ## ⚠️ 当前状态：**定时未启用，按需手动触发**
+> ## ℹ️ 当前状态：**用 GitHub 原生 cron 定时（19:07 CST）+ 手动兜底；本文档为备用方案**
 >
-> 用户决定模型通道在观察期内**不做每日定时扫描**，避免噪音推送。
-> `daily_inference.yml` 现为 **纯 `workflow_dispatch`**（GitHub 网页 Actions 页面点 "Run workflow"，
-> 或 `gh workflow run daily_inference.yml --ref main`）。
+> `daily_inference.yml` 现已启用 GitHub 原生 `schedule`：`cron: '7 11 * * 1-5'`（11:07 UTC = 19:07 CST，周一至周五）。
 >
-> 本文档保留为**日后恢复定时时的配置模板**。恢复步骤：
-> ① 取消 `daily_inference.yml` 中 `schedule` 段注释 → ② 按下文建 cron-job.org 作业。
+> **为什么这个工作流可以用不可靠的原生 cron**：它产出的是**次日开盘才用**的推荐，对时延不敏感。
+> 即使当晚漏跑，次日开盘前手动 Run workflow 补跑即可（数据同源，结果一致）——
+> 这与盘中价量扫描（错过 15:30 就没意义）有本质区别。
+>
+> 时点选择 19:07 而非整点/半点：刻意避开本仓库其他工作流集中的 07:30~08:30 UTC，
+> 也避开 GitHub cron 排队最严重的整点/半点，以提高派发成功率。
+>
+> **本文档保留为备用**：若日后观察到原生 cron 漏跑过于频繁（如连续一周不派发），
+> 再按下文升级为 cron-job.org 精确触发。升级步骤：① 按下文建 cron-job.org 作业 →
+> ② 可保留 `daily_inference.yml` 的 `schedule` 作为双保险（重复触发无害，仅多跑一次）。
 
-由于本仓库 GitHub 原生 `schedule` 触发器不可靠（cron 事件曾停派发，2026-08-04 确诊），
-若要恢复定时，应改用 **cron-job.org → GitHub `workflow_dispatch` API** 作为主触发，
-GitHub 自带 schedule 仅作兜底。
+由于本仓库 GitHub 原生 `schedule` 触发器不可靠（cron 事件曾停派发，2026-08-04 确诊
+`volume-price-scan` / `momentum-scan` 均漏派发），**对时延敏感的工作流**应改用
+**cron-job.org → GitHub `workflow_dispatch` API** 作为主触发，GitHub 自带 schedule 仅作兜底。
 
 > **注意文件名用下划线**：工作流文件是 `daily_inference.yml`（不是 `daily-inference.yml`）。
 > API 路径必须与文件名完全一致，否则返回 404 "workflow not found"。
@@ -86,6 +92,6 @@ X-GitHub-Api-Version: 2022-11-28
 | 竞价扫描 | `.../auction-scan.yml/dispatches` | `{"ref":"main"}` | `25 1 * * 1-5` (09:25) |
 | 尾盘选股(含低位绩优) | `.../momentum-scan.yml/dispatches` | `{"ref":"main","inputs":{"run_mode":"full"}}` | `25 14 * * 1-5` (14:25) |
 | 价量盘后计划池 | `.../volume-price-scan.yml/dispatches` | `{"ref":"main"}` | `30 15 * * 1-5` (15:30) |
-| **LightGBM 推理** | `.../daily_inference.yml/dispatches` | `{"ref":"main"}` | ⚠️ 当前**不启用**（改为手动触发） |
+| **LightGBM 推理** | `.../daily_inference.yml/dispatches` | `{"ref":"main"}` | ℹ️ 当前**不用 cron-job.org**，改由 GitHub 原生 cron `7 11 * * 1-5` UTC（19:07 CST）触发 |
 
 > 账号时区若用 UTC，则上表 Hour 各减 8。

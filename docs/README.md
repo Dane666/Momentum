@@ -10,18 +10,21 @@
 | [GRID_TRADING_GUIDE.md](GRID_TRADING_GUIDE.md) | 网格交易策略说明 | 使用网格策略 |
 | [GRID_TRADING_OPERATION_GUIDE.md](GRID_TRADING_OPERATION_GUIDE.md) | 网格交易实操手册 | 网格实盘操作 |
 | [cron-job-volume-price-scan.md](cron-job-volume-price-scan.md) | 价量扫描的 cron-job.org 主触发配置 | 配置每日 15:30 价量扫描 |
-| [cron-job-daily-inference.md](cron-job-daily-inference.md) | LightGBM 推理的 cron-job.org 配置模板（**当前不启用**，手动触发） | 日后想恢复定时推理 |
+| [cron-job-daily-inference.md](cron-job-daily-inference.md) | LightGBM 推理的 cron-job.org 配置模板（**备用**，现用 GitHub 原生 cron） | 原生 cron 漏跑频繁、想升级为精确触发 |
 
 ### 定时触发说明
 
 > **重要**：GitHub 原生 `schedule` 在本仓库已确诊不可靠（2026-08-04，cron 事件常不派发）。
-> 需要稳定定时的工作流一律用 **cron-job.org → POST `workflow_dispatch` API** 作为主触发，
+> **对时延敏感**的盘中工作流一律用 **cron-job.org → POST `workflow_dispatch` API** 作为主触发，
 > GitHub `schedule` 仅作兜底。配置模板见上表两个 `cron-job-*.md`。
+>
+> **对时延不敏感**的工作流（如 LightGBM 推理，产出次日开盘才用）可直接用 GitHub 原生 cron：
+> 接受偶发漏跑，漏跑时次日开盘前手动 Run workflow 补跑即可，结果同源一致。
 
 | 工作流 | 触发方式 | 说明 |
 |--------|----------|------|
 | `volume-price-scan.yml` | cron-job.org 15:30 CST（主）+ GitHub schedule（兜底） | 价量口诀策略盘后扫描 |
-| `daily_inference.yml` | **仅手动** `workflow_dispatch` | LightGBM 模型推荐，观察期内不定时推送 |
+| `daily_inference.yml` | GitHub schedule **19:07 CST**（主）+ 手动 `workflow_dispatch`（兜底） | LightGBM 模型推荐；次日开盘才用，容忍延迟/漏跑 |
 | `momentum-scan.yml` | cron-job.org（主） | 尾盘动量选股 |
 | `position-monitor.yml` | schedule 每 30min | 持仓止盈止损监控 |
 
