@@ -26,7 +26,8 @@ opt_study/forward_validation_trades.csv
 opt_study/live_watchlist.html
 opt_study/live_watchlist.csv
 opt_study/kdj_factor_study_result.json
-data/stock_names.json
+# data/stock_names.json 已纳入版本控制: ST/*ST 过滤风控依赖此文件,
+# CI 若缺它 filter_st 会静默空过导致 ST 股漏进实盘推送(见 2026-08-10 修复).
 # 价量盘后计划池(每日扫描产物, 由 volume_price_scan 生成, 不入库)
 data/volume_price_plan.json
 # LightGBM 模型二进制: 经 GitHub Release 分发(daily_inference.yml 下载), 不入 git

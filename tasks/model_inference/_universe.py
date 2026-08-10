@@ -46,6 +46,10 @@ def filter_st(pan):
     """
     st = load_st_codes()
     if not st:
+        # 关键: 缺名称源时不能静默空过, 否则 ST 股会漏进实盘推送(2026-08-10 CI 事故根因).
+        # data/stock_names.json 须纳入版本控制; 此处显式报警, 便于 CI 日志立即发现.
+        print('[universe] ⚠️ 警告: 未加载到 ST 名称源(data/stock_names.json 缺失/解析为空), '
+              'ST/*ST 过滤未生效! ST 股可能漏进候选池。请检查 data/stock_names.json 是否入库。')
         return pan
     before = len(pan)
 
