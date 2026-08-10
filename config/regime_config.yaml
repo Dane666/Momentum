@@ -1,0 +1,62 @@
+# -*- coding: utf-8 -*-
+# regime_config.yaml —— 市场状态识别 + 动态因子权重 + 自适应阈值的统一配置
+# ============================================================================
+# 供 tasks/market_state/ 下脚本读取:
+#   - 01_regime_detector.RegimeDetector  : detector 段(波动率/趋势判定阈值)
+#   - 02_dynamic_weights.DynamicWeights   : factor_groups / factor_weights / tilt_blend
+#   - 03_adaptive_threshold.AdaptiveThreshold : adaptive 段(买入分位阈值 / 仓位比例)
+#
+# 设计原则:
+#   1. 状态互斥四态: trend_up / trend_down / range / high_vol(高波动优先于趋势判定)。
+#   2. 因子分组: 把模型 21 维特征归并为 5 个可解释因子组, 便于按状态赋权。
+#   3. 动态权重: 每个状态一套因子组权重(含正负号), 与横截面 z-score 融合成"状态倾斜",
+#      再与模型分数叠加做最终排序。固定权重基线使用 default(状态无关常量权重)。
+#   4. 自适应阈值: 每个状态一个买入分位阈值 + 仓位比例。逆境(high_vol/trend_down)
+#      提高门槛、收缩仓位, 顺势(trend_up)满仓, 震荡(range)居中。
+#
+# 所有阈值均可调。回测见 tasks/market_state/04_regime_backtest_compare.py。
+
+detector:
+  ma_short: 20
+  ma_long: 60
+  vol_window: 20
+  high_vol_quantile: 0.80     # 20日年化波动率处于历史 80 分位以上 -> high_vol
+  high_vol_abs: 0.30          # 或年化波动率 > 30% 直接 high_vol
+  trend_strength_min: 0.02    # |价格/MA60 - 1| 需超过此值才算有趋势
+
+# 模型 21 维特征 -> 5 个因子组
+factor_groups:
+  momentum:   [bias_60, macd_hist_slope, boll_pctb_20, kdj_j, kdj_d, regime]
+  volatility: [hist_vol_60, hist_vol_ratio, atr_pct_14, boll_width_20]
+  money_flow: [cmf_20, obv, obv_ma_ratio, main_flow_ratio, mfi_14]
+  liquidity:  [turn_rank_60, turn_ma_ratio, turn_zscore_20, turn_chg_5]
+  signal:     [breakout, pullback]
+
+# 各状态因子组权重(正=偏好该组高值, 负=偏好低值)
+# default = 固定权重基线使用的状态无关常量权重
+factor_weights:
+  default:    {momentum: 0.40, volatility: -0.20, money_flow: 0.40, liquidity: 0.40, signal: 0.40}
+  trend_up:   {momentum: 1.20, volatility: -0.20, money_flow: 0.80, liquidity: 0.30, signal: 0.60}
+  trend_down: {momentum: -0.40, volatility: -1.20, money_flow: 0.60, liquidity: 0.40, signal: 0.20}
+  range:      {momentum: 0.20, volatility: -0.60, money_flow: 0.50, liquidity: 1.00, signal: 0.30}
+  high_vol:   {momentum: -0.20, volatility: -1.20, money_flow: 0.70, liquidity: 0.30, signal: 0.10}
+
+# 状态倾斜对最终分数的融合系数(最终分 = z(模型分) + tilt_blend * 状态倾斜)
+tilt_blend: 0.50
+
+# 自适应买入阈值与仓位(按状态)
+#   buy_quantile : 仅买入最终分数 >= 该横截面分位的票(0=全买, 1=只买最强)
+#   position_scale: 该状态投入的仓位比例(1.0=满仓, <1 部分现金)
+#   top_k        : 该状态最多持有标的数
+adaptive:
+  trend_up:   {buy_quantile: 0.50, position_scale: 1.00, top_k: 5}
+  range:      {buy_quantile: 0.70, position_scale: 0.65, top_k: 5}
+  high_vol:   {buy_quantile: 0.85, position_scale: 0.40, top_k: 3}
+  trend_down: {buy_quantile: 0.90, position_scale: 0.30, top_k: 2}
+
+# 固定权重基线(对照用): 等价于"无状态适应"——常量权重 + 满仓 + 无门槛
+fixed_baseline:
+  weights: default
+  buy_quantile: 0.00
+  position_scale: 1.00
+  top_k: 5

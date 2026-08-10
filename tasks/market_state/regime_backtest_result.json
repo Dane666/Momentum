@@ -1,0 +1,81 @@
+{
+  "window": "2026-01-01~2026-06-30",
+  "top_k": 5,
+  "hold_n": 10,
+  "fixed": {
+    "name": "fixed",
+    "days": 116,
+    "total_ret": 0.04070923201717602,
+    "ann_ret": 0.09055266437867826,
+    "sharpe": 0.4704404193454587,
+    "max_dd": -0.17043335582502928,
+    "win_days": 0.5431034482758621
+  },
+  "dynamic_factor_tilt": {
+    "name": "dynamic",
+    "days": 116,
+    "total_ret": 0.019210017227498266,
+    "ann_ret": 0.04220257028645813,
+    "sharpe": 0.28963745892435167,
+    "max_dd": -0.16876796926202842,
+    "win_days": 0.5344827586206896
+  },
+  "adaptive_state": {
+    "name": "adaptive",
+    "days": 116,
+    "total_ret": 0.04072577447146086,
+    "ann_ret": 0.09059032294458302,
+    "sharpe": 0.5962686378312332,
+    "max_dd": -0.1118631642322847,
+    "win_days": 0.5172413793103449
+  },
+  "benchmark_eqw": {
+    "name": "bench",
+    "days": 116,
+    "total_ret": -0.06694653742610734,
+    "ann_ret": -0.1397503031063092,
+    "sharpe": -0.6801725982298821,
+    "max_dd": -0.15591584941468473,
+    "win_days": 0.5
+  },
+  "sharpe_delta_factor_tilt": -0.18080296042110705,
+  "sharpe_delta_adaptive": 0.12582821848577447,
+  "basket_winrate_fixed": 0.49137931034482757,
+  "basket_winrate_dynamic": 0.4827586206896552,
+  "basket_winrate_adaptive": 0.45217391304347826,
+  "basket_n": 116,
+  "accept_factor_tilt_plus_0.2": "FAIL",
+  "accept_adaptive_plus_0.2": "FAIL",
+  "regime_days": {
+    "trend_up": 39,
+    "range": 31,
+    "high_vol": 29,
+    "trend_down": 17
+  },
+  "estimated_weights": {
+    "trend_up": {
+      "momentum": -0.02259157620151569,
+      "volatility": -0.0722306505218718,
+      "money_flow": -0.01322667438535662,
+      "liquidity": 0.0
+    },
+    "trend_down": {
+      "momentum": -0.04967313721411528,
+      "volatility": -0.0004849695827894916,
+      "money_flow": -0.03212266208004977,
+      "liquidity": 0.0
+    },
+    "range": {
+      "momentum": -0.01863187179758301,
+      "volatility": 0.00018217318729232335,
+      "money_flow": -0.01986610758177112,
+      "liquidity": 0.0
+    },
+    "high_vol": {
+      "momentum": -0.01205135328578386,
+      "volatility": 0.01487594401117526,
+      "money_flow": -0.017928024982835043,
+      "liquidity": 0.0
+    }
+  }
+}
