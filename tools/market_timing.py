@@ -23,6 +23,38 @@ MA20 = 20
 MA60 = 60
 
 
+def _load_regime_scale_map():
+    """从 config/regime_config.yaml 的 adaptive 段读取 position_scale, 映射到
+    market_timing 三档 label(强势/中性/弱势/熔断/未知)。失败回退默认常量。"""
+    default = {'强势': 1.00, '中性': 0.65, '弱势': 0.30, '熔断': 0.0, '未知': 0.80}
+    try:
+        import yaml
+        cfg_path = PROJ / 'config' / 'regime_config.yaml'
+        if cfg_path.exists():
+            cfg = yaml.safe_load(open(cfg_path, encoding='utf-8'))
+            ad = (cfg or {}).get('adaptive', {})
+            sc = {s: float(d.get('position_scale', 1.0)) for s, d in ad.items()}
+            return {
+                '强势': sc.get('trend_up', default['强势']),
+                '中性': sc.get('range', default['中性']),
+                '弱势': min(sc.get('trend_down', default['弱势']),
+                            sc.get('high_vol', default['弱势'])),
+                '熔断': 0.0,
+                '未知': default['未知'],
+            }
+    except Exception:
+        pass
+    return default
+
+
+_SCALE_MAP = _load_regime_scale_map()
+
+
+def position_scale_for(label: str) -> float:
+    """返回某市场状态 label 对应的建议仓位比例(0~1)。供策略闸门与 Bark 推送使用。"""
+    return float(_SCALE_MAP.get(label, 0.80))
+
+
 def _proxy_closes(n=66):
     """返回 (dates, closes) 最近 n 个交易日的 proxy 收盘序列。"""
     con = sqlite3.connect(DB)
@@ -56,10 +88,12 @@ def market_verdict():
             state, label, action = 'bear', '弱势', '观望(仅前3 / 空仓)'
         msg = (f"大盘proxy偏离MA20 {dev20*100:+.1f}% | 偏离MA60 {dev60*100:+.1f}%")
         return dict(state=state, crash=False, label=label, action=action, msg=msg,
-                    dev20=round(dev20, 4), dev60=round(dev60, 4), nav=round(nav, 2))
+                    dev20=round(dev20, 4), dev60=round(dev60, 4), nav=round(nav, 2),
+                    position_scale=position_scale_for(label))
     except Exception as e:
         return dict(state='unknown', crash=False, label='未知', action='全买 Top10',
-                    msg=f'择时检查异常(放行): {e}')
+                    msg=f'择时检查异常(放行): {e}',
+                    position_scale=position_scale_for('未知'))
 
 
 def timing_gate():
@@ -80,6 +114,7 @@ def timing_gate():
     if halt:
         verdict['action'] = '暂停开仓(暴跌熔断)'
         verdict['label'] = '熔断'
+        verdict['position_scale'] = 0.0
     return dict(halt=halt, reason=reason, verdict=verdict)
 
 

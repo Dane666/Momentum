@@ -82,12 +82,15 @@ def _sync_db(recs, db_path=None):
             exit_price REAL, pnl_pct REAL, trigger_type TEXT, trigger_time TEXT,
             pnl_ratio REAL, track_status TEXT DEFAULT 'TRACKING',
             track_count INTEGER DEFAULT 0, day1_pnl REAL, day2_pnl REAL,
-            day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0, weight REAL DEFAULT NULL)''')
-        # 兼容旧库: 缺 weight 列则补(不重建表)
-        try:
-            cur.execute("ALTER TABLE stock_picks ADD COLUMN weight REAL DEFAULT NULL")
-        except Exception:
-            pass
+            day3_pnl REAL, max_pnl_3d REAL DEFAULT 0.0, weight REAL DEFAULT NULL,
+            regime_state TEXT DEFAULT NULL, regime_scale REAL DEFAULT NULL)''')
+        # 兼容旧库: 缺列则补(不重建表)
+        for col, typ in [('weight', 'REAL'), ('regime_state', 'TEXT'),
+                         ('regime_scale', 'REAL')]:
+            try:
+                cur.execute(f"ALTER TABLE stock_picks ADD COLUMN {col} {typ}")
+            except Exception:
+                pass
         for r in recs:
             cur.execute('SELECT id FROM stock_picks WHERE date=? AND code=?',
                         (r['date'], r['code']))
@@ -95,11 +98,12 @@ def _sync_db(recs, db_path=None):
                 continue
             cur.execute('''INSERT INTO stock_picks
                 (date,code,name,price,status,sl_price,tp_price,type,
-                 track_status,track_count,max_pnl_3d,weight)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',
+                 track_status,track_count,max_pnl_3d,weight,regime_state,regime_scale)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
                 (r['date'], r['code'], r['name'], r['price'], r['status'],
                  r['sl_price'], r['tp_price'], r['type'],
-                 'TRACKING', 0, 0.0, r.get('weight')))
+                 'TRACKING', 0, 0.0, r.get('weight'),
+                 r.get('regime_state'), r.get('regime_scale')))
         con.commit()
         con.close()
         logger.info("[tracking] DB 同步 %d 只", len(recs))
@@ -219,7 +223,10 @@ def add_picks(picks: list, pick_type: str, sl_ratio: float = 0.95,
                    status=p.get('status', status), type=pick_type,
                    support=round(p['support'], 2) if p.get('support') is not None else None,
                    pressure=round(p['pressure'], 2) if p.get('pressure') is not None else None,
-                   weight=round(p['weight'], 4) if p.get('weight') is not None else None)
+                   weight=round(p['weight'], 4) if p.get('weight') is not None else None,
+                   regime_state=p.get('regime_state'),
+                   regime_scale=round(p['regime_scale'], 3)
+                   if p.get('regime_scale') is not None else None)
         # 按策略覆盖全局持有上限(模型通道=10 / 价量回踩=20 等)
         hmd = p.get('hold_max_days', hold_max_days)
         if hmd is not None:

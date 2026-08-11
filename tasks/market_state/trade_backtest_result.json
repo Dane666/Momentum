@@ -1,0 +1,63 @@
+{
+  "window": "2026-01-01~2026-06-30",
+  "max_pos": 5,
+  "hold_n": 10,
+  "stop": 0.08,
+  "cost": 0.0035,
+  "capital": 1000000.0,
+  "adaptive": {
+    "equity": {
+      "days": 116,
+      "total_ret": 0.2057202001104712,
+      "ann_ret": 0.5014162000233227,
+      "sharpe": 1.2407440742079399,
+      "max_dd": -0.18985531991782434,
+      "win_days": 0.5862068965517241
+    },
+    "trades": {
+      "n": 45,
+      "win_rate": 0.5111111111111111,
+      "avg_win": 0.0982086956521739,
+      "avg_loss": -0.07167727272727274,
+      "profit_factor": 1.432430718498319,
+      "max_consec_loss": 4,
+      "stopped": 12,
+      "expired": 33,
+      "avg_hold": 8.733333333333333,
+      "total_pnl": 136406.0
+    },
+    "peak_concurrent": 5,
+    "avg_concurrent": 3.46
+  },
+  "baseline": {
+    "equity": {
+      "days": 116,
+      "total_ret": 0.12390372459484178,
+      "ann_ret": 0.28885665772529623,
+      "sharpe": 0.9293155961403166,
+      "max_dd": -0.21506917162784767,
+      "win_days": 0.5431034482758621
+    },
+    "trades": {
+      "n": 65,
+      "win_rate": 0.4,
+      "avg_win": 0.11828076923076923,
+      "avg_loss": -0.07005641025641027,
+      "profit_factor": 1.1255764585315862,
+      "max_consec_loss": 7,
+      "stopped": 20,
+      "expired": 45,
+      "avg_hold": 8.6,
+      "total_pnl": 68620.0
+    }
+  },
+  "regime_days": {
+    "trend_up": 39,
+    "range": 31,
+    "high_vol": 29,
+    "trend_down": 17
+  },
+  "avg_position_scale": 0.654,
+  "cash_reserve_pct": 34.6,
+  "accept_operable": "YES"
+}

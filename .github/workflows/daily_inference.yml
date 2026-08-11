@@ -220,7 +220,8 @@ jobs:
               lines.append(f"…(弱势/中性市仅推前{buy_n}只, 余{len(picks)-buy_n}只暂不宜买)")
           # 择时 verdict 一行
           lines += ["", f"{state_emoji} 市场{label}: {verdict.get('msg','')}",
-                    f"👉 建议: {action}"]
+                    f"👉 建议: {action}",
+                    f"💰 建议仓位: {int(round(verdict.get('position_scale', 1.0) * 100))}% (市场状态自适应, 逆境留现金)"]
           # 执行规则(已由 06_execution_feasibility 实证: 次日开盘可买 85.7%, 跳空中位数 0.00%;
           # 回踩限价单存在逆向选择, 不采用)。篮子等权, 勿单押。
           lines += ["", "买: 次日开盘价等权买入(勿追回踩低吸)",

@@ -193,11 +193,19 @@ add_picks(picks, 'MY_STRATEGY', sl_ratio=0.92, tp_ratio=1.12)   # 自动算止�
 
 **市场状态识别 + 动态因子权重（回测验证，2026-H1）**
 在模型通道之上叠加 RegimeDetector 四态（`trend_up/trend_down/range/high_vol`，见
-`tasks/market_state/`）。结论（完整见 **[`tasks/market_state/regime_backtest_report.md`](tasks/market_state/regime_backtest_report.md)**）：
+`tasks/market_state/`）。
 - ❌ **动态因子权重（线性 IC 倾斜重排）无提升、反而下降**：夏普 +0.470→+0.290（−0.18）。
-  根因——LightGBM 已非线性地用尽这些因子，外挂线性倾斜等于和模型"对着干"。
-- ✅ **市场状态自适应仓位有提升**：夏普 +0.470→**+0.596**（+0.126），最大回撤 −17%→**−11%**（砍掉约1/3回撤），总收益持平。增益来自**风险调整/控回撤**（逆境收缩仓位），**胜率未提升**（篮胜率 49.1%→45.2% 反略降）——与 `08` 弱势日少开仓逻辑一致。
-- 原始验收（+0.2 夏普）未达；真实、可辩护的增益是状态自适应仓位（建议作为模型通道可选增强，与 `market_timing` 闸门协同；**不要**外挂线性因子倾斜）。
+  根因——LightGBM 已非线性地用尽这些因子，外挂线性倾斜等于和模型"对着干"。**不要**采用。
+- ✅ **市场状态自适应仓位有提升**。`04` 组合净值口径下夏普 +0.470→+0.596（回撤 −17%→−11%）。
+- ✅✅ **逐笔实盘回测（`05_trade_records_backtest.py`，可操作滚动仓位池口径）进一步确认并超过验收**：
+  自适应 vs 固定基线——夏普 **+1.241 vs +0.929**（Δ +0.31，≥验收 +0.2 ✅）、总收益 +20.6% vs
+  +12.4%、最大回撤 −19% vs −21.5%、交易胜率 51% vs 40%、盈亏比 PF 1.43 vs 1.13、最大连亏 4 vs 7；
+  资本**逆风市自动留现金 34.6%**（trend_up 占 55.6% / trend_down 仅 4.4%）。完整逐笔买卖记录与
+  可操作性评估见 **[`tasks/market_state/trade_backtest_report.md`](tasks/market_state/trade_backtest_report.md)**、
+  流水见 `tasks/market_state/trades_adaptive.csv`。
+- **已接入策略闸门**：`tools/market_timing.timing_gate()` 现输出 `position_scale`（强势1.0/中性0.65/弱势0.3/熔断0），
+  经 `config/regime_config.yaml` 驱动；CI `daily_inference.yml` 的 Bark 推送展示"建议仓位"，
+  `add_manual_position.py --model` 记录每笔 `regime_state/regime_scale`。
 
 ## 因子研究
 

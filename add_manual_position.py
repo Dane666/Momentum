@@ -45,6 +45,7 @@ except ImportError:
     sys.modules['momentum'] = _mod
     _spec.loader.exec_module(_mod)
 from momentum.tools.tracking_utils import add_picks, bark_notify
+from momentum.tools.market_timing import timing_gate, position_scale_for
 
 
 def _exchange_prefix(code: str) -> str:
@@ -149,6 +150,17 @@ def main():
         sys.exit(1)
 
     model_mode = a.model and not vp_mode
+
+    # 2.5 市场状态仓位(模型通道): 当下市场状态决定建议仓位比例, 写入记录供监控
+    regime_label = '未知'
+    regime_scale = 0.80
+    try:
+        gate = timing_gate()
+        regime_label = gate['verdict'].get('label', '未知')
+        regime_scale = gate['verdict'].get('position_scale', position_scale_for(regime_label))
+    except Exception as e:
+        logger.warning(f"[regime] 状态仓位获取失败(用默认0.8): {e}")
+
     # 3. 计算止盈/止损
     if vp_mode:
         sl_ratio = 0.92 if kind == 'breakout' else 0.95  # 突破-8% / 回踩-5%
@@ -185,6 +197,8 @@ def main():
     if model_mode:
         entry["hold_max_days"] = 10   # 对齐研究: 第10日推到期减仓提醒
         entry["model_channel"] = True
+        entry["regime_state"] = regime_label
+        entry["regime_scale"] = round(regime_scale, 3)
 
     # 5. 统一注册到 position-monitor 监控(公共方法, 自动写 picks_tracking.json + DB)
     add_picks([entry], 'MANUAL', 1 - FIXED_STOP_PCT,
@@ -209,11 +223,13 @@ def main():
             f"日期: {today}\n"
             f"状态: HOLDING — 触及压力位将推送卖出提醒")
     elif model_mode:
+        scale_pct = round(regime_scale * 100)
         body = (
             f"{name}({code}) 已加入监控(模型通道)\n"
             f"买入价: {price}\n"
             f"止损价: {sl_price} (-{FIXED_STOP_PCT*100:.0f}%)\n"
             f"持有: 满 10 个交易日收盘清仓(不叠加止盈)\n"
+            f"市场状态: {regime_label} → 建议仓位 {scale_pct}%\n"
             f"日期: {today}\n"
             f"状态: HOLDING — 第10日/触及止损将推送提醒")
     else:
