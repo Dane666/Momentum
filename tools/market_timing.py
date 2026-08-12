@@ -81,7 +81,7 @@ def market_verdict():
         dev20 = nav / ma20 - 1.0
         dev60 = nav / ma60 - 1.0
         if nav >= ma20:
-            state, label, action = 'bull', '强势', '全部买入(≤5)'
+            state, label, action = 'bull', '强势', '全部买入(≤3)'
         elif nav >= ma60:
             state, label, action = 'ranging', '中性', '半仓(前3)'
         else:

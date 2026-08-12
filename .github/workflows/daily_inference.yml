@@ -21,11 +21,11 @@ on:
   schedule:
     - cron: '7 11 * * 1-5'      # 11:07 UTC = 19:07 CST, 周一至周五(盘后, 次日开盘前用)
   workflow_dispatch:            # 手动兜底: schedule 漏跑时开盘前补跑
-  # repository_dispatch:
-  #   types: [daily-inference]
+  repository_dispatch:          # 09:25 开盘弱市预警: 由现有 cron-job.org POST 触发, 无需另配 cronjob
+    types: [daily-inference]
 
 permissions:
-  contents: read
+  contents: write   # 夜盘推送需提交 data/push_candidates.json, 供 09:25 开盘预警读取
 
 jobs:
   # 交易日门禁: schedule 每周一至周五触发, 但节假日(春节/国庆等)休市, 空跑会推出陈旧推荐.
@@ -51,7 +51,9 @@ jobs:
 
   infer:
     needs: gate
-    if: needs.gate.outputs.run == 'true'
+    if: >-
+      needs.gate.outputs.run == 'true' &&
+      (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -205,13 +207,14 @@ jobs:
               raise SystemExit(0)
 
           flag = "⚠️盘中快照 " if intraday else ""
-          # 实际推荐买入只数: 与滚动仓位池(并发上限5)及状态仓位对齐, 不再每日推满10
+          # 实际推荐买入只数: 与滚动仓位池(并发上限5)及状态仓位对齐, 不再每日推满10。
+          # 强势日也压到 3(回测显示 cap=3 夏普/收益反优于 cap=5, 第4-5名确定性更低)。
           if state == 'bear':
               buy_n = min(2, len(picks))
           elif state == 'ranging':
               buy_n = min(3, len(picks))
           else:
-              buy_n = min(5, len(picks))
+              buy_n = min(3, len(picks))
           title = f"{flag}{state_emoji} LightGBM 买入{buy_n}只 {label} ({data.get('date')})"
           shown = picks[:buy_n]
           lines = [f"{i+1}. {pk.get('name', pk['code'])} ({pk['code']}) 分{pk['score']:.3f} @{pk['close']}"
@@ -241,4 +244,145 @@ jobs:
               print("!! ST LEAK IN PUSH:", st_in_push)
           else:
               print("ST_FILTER_OK: 推送无 ST/*ST")
+          PY
+
+      - name: Persist push candidates (供 09:25 开盘预警读取)
+        if: ${{ success() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json, glob
+          from pathlib import Path
+          fs = sorted(glob.glob("tasks/model_inference/output/topk_*.json"))
+          if not fs:
+              print("无 topk 文件, 跳过持久化"); raise SystemExit(0)
+          data = json.loads(Path(fs[-1]).read_text())
+          out = {"date": data.get("date"),
+                 "picks": [{"code": p["code"], "name": p.get("name", ""),
+                            "close": p.get("close"), "score": p.get("score")}
+                           for p in data.get("picks", [])]}
+          Path("data/push_candidates.json").write_text(
+              json.dumps(out, ensure_ascii=False, indent=2))
+          print(f"持久化 {len(out['picks'])} 只候选 ({out['date']}) -> data/push_candidates.json")
+          PY
+          git config user.email "ci@workbuddy.local"
+          git config user.name "wb-ci"
+          git add data/push_candidates.json
+          git commit -m "chore: nightly push candidates $(date +%F)" || echo "no-change"
+          git push || echo "push-failed"
+
+  # 09:25 开盘弱市预警: 由现有 cron-job.org POST repository_dispatch(daily-inference) 触发,
+  # 无需另配 cronjob。读取夜盘持久化的候选清单 + 今日开盘, 自动标记弱开/高位接盘,
+  # 替代人工盯盘 9:15-9:20。注: 9:20 后单已锁定, 本预警为开盘后确认, 由 -8% 止损兜住。
+  open_warn:
+    needs: gate
+    if: >-
+      needs.gate.outputs.run == 'true' && github.event_name == 'repository_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install -q --upgrade pip
+          pip install -q "pandas" "numpy" "lightgbm==4.7.0" "pyarrow" "requests"
+
+      - name: Restore market DB (release db-baseline-v1)
+        run: |
+          gh release download db-baseline-v1 -p "qlib_pro_v16.db" --clobber || \
+          gh release download db-baseline-v1 -p "*.db" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Warm candidate K-lines (Tencent API, 取今日开盘)
+        run: |
+          python <<'PY'
+          import json, time
+          from pathlib import Path
+          import importlib.util
+          p = Path('.').resolve(); sys.path.insert(0, str(p.parent))
+          s = importlib.util.spec_from_file_location('momentum', p/'__init__.py', submodule_search_locations=[str(p)])
+          m = importlib.util.module_from_spec(s); sys.modules['momentum']=m; s.loader.exec_module(m)
+          from momentum.data import load_or_fetch_kline, fetch_kline_from_api, init_db
+          init_db()
+          cp = Path('data/push_candidates.json')
+          if not cp.exists():
+              print("无候选文件, 跳过预热"); raise SystemExit(0)
+          codes = [x['code'] for x in json.loads(cp.read_text()).get('picks', [])]
+          print(f"[warm] 仅预热候选 {len(codes)} 只", flush=True)
+          t0 = time.time(); ok = fail = 0
+          for c in codes:
+              try:
+                  df = load_or_fetch_kline(c, fetch_kline_from_api, '2024-01-01')
+                  ok += 1 if (df is not None and not df.empty) else 0
+              except Exception:
+                  fail += 1
+          print(f"[warm] 完成 {ok}ok/{fail}fail in {time.time()-t0:.0f}s", flush=True)
+          PY
+
+      - name: 09:25 开盘弱市预警 Bark
+        if: ${{ env.BARK_DEVICE_KEY != '' }}
+        env:
+          BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
+        run: |
+          python - <<'PY'
+          import sys, json, sqlite3
+          from pathlib import Path
+          import importlib.util
+          p = Path('.').resolve(); sys.path.insert(0, str(p.parent))
+          s = importlib.util.spec_from_file_location('momentum', p/'__init__.py', submodule_search_locations=[str(p)])
+          m = importlib.util.module_from_spec(s); sys.modules['momentum']=m; s.loader.exec_module(m)
+          from momentum.tools.tracking_utils import bark_notify
+          from datetime import datetime, timezone, timedelta
+          now_cst = datetime.now(timezone(timedelta(hours=8)))
+          today = now_cst.date()
+          cp = Path('data/push_candidates.json')
+          if not cp.exists():
+              print("无候选文件(夜盘可能未跑/未提交), 跳过"); raise SystemExit(0)
+          cand = json.loads(cp.read_text())
+          picks = cand.get('picks', [])
+          con = sqlite3.connect('qlib_pro_v16.db')
+          rows = {r[0]: r[1] for r in con.execute(
+              "SELECT code, open FROM kline_cache WHERE trade_date=?",
+              (today.isoformat(),)).fetchall()}
+          con.close()
+          def lr(c): return 0.20 if str(c).startswith(('30', '68')) else 0.10
+          weak, toprisk, normal = [], [], []
+          for pk in picks:
+              c = pk['code']; ref = pk.get('close'); o = rows.get(c)
+              if o is None or not ref:
+                  weak.append((pk.get('name', c), c, None)); continue
+              gap = o / float(ref) - 1
+              lu = float(ref) * (1 + lr(c))
+              if o >= lu * 0.98:
+                  toprisk.append((pk.get('name', c), c, round(gap * 100, 2)))
+              elif gap < -0.03:
+                  weak.append((pk.get('name', c), c, round(gap * 100, 2)))
+              else:
+                  normal.append((pk.get('name', c), c, round(gap * 100, 2)))
+          lines = [f"信号日 {cand.get('date')} 候选 {len(picks)} 只, 今日({today})开盘预警:"]
+          if toprisk:
+              lines += ["", "⚠️ 开盘近涨停(高位接盘/炸板风险, 重点盯 -8% 止损):"]
+              for n, c, g in toprisk:
+                  lines.append(f"  • {n}({c}) 高开{g:+.1f}%")
+          if weak:
+              lines += ["", "📉 弱开(低于信号价>3%, 已成交者重点盯 -8% 止损):"]
+              for n, c, g in weak:
+                  lines.append(f"  • {n}({c}) 低开{g:+.1f}%")
+          if normal:
+              lines += ["", f"✅ 开盘正常 {len(normal)} 只(高开/平开<3%)"]
+          lines += ["",
+                    "注: 9:20 后集合竞价单已锁定不可撤; 本预警为开盘后自动确认, 替代人工盯盘 9:15-9:20。",
+                    "弱开/高位接盘者由 -8% 止损 + 5票分散兜住, 无需人工干预。"]
+          body = "\n".join(lines)
+          title = f"🔔 LightGBM 开盘预警 {today} (弱{len(weak)}/高位{len(toprisk)})"
+          bark_notify(title, body)
+          print("open_warn 推送:", title)
           PY

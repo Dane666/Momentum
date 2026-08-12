@@ -1,0 +1,78 @@
+{
+  "window": "2026-01-01~2026-06-30",
+  "note": "仅改变每日候选只数上限, 其余规则(开盘买/10日或-8%止损/状态仓位)不变",
+  "rows": [
+    {
+      "label": "扁平cap=10",
+      "sharpe": 1.241,
+      "total_ret": 20.57,
+      "ann_ret": 50.1,
+      "max_dd": -18.99,
+      "trades": 45,
+      "win_rate": 51.1,
+      "profit_factor": 1.43,
+      "avg_hold": 8.7,
+      "total_pnl": 136406
+    },
+    {
+      "label": "扁平cap=5",
+      "sharpe": 1.241,
+      "total_ret": 20.57,
+      "ann_ret": 50.1,
+      "max_dd": -18.99,
+      "trades": 45,
+      "win_rate": 51.1,
+      "profit_factor": 1.43,
+      "avg_hold": 8.7,
+      "total_pnl": 136406
+    },
+    {
+      "label": "扁平cap=3",
+      "sharpe": 1.711,
+      "total_ret": 31.15,
+      "ann_ret": 80.2,
+      "max_dd": -18.99,
+      "trades": 44,
+      "win_rate": 54.5,
+      "profit_factor": 1.54,
+      "avg_hold": 8.8,
+      "total_pnl": 160544
+    },
+    {
+      "label": "扁平cap=2",
+      "sharpe": 1.375,
+      "total_ret": 24.0,
+      "ann_ret": 59.6,
+      "max_dd": -18.99,
+      "trades": 44,
+      "win_rate": 56.8,
+      "profit_factor": 1.49,
+      "avg_hold": 8.8,
+      "total_pnl": 142060
+    },
+    {
+      "label": "状态感知-旧(强5/中3/弱2)",
+      "sharpe": 1.241,
+      "total_ret": 20.57,
+      "ann_ret": 50.1,
+      "max_dd": -18.99,
+      "trades": 45,
+      "win_rate": 51.1,
+      "profit_factor": 1.43,
+      "avg_hold": 8.7,
+      "total_pnl": 136406
+    },
+    {
+      "label": "状态感知-新(强3/中3/弱2)",
+      "sharpe": 1.711,
+      "total_ret": 31.15,
+      "ann_ret": 80.2,
+      "max_dd": -18.99,
+      "trades": 44,
+      "win_rate": 54.5,
+      "profit_factor": 1.54,
+      "avg_hold": 8.8,
+      "total_pnl": 160544
+    }
+  ]
+}
