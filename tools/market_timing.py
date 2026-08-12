@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-"""市场择时闸门 — 回答"模型 Top10 今天是否值得买"。
+"""市场择时闸门 — 回答"模型 Top10 候选今天该买几只(≤5)"。
 
 模型是横截面排序 alpha(强势延续), 但绝对收益受大盘环境驱动: 熊市里
 "最好的那批"往往也只是"跌得少的那批"。本模块给出当日开仓 verdict,
 供 Bark 推送与(可选)自动降仓使用。
 
 三档(基于大盘 proxy 上证000001 与 MA20/MA60 的位置):
-  - bull   强势: proxy ≥ MA20        -> 全买 Top10
-  - ranging 中性: MA60 ≤ proxy < MA20 -> 半仓(优选前5)
-  - bear   弱势: proxy <  MA60        -> 观望(仅前3 / 或空仓)
+  - bull   强势: proxy ≥ MA20        -> 全部买入(≤5)
+  - ranging 中性: MA60 ≤ proxy < MA20 -> 半仓(前3)
+  - bear   弱势: proxy <  MA60        -> 观望(前2 / 或空仓)
 
 另复用 tools.risk_gate.crash_guard 做尾部硬熔断(暴跌/破MA60-15% 暂停开仓)。
 任何异常都放行(不阻断选股), 与 risk_gate 一致。
@@ -73,7 +73,7 @@ def market_verdict():
         dates, closes = _proxy_closes(MA60 + 6)
         if len(closes) < MA20 + 1:
             return dict(state='unknown', crash=False, label='未知',
-                        action='全买 Top10',
+                        action='全部买入(≤5)',
                         msg='大盘数据不足, 按常态推荐全买')
         nav = closes[-1]
         ma20 = sum(closes[-MA20:]) / MA20
@@ -81,17 +81,17 @@ def market_verdict():
         dev20 = nav / ma20 - 1.0
         dev60 = nav / ma60 - 1.0
         if nav >= ma20:
-            state, label, action = 'bull', '强势', '全买 Top10'
+            state, label, action = 'bull', '强势', '全部买入(≤5)'
         elif nav >= ma60:
-            state, label, action = 'ranging', '中性', '半仓(优选前5)'
+            state, label, action = 'ranging', '中性', '半仓(前3)'
         else:
-            state, label, action = 'bear', '弱势', '观望(仅前3 / 空仓)'
+            state, label, action = 'bear', '弱势', '观望(前2 / 空仓)'
         msg = (f"大盘proxy偏离MA20 {dev20*100:+.1f}% | 偏离MA60 {dev60*100:+.1f}%")
         return dict(state=state, crash=False, label=label, action=action, msg=msg,
                     dev20=round(dev20, 4), dev60=round(dev60, 4), nav=round(nav, 2),
                     position_scale=position_scale_for(label))
     except Exception as e:
-        return dict(state='unknown', crash=False, label='未知', action='全买 Top10',
+        return dict(state='unknown', crash=False, label='未知', action='全部买入(≤5)',
                     msg=f'择时检查异常(放行): {e}',
                     position_scale=position_scale_for('未知'))
 

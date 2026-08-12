@@ -13,7 +13,8 @@
     持有 10 个交易日或触及 -8% 止损时卖出。每笔都记录买卖明细。
 
 交易规则(对齐部署口径, model_inference_report.md §6.7):
-  - 买点: 信号日 T 收盘后已知候选, 于 T+1 开盘价买入(隔夜可挂单, 可操作)。
+  - 买点: 信号日 T 收盘后已知候选, 于 T+1 开盘价买入(隔夜挂涨停价参与集合竞价,
+          实际成交价=开盘价; 次日一字涨停板集合竞价封死无法成交, 已剔除)。
   - 卖点: 满足任一即卖 —— (a) 持有满 10 个交易日收盘清仓; (b) 任一持有日收盘
           <= 买入价*(1-8%) 触发止损, 当日收盘卖出。不叠加止盈(横截面 alpha
           叠加形态卖点净负贡献, 已验证)。
@@ -84,11 +85,29 @@ CAPITAL = 1_000_000.0      # 名义本金, 用于把比例换算成可操作的�
 MAX_POS = 5                # 滚动仓位池并发上限(= position_sizing.MAX_HOLDINGS)
 
 
+def limit_ratio(code):
+    """按代码判定涨跌停幅度(与项目其它模块一致): 创业板/科创板 20%, 其余 10%。"""
+    return 0.20 if str(code).startswith(('30', '68')) else 0.10
+
+
+def _build_hl_frames(ctx, idx):
+    """构建 high/low 宽表(index=idx, columns=code), 用于"次日一字板"判定。
+    逻辑对齐 bt.build_price_frames 的 idx 与过滤口径。"""
+    highs, lows = {}, {}
+    for c, g in ctx.items():
+        sub = g.reindex(idx)
+        if sub['close'].notna().sum() < 30:
+            continue
+        highs[c] = sub['high'].values
+        lows[c] = sub['low'].values
+    return pd.DataFrame(highs, index=idx), pd.DataFrame(lows, index=idx)
+
+
 # --------------------------------------------------------------------------- #
 # 滚动仓位池 · 逐笔模拟
 # --------------------------------------------------------------------------- #
-def simulate_trades(picks_by_day, state_of, close_df, open_df, date_ts, idx,
-                    at, label='adaptive'):
+def simulate_trades(picks_by_day, state_of, close_df, open_df, high_df, low_df,
+                    date_ts, idx, at, label='adaptive'):
     """模拟逐笔交易, 返回 (trades:list[dict], equity_series:pd.Series, daily_capital:list).
 
     picks_by_day: {date_str: {'codes':[...], 'scale':float}}  (已按状态选定)
@@ -103,6 +122,7 @@ def simulate_trades(picks_by_day, state_of, close_df, open_df, date_ts, idx,
     daily_ret = []
     daily_active = []
     peak_concurrent = 0
+    one_word_skipped = 0      # 次日一字涨停板(集合竞价封死/无卖盘) -> 挂涨停隔夜单也无法成交
 
     for d in list(date_ts.keys()):
         ts = date_ts[d]
@@ -166,10 +186,23 @@ def simulate_trades(picks_by_day, state_of, close_df, open_df, date_ts, idx,
         if nd is None:
             continue
         opens = open_df.loc[nd, codes].astype(float)
+        highs = high_df.loc[nd, codes].astype(float)
+        lows = low_df.loc[nd, codes].astype(float)
+        prev_close = close_df.loc[ts, codes].astype(float)
         for code in codes[:n_open]:
             px = opens.get(code, np.nan)
             if not np.isfinite(px) or px <= 0:
                 continue
+            # 次日一字涨停板(open=high=low 且涨幅≥限幅): 集合竞价即封死、无卖盘,
+            # 隔夜涨停限价单也无法成交 -> 视为不可买入(与"挂涨停隔夜单"真实口径对齐)。
+            pc = prev_close.get(code, np.nan)
+            if np.isfinite(pc) and pc > 0:
+                up = px / pc - 1.0
+                if (abs(highs.get(code, np.nan) - lows.get(code, np.nan)) < 1e-6
+                        and abs(opens.get(code, np.nan) - highs.get(code, np.nan)) < 1e-6
+                        and up >= limit_ratio(code) * 0.95):
+                    one_word_skipped += 1
+                    continue
             per_slot = CAPITAL / MAX_POS
             pos[(d, code)] = dict(
                 code=code, name=rec.get('names', {}).get(code, code),
@@ -178,7 +211,7 @@ def simulate_trades(picks_by_day, state_of, close_df, open_df, date_ts, idx,
                 capital=per_slot, buy_date=str(nd.date()))
 
     eq = pd.Series(dict(daily_ret))
-    return trades, eq, daily_active
+    return trades, eq, daily_active, one_word_skipped
 
 
 def perf_from_equity(eq: pd.Series):
@@ -248,6 +281,7 @@ def main():
     state_map = {d.strftime('%Y-%m-%d'): s for d, s in full_state.items()}
 
     close_df, open_df, dates, idx = bt.build_price_frames(ctx, cal)
+    high_df, low_df = _build_hl_frames(ctx, idx)   # 用于"次日一字板"剔除
     dates = [d for d in dates if TEST_START <= str(d.date()) <= TEST_END]
     cands, feats = m04.build_candidates(ctx, cal, names, hot_at, env_regime)
     print(f'      回测交易日 {len(dates)} 天; 候选池每日均值 '
@@ -274,10 +308,10 @@ def main():
         base_picks[d] = {'codes': list(top['code']), 'scale': 1.0, 'names': names}
 
     print('[2/5] 逐笔模拟(滚动仓位池, 并发上限=%d)' % MAX_POS, flush=True)
-    tr_adv, eq_adv, cap_adv = simulate_trades(
-        adapt_picks, state_of, close_df, open_df, date_ts, idx, at, 'adaptive')
-    tr_base, eq_base, cap_base = simulate_trades(
-        base_picks, state_of, close_df, open_df, date_ts, idx, at, 'baseline')
+    tr_adv, eq_adv, cap_adv, skip_adv = simulate_trades(
+        adapt_picks, state_of, close_df, open_df, high_df, low_df, date_ts, idx, at, 'adaptive')
+    tr_base, eq_base, cap_base, skip_base = simulate_trades(
+        base_picks, state_of, close_df, open_df, high_df, low_df, date_ts, idx, at, 'baseline')
     print(f'      自适应交易 {len(tr_adv)} 笔; 固定基线 {len(tr_base)} 笔', flush=True)
 
     pa = perf_from_equity(eq_adv); pb = perf_from_equity(eq_base)
@@ -302,6 +336,7 @@ def main():
         'regime_days': regime_days,
         'avg_position_scale': round(avg_scale, 3),
         'cash_reserve_pct': round(cash_pct * 100, 1),
+        'one_word_skipped': {'adaptive': int(skip_adv), 'baseline': int(skip_base)},
         'accept_operable': 'YES' if peak_conc <= MAX_POS else 'NO',
     }
     OUT = ROOT / 'tasks' / 'market_state'
@@ -320,6 +355,7 @@ def main():
     print(line('自适应(模型+状态仓位)', pa, sa))
     print(line('固定基线(满仓top5)  ', pb, sb))
     print(f'\n市场状态分布: {regime_days}')
+    print(f'次日一字板剔除(集合竞价封死/挂涨停单也买不进): 自适应 {skip_adv} 笔, 基线 {skip_base} 笔')
     print(f'自适应平均仓位比例={avg_scale:.2f} -> 平均留现金 {cash_pct*100:.1f}%')
     print(f'并发持仓峰值={peak_conc} (上限{MAX_POS}) -> 可手动管理: '
           f'{"是" if peak_conc<=MAX_POS else "否"}')

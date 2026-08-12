@@ -59,5 +59,9 @@
   },
   "avg_position_scale": 0.654,
   "cash_reserve_pct": 34.6,
+  "one_word_skipped": {
+    "adaptive": 0,
+    "baseline": 0
+  },
   "accept_operable": "YES"
 }

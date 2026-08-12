@@ -155,7 +155,7 @@ jobs:
       - name: Inference -> Top-K
         run: |
           python tasks/model_inference/02_generate_scores.py --panel tasks/factor_engineering/output/factors_panel_full.parquet
-          python tasks/model_inference/03_select_topk.py --k 10
+          python tasks/model_inference/03_select_topk.py --k 5
 
       - name: Bark push (模型推荐)
         if: ${{ env.BARK_DEVICE_KEY != '' }}
@@ -188,7 +188,7 @@ jobs:
           verdict = gate["verdict"]
           state = verdict.get("state")
           label = verdict.get("label", "未知")
-          action = verdict.get("action", "全买 Top10")
+          action = verdict.get("action", "全部买入(≤5)")
           # 状态 emoji: 熔断⛔ 强势🟢 中性🟡 弱势🔴 未知⚪
           state_emoji = {"熔断": "⛔", "强势": "🟢", "中性": "🟡",
                          "弱势": "🔴", "未知": "⚪"}.get(label, "⚪")
@@ -205,14 +205,14 @@ jobs:
               raise SystemExit(0)
 
           flag = "⚠️盘中快照 " if intraday else ""
-          title = f"{flag}{state_emoji} LightGBM Top{len(picks)} {label} ({data.get('date')})"
-          # 按状态决定实际推荐买入的只数(弱势仅前3 / 中性前5 / 强势全10)
+          # 实际推荐买入只数: 与滚动仓位池(并发上限5)及状态仓位对齐, 不再每日推满10
           if state == 'bear':
-              buy_n = min(3, len(picks))
+              buy_n = min(2, len(picks))
           elif state == 'ranging':
-              buy_n = min(5, len(picks))
+              buy_n = min(3, len(picks))
           else:
-              buy_n = len(picks)
+              buy_n = min(5, len(picks))
+          title = f"{flag}{state_emoji} LightGBM 买入{buy_n}只 {label} ({data.get('date')})"
           shown = picks[:buy_n]
           lines = [f"{i+1}. {pk.get('name', pk['code'])} ({pk['code']}) 分{pk['score']:.3f} @{pk['close']}"
                    for i, pk in enumerate(shown)] or ["无候选"]
@@ -224,8 +224,9 @@ jobs:
                     f"💰 建议仓位: {int(round(verdict.get('position_scale', 1.0) * 100))}% (市场状态自适应, 逆境留现金)"]
           # 执行规则(已由 06_execution_feasibility 实证: 次日开盘可买 85.7%, 跳空中位数 0.00%;
           # 回踩限价单存在逆向选择, 不采用)。篮子等权, 勿单押。
-          lines += ["", "买: 次日开盘价等权买入(勿追回踩低吸)",
-                    "卖: 持有10日到期 / 止损-8%(不叠加止盈)", "篮子分散, 单票勿超1/5仓"]
+          lines += ["", "买: 隔夜挂涨停价参与集合竞价(成交价=次日开盘价); 9:15–9:20 观察撮合价, 若明显弱(炸板/大幅低开)可撤单, 9:20 后锁定不可撤",
+                    "卖: 持有10日到期 / 止损-8%(不叠加止盈)", "篮子分散, 单票勿超1/5仓(并发上限5)",
+                    "注: 炸板高位接盘属动量模型固有小概率失败, 由 -8% 止损与5票分散封顶, 默认照买不回避"]
           if intraday:
               lines += ["", f"⚠️ 本次于盘中 {now_cst:%H:%M} 运行, 基于未收盘实时快照,",
                         "收盘前名单仍会变。建议收盘后重跑或直接等 19:07 定时。"]
