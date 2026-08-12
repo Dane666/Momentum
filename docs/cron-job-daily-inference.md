@@ -95,3 +95,16 @@ X-GitHub-Api-Version: 2022-11-28
 | **LightGBM 推理** | `.../daily_inference.yml/dispatches` | `{"ref":"main"}` | ℹ️ 当前**不用 cron-job.org**，改由 GitHub 原生 cron `7 11 * * 1-5` UTC（19:07 CST）触发 |
 
 > 账号时区若用 UTC，则上表 Hour 各减 8。
+
+---
+
+## 开盘弱市预警（已并入竞价扫描，无需单独 cronjob）
+
+「LightGBM 候选开盘核验（盘前弱市撤单预警）」**不再**作为 `daily_inference.yml` 的独立 `open_warn` 作业 + `repository_dispatch` 触发。
+自本改动起，它并入 `auction-scan.yml`（竞价扫描，09:25）：
+
+- 候选清单由夜盘 `daily_inference` 推送后持久化到 `data/push_candidates.json`（已提交）；
+- 次日 09:25 `auction-scan.yml` 复用现有 cron-job.org 配置，读取候选 + 今日开盘，作为「🤖 LightGBM 候选开盘核验」段落并入竞价扫描报告、同一条 Bark 推送。
+
+> 因此：**不要**再为 `daily_inference.yml` 配置 `repository_dispatch(daily-inference)` 类型的 cron-job.org；开盘预警已随竞价扫描（上表 09:25 那条）一并触发。
+> 时序边界：9:20 后集合竞价单锁定，该核验为开盘后确认，不驱动撤单；如需驱动撤单须将竞价扫描提前至 ≤9:19 用指示性撮合价触发（另行实现）。

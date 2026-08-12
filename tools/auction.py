@@ -3,8 +3,9 @@
 集合竞价全景透视 + 主线赛道识别 (每日 09:25)
 输出: 全市场情绪 + 封单排行 + 板块集中度 → 确认主线
 """
-import logging
+import json, sqlite3, logging
 from datetime import datetime
+from pathlib import Path
 from collections import Counter
 import requests, pandas as pd
 
@@ -103,6 +104,15 @@ def analyze(df: pd.DataFrame) -> str:
     except Exception as e:
         logger.warning(f'外部盘辅助段落失败: {e}')
 
+    # 合并: LightGBM 候选开盘核验(盘前弱市撤单预警) — 并入竞价扫描同一条 Bark
+    try:
+        cand_sec = build_model_candidate_section()
+        if cand_sec:
+            lines.append('─' * 40)
+            lines.append(cand_sec)
+    except Exception as e:
+        logger.warning(f'模型候选核验段落失败: {e}')
+
     lines.append(f'\n⏰ 14:44 尾盘扫描见')
     return '\n'.join(lines)
 
@@ -121,6 +131,67 @@ def check_ma60():
 def send_notify(text:str):
     from momentum.notify.bark import send_bark
     send_bark('竞价扫描', text)
+
+
+def build_model_candidate_section(today: str = None) -> str | None:
+    """读取夜盘持久化的 LightGBM 候选清单, 对比今日开盘, 生成「盘前弱市撤单预警」段落。
+
+    并入竞价扫描报告(同一 Bark 推送), 不再单独发推送。
+    数据来源: data/push_candidates.json(夜盘 daily_inference 持久化) + 今日 kline_cache.open。
+    返回 None 表示无候选/今日开盘尚未入库, 调用方跳过(不影响竞价扫描主报告)。
+    """
+    try:
+        cp = Path('data/push_candidates.json')
+        if not cp.exists():
+            logger.info('[候选核验] 无 data/push_candidates.json, 跳过')
+            return None
+        cand = json.loads(cp.read_text(encoding='utf-8'))
+        picks = cand.get('picks', [])
+        if not picks:
+            return None
+        if today is None:
+            today = datetime.now().strftime('%Y-%m-%d')
+        con = sqlite3.connect('qlib_pro_v16.db')
+        rows = {r[0]: r[1] for r in con.execute(
+            "SELECT code, open FROM kline_cache WHERE trade_date=?", (today,)).fetchall()}
+        con.close()
+        if not rows:
+            logger.info('[候选核验] 今日 K 线尚未入库, 跳过')
+            return None
+
+        def lr(c): return 0.20 if str(c).startswith(('30', '68')) else 0.10
+        weak, toprisk, normal = [], [], []
+        for pk in picks:
+            c = pk['code']; ref = pk.get('close'); o = rows.get(c)
+            if not ref or o is None:
+                weak.append((pk.get('name', c), c, None)); continue
+            gap = o / float(ref) - 1
+            lu = float(ref) * (1 + lr(c))
+            if o >= lu * 0.98:
+                toprisk.append((pk.get('name', c), c, round(gap * 100, 2)))
+            elif gap < -0.03:
+                weak.append((pk.get('name', c), c, round(gap * 100, 2)))
+            else:
+                normal.append((pk.get('name', c), c, round(gap * 100, 2)))
+
+        n = len(picks)
+        lines = [f'🤖 LightGBM 候选开盘核验 ({n}只, 信号日 {cand.get("date")}) — 盘前弱市撤单预警:']
+        if toprisk:
+            lines += ['', '⚠️ 开盘近涨停·高位接盘/炸板风险(已成交者重点盯 -8% 止损):']
+            for nm, c, g in toprisk:
+                lines.append(f'  • {nm}({c}) 高开{g:+.1f}%')
+        if weak:
+            lines += ['', '📉 弱开(低于信号价>3%, 已成交者重点盯 -8% 止损):']
+            for nm, c, g in weak:
+                tag = ' (无开盘数据)' if g is None else f'低开{g:+.1f}%'
+                lines.append(f'  • {nm}({c}) {tag}')
+        if normal:
+            lines += ['', f'✅ 开盘正常 {len(normal)} 只(高开/平开<3%)']
+        lines += ['', '⏰ 注: 本核验为 09:25 开盘后确认 (9:20 后单已锁定不可撤); 弱开/高位接盘由 -8% 止损 + 5票分散兜住']
+        return '\n'.join(lines)
+    except Exception as e:
+        logger.warning(f'[候选核验] 段落生成失败: {e}')
+        return None
 
 
 def run():

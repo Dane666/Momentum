@@ -3,9 +3,15 @@ name: auction-scan
 # 集合竞价全景透视 + 主线识别 — 09:25 CST 精准触发
 # 主: cron-job.org → workflow_dispatch
 # 备: GitHub cron 09:20 CST
+# 说明: 本作业同时并入「LightGBM 候选开盘核验(盘前弱市撤单预警)」——
+#       读夜盘 daily_inference 持久化的 data/push_candidates.json, 对比今日开盘,
+#       与竞价全景同一条 Bark 推送(报告合并), 不再单独发推送。
 #
 on:
   workflow_dispatch:
+
+permissions:
+  contents: read   # checkout + gh release download 读取行情基线库
 
 jobs:
   auction:
@@ -22,6 +28,37 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
       - run: pip install -r requirements.txt
+      - name: Restore market DB (release db-baseline-v1)
+        run: |
+          gh release download db-baseline-v1 -p "qlib_pro_v16.db" --clobber || \
+          gh release download db-baseline-v1 -p "*.db" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Warm candidate K-lines (Tencent API, 取今日开盘供候选核验)
+        run: |
+          python <<'PY'
+          import sys, json, time
+          from pathlib import Path
+          import importlib.util
+          p = Path('.').resolve(); sys.path.insert(0, str(p.parent))
+          s = importlib.util.spec_from_file_location('momentum', p/'__init__.py', submodule_search_locations=[str(p)])
+          m = importlib.util.module_from_spec(s); sys.modules['momentum']=m; s.loader.exec_module(m)
+          from momentum.data import load_or_fetch_kline, fetch_kline_from_api, init_db
+          init_db()
+          cp = Path('data/push_candidates.json')
+          if not cp.exists():
+              print("无候选文件, 跳过预热"); raise SystemExit(0)
+          codes = [x['code'] for x in json.loads(cp.read_text()).get('picks', [])]
+          print(f"[warm] 仅预热候选 {len(codes)} 只", flush=True)
+          t0 = time.time(); ok = fail = 0
+          for c in codes:
+              try:
+                  df = load_or_fetch_kline(c, fetch_kline_from_api, '2024-01-01')
+                  ok += 1 if (df is not None and not df.empty) else 0
+              except Exception:
+                  fail += 1
+          print(f"[warm] 完成 {ok}ok/{fail}fail in {time.time()-t0:.0f}s", flush=True)
+          PY
       - name: Wait for 09:25 (schedule fallback only)
         if: github.event_name == 'schedule'
         run: |
