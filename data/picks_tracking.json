@@ -430,5 +430,35 @@
     "trigger_type": "TP",
     "trigger_time": "2026-08-03 14:01:39",
     "pnl_ratio": 14.69
+  },
+  {
+    "date": "2026-08-18",
+    "code": "600108",
+    "name": "亚盛集团",
+    "price": 3.56,
+    "sl_price": 3.38,
+    "tp_price": 3.92,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-08-18",
+    "code": "601952",
+    "name": "苏垦农发",
+    "price": 9.36,
+    "sl_price": 8.89,
+    "tp_price": 10.3,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
