@@ -438,7 +438,7 @@
     "price": 3.56,
     "sl_price": 3.38,
     "tp_price": 3.92,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
@@ -446,7 +446,12 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": 8.71,
-    "trail_stop": 3.6
+    "trail_stop": 3.6,
+    "exit_price": 3.6,
+    "pnl_pct": 1.12,
+    "trigger_type": "TRAIL",
+    "trigger_time": "2026-08-19 10:01:09",
+    "pnl_ratio": 1.12
   },
   {
     "date": "2026-08-18",
