@@ -518,5 +518,25 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-08-25",
+    "code": "000523",
+    "name": "红棉股份",
+    "price": 3.27,
+    "sl_price": 3.1065,
+    "tp_price": 3.5970000000000004,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-08-25",
+    "code": "000505",
+    "name": "京粮控股",
+    "price": 6.98,
+    "sl_price": 6.63,
+    "tp_price": 7.68,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
