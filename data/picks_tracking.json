@@ -538,5 +538,20 @@
     "tp_price": 7.68,
     "status": "WATCHING",
     "type": "STRATEGY"
+  },
+  {
+    "date": "2026-08-26",
+    "code": "002015",
+    "name": "协鑫能科",
+    "price": 17.24,
+    "sl_price": 16.38,
+    "tp_price": 18.96,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
