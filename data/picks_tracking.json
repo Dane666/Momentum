@@ -553,5 +553,15 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-08-26",
+    "code": "000581",
+    "name": "威孚高科",
+    "price": 18.35,
+    "sl_price": 17.4325,
+    "tp_price": 20.185000000000002,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
