@@ -575,5 +575,50 @@
     "status": "WATCHING",
     "type": "STRATEGY",
     "max_pnl": -0.65
+  },
+  {
+    "date": "2026-08-27",
+    "code": "000506",
+    "name": "招金黄金",
+    "price": 22.21,
+    "sl_price": 21.1,
+    "tp_price": 24.43,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-08-27",
+    "code": "600108",
+    "name": "亚盛集团",
+    "price": 3.78,
+    "sl_price": 3.59,
+    "tp_price": 4.16,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-08-27",
+    "code": "600487",
+    "name": "亨通光电",
+    "price": 70.96,
+    "sl_price": 67.41,
+    "tp_price": 78.06,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
