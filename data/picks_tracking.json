@@ -560,13 +560,18 @@
     "price": 4.33,
     "sl_price": 4.11,
     "tp_price": 4.76,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -1.62
+    "max_pnl": -1.62,
+    "exit_price": 4.11,
+    "pnl_pct": -5.08,
+    "trigger_type": "SL",
+    "trigger_time": "2026-08-31 11:01:15",
+    "pnl_ratio": -5.08
   }
 ]
