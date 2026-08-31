@@ -573,5 +573,35 @@
     "trigger_type": "SL",
     "trigger_time": "2026-08-31 11:01:15",
     "pnl_ratio": -5.08
+  },
+  {
+    "date": "2026-08-31",
+    "code": "600691",
+    "name": "潞化科技",
+    "price": 3.23,
+    "sl_price": 3.07,
+    "tp_price": 3.55,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-08-31",
+    "code": "601929",
+    "name": "吉视传媒",
+    "price": 2.57,
+    "sl_price": 2.44,
+    "tp_price": 2.83,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
