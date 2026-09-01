@@ -518,22 +518,6 @@
   },
   {
     "date": "2026-08-27",
-    "code": "600108",
-    "name": "亚盛集团",
-    "price": 3.78,
-    "sl_price": 3.59,
-    "tp_price": 4.16,
-    "status": "WATCHING",
-    "type": "C_TAIL",
-    "support": null,
-    "pressure": null,
-    "weight": 0.3333,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 3.44
-  },
-  {
-    "date": "2026-08-27",
     "code": "600487",
     "name": "亨通光电",
     "price": 70.96,
