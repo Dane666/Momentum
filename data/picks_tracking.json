@@ -631,5 +631,35 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-09-02",
+    "code": "000519",
+    "name": "中兵红箭",
+    "price": 15.45,
+    "sl_price": 14.677499999999998,
+    "tp_price": 16.995,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-02",
+    "code": "000506",
+    "name": "招金黄金",
+    "price": 21.09,
+    "sl_price": 20.04,
+    "tp_price": 23.2,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-02",
+    "code": "000608",
+    "name": "阳光股份",
+    "price": 7.51,
+    "sl_price": 7.13,
+    "tp_price": 8.26,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
