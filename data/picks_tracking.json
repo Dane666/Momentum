@@ -616,5 +616,20 @@
     "status": "WATCHING",
     "type": "STRATEGY",
     "max_pnl": -0.29
+  },
+  {
+    "date": "2026-09-02",
+    "code": "002855",
+    "name": "捷荣技术",
+    "price": 19.34,
+    "sl_price": 18.37,
+    "tp_price": 21.27,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
