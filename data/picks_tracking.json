@@ -593,7 +593,7 @@
     "weight": 0.5,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -0.78
+    "max_pnl": 0.39
   },
   {
     "date": "2026-09-01",
@@ -624,13 +624,19 @@
     "price": 19.34,
     "sl_price": 18.37,
     "tp_price": 21.27,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 1.0,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -7.39,
+    "exit_price": 17.91,
+    "pnl_pct": -7.39,
+    "trigger_type": "SL",
+    "trigger_time": "2026-09-03 09:31:44",
+    "pnl_ratio": -7.39
   },
   {
     "date": "2026-09-02",
@@ -640,7 +646,8 @@
     "sl_price": 14.677499999999998,
     "tp_price": 16.995,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -3.62
   },
   {
     "date": "2026-09-02",
@@ -650,7 +657,8 @@
     "sl_price": 20.04,
     "tp_price": 23.2,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": 1.66
   },
   {
     "date": "2026-09-02",
@@ -660,6 +668,7 @@
     "sl_price": 7.13,
     "tp_price": 8.26,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -1.73
   }
 ]
