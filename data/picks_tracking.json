@@ -685,5 +685,35 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-09-03",
+    "code": "000301",
+    "name": "东方盛虹",
+    "price": 14.75,
+    "sl_price": 14.0125,
+    "tp_price": 16.225,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-03",
+    "code": "000520",
+    "name": "凤凰航运",
+    "price": 4.51,
+    "sl_price": 4.28,
+    "tp_price": 4.96,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-03",
+    "code": "000070",
+    "name": "特发信息",
+    "price": 16.13,
+    "sl_price": 15.32,
+    "tp_price": 17.74,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
