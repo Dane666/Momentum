@@ -670,5 +670,20 @@
     "status": "WATCHING",
     "type": "STRATEGY",
     "max_pnl": -1.73
+  },
+  {
+    "date": "2026-09-03",
+    "code": "600885",
+    "name": "宏发股份",
+    "price": 36.0,
+    "sl_price": 34.2,
+    "tp_price": 39.6,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
