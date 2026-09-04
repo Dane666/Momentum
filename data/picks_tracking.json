@@ -760,5 +760,35 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-09-04",
+    "code": "000596",
+    "name": "古井贡酒",
+    "price": 101.2,
+    "sl_price": 96.14,
+    "tp_price": 111.32000000000001,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-04",
+    "code": "000039",
+    "name": "中集集团",
+    "price": 9.39,
+    "sl_price": 8.92,
+    "tp_price": 10.33,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-04",
+    "code": "000417",
+    "name": "合百集团",
+    "price": 6.33,
+    "sl_price": 6.01,
+    "tp_price": 6.96,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
