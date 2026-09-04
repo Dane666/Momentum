@@ -715,5 +715,50 @@
     "tp_price": 17.74,
     "status": "WATCHING",
     "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-04",
+    "code": "000876",
+    "name": "新 希 望",
+    "price": 7.68,
+    "sl_price": 7.3,
+    "tp_price": 8.45,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-04",
+    "code": "603363",
+    "name": "傲农生物",
+    "price": 3.3,
+    "sl_price": 3.13,
+    "tp_price": 3.63,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-04",
+    "code": "603613",
+    "name": "国联股份",
+    "price": 20.67,
+    "sl_price": 19.64,
+    "tp_price": 22.74,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
