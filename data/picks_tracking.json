@@ -613,7 +613,8 @@
     "pressure": null,
     "weight": 1.0,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.97
   },
   {
     "date": "2026-09-03",
@@ -622,8 +623,14 @@
     "price": 14.75,
     "sl_price": 14.0125,
     "tp_price": 16.225,
-    "status": "WATCHING",
-    "type": "STRATEGY"
+    "status": "TRIGGERED",
+    "type": "STRATEGY",
+    "max_pnl": -5.15,
+    "exit_price": 13.99,
+    "pnl_pct": -5.15,
+    "trigger_type": "SL",
+    "trigger_time": "2026-09-07 11:01:12",
+    "pnl_ratio": -5.15
   },
   {
     "date": "2026-09-03",
@@ -633,7 +640,8 @@
     "sl_price": 4.28,
     "tp_price": 4.96,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -1.55
   },
   {
     "date": "2026-09-03",
@@ -643,7 +651,8 @@
     "sl_price": 15.32,
     "tp_price": 17.74,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -2.73
   },
   {
     "date": "2026-09-04",
@@ -658,7 +667,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 1.56
   },
   {
     "date": "2026-09-04",
@@ -673,7 +683,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.82
   },
   {
     "date": "2026-09-04",
@@ -688,7 +699,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -3.19
   },
   {
     "date": "2026-09-04",
@@ -698,7 +710,8 @@
     "sl_price": 96.14,
     "tp_price": 111.32000000000001,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -0.7
   },
   {
     "date": "2026-09-04",
@@ -708,7 +721,8 @@
     "sl_price": 8.92,
     "tp_price": 10.33,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -1.06
   },
   {
     "date": "2026-09-04",
@@ -718,6 +732,7 @@
     "sl_price": 6.01,
     "tp_price": 6.96,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": 4.58
   }
 ]
