@@ -580,44 +580,6 @@
     "pnl_ratio": -5.26
   },
   {
-    "date": "2026-08-31",
-    "code": "601929",
-    "name": "吉视传媒",
-    "price": 2.57,
-    "sl_price": 2.44,
-    "tp_price": 2.83,
-    "status": "WATCHING",
-    "type": "C_TAIL",
-    "support": null,
-    "pressure": null,
-    "weight": 0.5,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 0.39
-  },
-  {
-    "date": "2026-09-01",
-    "code": "000409",
-    "name": "云鼎科技",
-    "price": 9.38,
-    "sl_price": 8.91,
-    "tp_price": 10.32,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": -0.96
-  },
-  {
-    "date": "2026-09-01",
-    "code": "000526",
-    "name": "学大教育",
-    "price": 38.01,
-    "sl_price": 36.11,
-    "tp_price": 41.81,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": -0.29
-  },
-  {
     "date": "2026-09-02",
     "code": "002855",
     "name": "捷荣技术",
@@ -637,39 +599,6 @@
     "trigger_type": "SL",
     "trigger_time": "2026-09-03 09:31:44",
     "pnl_ratio": -7.39
-  },
-  {
-    "date": "2026-09-02",
-    "code": "000519",
-    "name": "中兵红箭",
-    "price": 15.45,
-    "sl_price": 14.677499999999998,
-    "tp_price": 16.995,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": -3.62
-  },
-  {
-    "date": "2026-09-02",
-    "code": "000506",
-    "name": "招金黄金",
-    "price": 21.09,
-    "sl_price": 20.04,
-    "tp_price": 23.2,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": 1.66
-  },
-  {
-    "date": "2026-09-02",
-    "code": "000608",
-    "name": "阳光股份",
-    "price": 7.51,
-    "sl_price": 7.13,
-    "tp_price": 8.26,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": -1.73
   },
   {
     "date": "2026-09-03",
