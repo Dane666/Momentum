@@ -734,5 +734,20 @@
     "status": "WATCHING",
     "type": "STRATEGY",
     "max_pnl": 4.58
+  },
+  {
+    "date": "2026-09-07",
+    "code": "002516",
+    "name": "旷达科技",
+    "price": 5.9,
+    "sl_price": 5.61,
+    "tp_price": 6.49,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
