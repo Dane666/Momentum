@@ -749,5 +749,35 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-09-07",
+    "code": "000417",
+    "name": "合百集团",
+    "price": 6.72,
+    "sl_price": 6.3839999999999995,
+    "tp_price": 7.392,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-07",
+    "code": "000523",
+    "name": "红棉股份",
+    "price": 3.59,
+    "sl_price": 3.41,
+    "tp_price": 3.95,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-07",
+    "code": "000026",
+    "name": "飞亚达",
+    "price": 21.28,
+    "sl_price": 20.22,
+    "tp_price": 23.41,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
