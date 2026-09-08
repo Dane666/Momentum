@@ -602,22 +602,6 @@
   },
   {
     "date": "2026-09-03",
-    "code": "600885",
-    "name": "宏发股份",
-    "price": 36.0,
-    "sl_price": 34.2,
-    "tp_price": 39.6,
-    "status": "WATCHING",
-    "type": "C_TAIL",
-    "support": null,
-    "pressure": null,
-    "weight": 1.0,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -0.97
-  },
-  {
-    "date": "2026-09-03",
     "code": "000301",
     "name": "东方盛虹",
     "price": 14.75,
@@ -631,28 +615,6 @@
     "trigger_type": "SL",
     "trigger_time": "2026-09-07 11:01:12",
     "pnl_ratio": -5.15
-  },
-  {
-    "date": "2026-09-03",
-    "code": "000520",
-    "name": "凤凰航运",
-    "price": 4.51,
-    "sl_price": 4.28,
-    "tp_price": 4.96,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": -1.55
-  },
-  {
-    "date": "2026-09-03",
-    "code": "000070",
-    "name": "特发信息",
-    "price": 16.13,
-    "sl_price": 15.32,
-    "tp_price": 17.74,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": -2.73
   },
   {
     "date": "2026-09-04",
