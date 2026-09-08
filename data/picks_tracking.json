@@ -758,5 +758,50 @@
     "trigger_type": "SL",
     "trigger_time": "2026-09-08 11:01:13",
     "pnl_ratio": -5.26
+  },
+  {
+    "date": "2026-09-08",
+    "code": "601999",
+    "name": "出版传媒",
+    "price": 8.0,
+    "sl_price": 7.6,
+    "tp_price": 8.8,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-08",
+    "code": "000737",
+    "name": "北方铜业",
+    "price": 15.67,
+    "sl_price": 14.89,
+    "tp_price": 17.24,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-08",
+    "code": "002436",
+    "name": "兴森科技",
+    "price": 40.14,
+    "sl_price": 38.13,
+    "tp_price": 44.15,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
