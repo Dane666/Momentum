@@ -760,5 +760,15 @@
     "weight": 0.5,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-09-09",
+    "code": "000586",
+    "name": "汇源通信",
+    "price": 14.55,
+    "sl_price": 13.8225,
+    "tp_price": 16.005000000000003,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
