@@ -730,5 +730,35 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -2.07
+  },
+  {
+    "date": "2026-09-09",
+    "code": "600255",
+    "name": "鑫科材料",
+    "price": 3.89,
+    "sl_price": 3.7,
+    "tp_price": 4.28,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-09",
+    "code": "000980",
+    "name": "众泰汽车",
+    "price": 2.02,
+    "sl_price": 1.92,
+    "tp_price": 2.22,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
