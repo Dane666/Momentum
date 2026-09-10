@@ -16,7 +16,7 @@ jobs:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: requirements.txt
-      - run: pip install yfinance && pip install -r requirements.txt
+      - run: pip install -r requirements.txt
       - name: Run pre-market report
         run: |
           python <<'PY'

@@ -174,28 +174,40 @@ def fetch_lithium_futures():
 
 
 # ============ 韩股 ============
+_KOREA_QQ = {'三星电子': 'kr005930', 'SK海力士': 'kr000660'}
+
+
 def fetch_korea_stocks():
-    """返回 {三星: {...}, 海力士: {...}} 或空 dict."""
-    try:
-        import yfinance as yf
-    except Exception as e:
-        logger.warning('yfinance 不可用: %s', e)
-        return {}
+    """返回 {三星: {...}, 海力士: {...}} 或空 dict.
+
+    数据源: 腾讯 qt.gtimg.cn (项目统一稳定源, 替代 yfinance)
+      yfinance 在 CI 共享 IP 下频繁限流且 005930.KS 易返回 NaN。
+      腾讯格式: [0]市场 [1]名称 [2]代码 [3]现价 [4]昨收 [5]今开 ... [31]涨跌额 [32]涨跌幅%
+    """
     out = {}
-    for label, sym in (('三星电子', '005930.KS'), ('SK海力士', '000660.KS')):
-        try:
-            h = yf.Ticker(sym).history(period='2d', interval='1d')
-            if h is None or len(h) == 0:
+    try:
+        url = 'https://qt.gtimg.cn/q=' + ','.join(_KOREA_QQ.values())
+        resp = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=8)
+        if resp.status_code != 200:
+            return out
+        for label, code in _KOREA_QQ.items():
+            m = __import__('re').search(r'v_%s="([^"]*)"' % __import__('re').escape(code), resp.text)
+            if not m or not m.group(1):
+                logger.warning('%s 无数据', label)
                 continue
-            last = h.iloc[-1]
-            prev = h.iloc[-2]['Close'] if len(h) >= 2 else last['Open']
-            price = float(last['Close'])
-            open_ = float(last['Open'])
-            chg = (price / prev - 1) * 100 if prev else None
-            out[label] = dict(price=price, open=open_, chg=chg,
-                              currency='KRW')
-        except Exception as e:
-            logger.warning('%s 获取失败: %s', label, e)
+            parts = m.group(1).split('~')
+            if len(parts) < 33:
+                logger.warning('%s 字段不足', label)
+                continue
+            try:
+                price = float(parts[3])
+                open_ = float(parts[5]) if parts[5] else price
+                chg = float(parts[32]) if parts[32] else 0.0  # 涨跌幅%
+                out[label] = dict(price=price, open=open_, chg=chg, currency='KRW')
+            except (ValueError, IndexError) as e:
+                logger.warning('%s 解析失败: %s', label, e)
+    except Exception as e:
+        logger.warning('韩股获取失败: %s', e)
     return out
 
 
