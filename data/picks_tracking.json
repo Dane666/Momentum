@@ -833,5 +833,15 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-09-11",
+    "code": "000070",
+    "name": "特发信息",
+    "price": 17.14,
+    "sl_price": 16.283,
+    "tp_price": 18.854000000000003,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
