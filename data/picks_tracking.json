@@ -788,5 +788,50 @@
     "status": "WATCHING",
     "type": "STRATEGY",
     "max_pnl": 1.17
+  },
+  {
+    "date": "2026-09-11",
+    "code": "000980",
+    "name": "众泰汽车",
+    "price": 2.12,
+    "sl_price": 2.01,
+    "tp_price": 2.33,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-11",
+    "code": "603421",
+    "name": "鼎信通讯",
+    "price": 7.99,
+    "sl_price": 7.59,
+    "tp_price": 8.79,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-11",
+    "code": "603601",
+    "name": "再升科技",
+    "price": 10.87,
+    "sl_price": 10.33,
+    "tp_price": 11.96,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
