@@ -639,9 +639,14 @@
     "price": 6.72,
     "sl_price": 6.3839999999999995,
     "tp_price": 7.392,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "STRATEGY",
-    "max_pnl": 0.45
+    "max_pnl": 0.45,
+    "exit_price": 6.02,
+    "pnl_pct": -10.42,
+    "trigger_type": "SL",
+    "trigger_time": "2026-09-11 10:17:33",
+    "pnl_ratio": -10.42
   },
   {
     "date": "2026-09-07",
@@ -705,7 +710,7 @@
     "price": 15.67,
     "sl_price": 14.89,
     "tp_price": 17.24,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
@@ -713,7 +718,12 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": 6.51,
-    "trail_stop": 15.67
+    "trail_stop": 15.67,
+    "exit_price": 14.74,
+    "pnl_pct": -5.93,
+    "trigger_type": "SL",
+    "trigger_time": "2026-09-11 10:17:44",
+    "pnl_ratio": -5.93
   },
   {
     "date": "2026-09-08",
@@ -722,14 +732,19 @@
     "price": 40.14,
     "sl_price": 38.13,
     "tp_price": 44.15,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -2.07
+    "max_pnl": -2.07,
+    "exit_price": 37.85,
+    "pnl_pct": -5.71,
+    "trigger_type": "SL",
+    "trigger_time": "2026-09-11 10:17:55",
+    "pnl_ratio": -5.71
   },
   {
     "date": "2026-09-09",
@@ -744,7 +759,8 @@
     "pressure": null,
     "weight": 0.5,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-09-09",
@@ -759,7 +775,8 @@
     "pressure": null,
     "weight": 0.5,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 0.5
   },
   {
     "date": "2026-09-09",
@@ -769,6 +786,7 @@
     "sl_price": 13.8225,
     "tp_price": 16.005000000000003,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": 1.17
   }
 ]
