@@ -804,5 +804,35 @@
     "status": "WATCHING",
     "type": "STRATEGY",
     "max_pnl": -1.75
+  },
+  {
+    "date": "2026-09-14",
+    "code": "000572",
+    "name": "海马汽车",
+    "price": 4.33,
+    "sl_price": 4.11,
+    "tp_price": 4.76,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-14",
+    "code": "600641",
+    "name": "先导基电",
+    "price": 31.92,
+    "sl_price": 30.32,
+    "tp_price": 35.11,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
