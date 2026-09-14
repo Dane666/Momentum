@@ -737,14 +737,20 @@
     "price": 2.12,
     "sl_price": 2.01,
     "tp_price": 2.33,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 0.0
+    "max_pnl": 9.91,
+    "trail_stop": 2.17,
+    "exit_price": 2.33,
+    "pnl_pct": 9.91,
+    "trigger_type": "TP",
+    "trigger_time": "2026-09-14 10:01:21",
+    "pnl_ratio": 9.91
   },
   {
     "date": "2026-09-11",
@@ -760,7 +766,7 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -4.63
+    "max_pnl": -3.25
   },
   {
     "date": "2026-09-11",
@@ -792,6 +798,6 @@
     "tp_price": 18.854000000000003,
     "status": "WATCHING",
     "type": "STRATEGY",
-    "max_pnl": -2.63
+    "max_pnl": -1.75
   }
 ]
