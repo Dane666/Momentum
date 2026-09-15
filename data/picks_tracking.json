@@ -834,5 +834,20 @@
     "weight": 0.5,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-09-15",
+    "code": "600184",
+    "name": "光电股份",
+    "price": 22.61,
+    "sl_price": 21.48,
+    "tp_price": 24.87,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
