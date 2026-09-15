@@ -849,5 +849,15 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-09-15",
+    "code": "000510",
+    "name": "新金路",
+    "price": 17.82,
+    "sl_price": 16.929,
+    "tp_price": 19.602,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
