@@ -795,17 +795,6 @@
     "pnl_ratio": -5.43
   },
   {
-    "date": "2026-09-11",
-    "code": "000070",
-    "name": "特发信息",
-    "price": 17.14,
-    "sl_price": 16.283,
-    "tp_price": 18.854000000000003,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": -1.75
-  },
-  {
     "date": "2026-09-14",
     "code": "000572",
     "name": "海马汽车",
