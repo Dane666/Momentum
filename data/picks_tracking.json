@@ -869,5 +869,50 @@
     "status": "WATCHING",
     "type": "STRATEGY",
     "max_pnl": 0.84
+  },
+  {
+    "date": "2026-09-17",
+    "code": "300741",
+    "name": "华宝股份",
+    "price": 26.92,
+    "sl_price": 25.57,
+    "tp_price": 29.61,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-17",
+    "code": "600448",
+    "name": "华纺股份",
+    "price": 3.22,
+    "sl_price": 3.06,
+    "tp_price": 3.54,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-17",
+    "code": "000981",
+    "name": "山子高科",
+    "price": 3.01,
+    "sl_price": 2.86,
+    "tp_price": 3.31,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
