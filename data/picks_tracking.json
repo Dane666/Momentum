@@ -877,14 +877,19 @@
     "price": 26.92,
     "sl_price": 25.57,
     "tp_price": 29.61,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -2.9
+    "max_pnl": -2.9,
+    "exit_price": 25.04,
+    "pnl_pct": -6.98,
+    "trigger_type": "SL",
+    "trigger_time": "2026-09-18 10:31:18",
+    "pnl_ratio": -6.98
   },
   {
     "date": "2026-09-17",
@@ -933,6 +938,6 @@
     "tp_price": 3.102,
     "status": "WATCHING",
     "type": "STRATEGY",
-    "max_pnl": -3.19
+    "max_pnl": -2.84
   }
 ]
