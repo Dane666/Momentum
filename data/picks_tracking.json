@@ -939,5 +939,50 @@
     "status": "WATCHING",
     "type": "STRATEGY",
     "max_pnl": -2.84
+  },
+  {
+    "date": "2026-09-18",
+    "code": "002285",
+    "name": "世联行",
+    "price": 2.89,
+    "sl_price": 2.75,
+    "tp_price": 3.18,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-18",
+    "code": "600606",
+    "name": "绿地控股",
+    "price": 1.45,
+    "sl_price": 1.38,
+    "tp_price": 1.59,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-18",
+    "code": "000993",
+    "name": "闽东电力",
+    "price": 19.7,
+    "sl_price": 18.71,
+    "tp_price": 21.67,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
