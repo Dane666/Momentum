@@ -860,17 +860,6 @@
     "pnl_ratio": -6.28
   },
   {
-    "date": "2026-09-15",
-    "code": "000510",
-    "name": "新金路",
-    "price": 17.82,
-    "sl_price": 16.929,
-    "tp_price": 19.602,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": 4.21
-  },
-  {
     "date": "2026-09-17",
     "code": "300741",
     "name": "华宝股份",
