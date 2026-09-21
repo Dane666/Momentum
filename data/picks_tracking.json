@@ -1042,5 +1042,35 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-09-21",
+    "code": "000070",
+    "name": "特发信息",
+    "price": 18.89,
+    "sl_price": 17.9455,
+    "tp_price": 20.779000000000003,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-21",
+    "code": "000559",
+    "name": "万向钱潮",
+    "price": 11.72,
+    "sl_price": 11.13,
+    "tp_price": 12.89,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-09-21",
+    "code": "000059",
+    "name": "华锦股份",
+    "price": 5.78,
+    "sl_price": 5.49,
+    "tp_price": 6.36,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
