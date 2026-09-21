@@ -997,5 +997,50 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": 3.65
+  },
+  {
+    "date": "2026-09-21",
+    "code": "002042",
+    "name": "华孚时尚",
+    "price": 4.22,
+    "sl_price": 4.01,
+    "tp_price": 4.64,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-21",
+    "code": "000002",
+    "name": "万 科Ａ",
+    "price": 3.64,
+    "sl_price": 3.46,
+    "tp_price": 4.0,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-09-21",
+    "code": "603997",
+    "name": "继峰股份",
+    "price": 13.75,
+    "sl_price": 13.06,
+    "tp_price": 15.13,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
