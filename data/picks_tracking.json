@@ -904,22 +904,6 @@
   },
   {
     "date": "2026-09-17",
-    "code": "000981",
-    "name": "山子高科",
-    "price": 3.01,
-    "sl_price": 2.86,
-    "tp_price": 3.31,
-    "status": "WATCHING",
-    "type": "C_TAIL",
-    "support": null,
-    "pressure": null,
-    "weight": 0.3333,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 0.66
-  },
-  {
-    "date": "2026-09-17",
     "code": "000560",
     "name": "我爱我家",
     "price": 2.82,
