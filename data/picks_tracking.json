@@ -967,23 +967,6 @@
     "pnl_ratio": 10.34
   },
   {
-    "date": "2026-09-18",
-    "code": "000993",
-    "name": "闽东电力",
-    "price": 19.7,
-    "sl_price": 18.71,
-    "tp_price": 21.67,
-    "status": "WATCHING",
-    "type": "C_TAIL",
-    "support": null,
-    "pressure": null,
-    "weight": 0.3333,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 5.28,
-    "trail_stop": 19.7
-  },
-  {
     "date": "2026-09-21",
     "code": "002042",
     "name": "华孚时尚",
