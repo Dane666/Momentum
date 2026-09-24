@@ -1091,5 +1091,20 @@
     "trigger_type": "TP",
     "trigger_time": "2026-09-24 10:01:44",
     "pnl_ratio": 10.09
+  },
+  {
+    "date": "2026-09-24",
+    "code": "600897",
+    "name": "厦门空港",
+    "price": 16.4,
+    "sl_price": 15.58,
+    "tp_price": 18.04,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
