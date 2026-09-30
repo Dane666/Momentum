@@ -1159,5 +1159,20 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -1.38
+  },
+  {
+    "date": "2026-09-30",
+    "code": "000426",
+    "name": "兴业银锡",
+    "price": 31.55,
+    "sl_price": 26.82,
+    "tp_price": 36.28,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
