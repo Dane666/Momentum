@@ -18,5 +18,15 @@
     "sharpe": 0,
     "maxdd": 0,
     "run_at": "2026-09-01T20:56:27"
+  },
+  {
+    "window_start": "2026-07-15",
+    "window_end": "2026-09-30",
+    "n": 0,
+    "total_ret": 0,
+    "winrate": 0,
+    "sharpe": 0,
+    "maxdd": 0,
+    "run_at": "2026-10-01T22:59:18"
   }
 ]
