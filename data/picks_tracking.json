@@ -1129,21 +1129,6 @@
     "pnl_ratio": -9.67
   },
   {
-    "date": "2026-10-01",
-    "code": "688265",
-    "name": "南模生物",
-    "price": 64.98,
-    "sl_price": 61.73,
-    "tp_price": 71.48,
-    "status": "WATCHING",
-    "type": "C_TAIL",
-    "support": null,
-    "pressure": null,
-    "weight": 1.0,
-    "regime_state": null,
-    "regime_scale": null
-  },
-  {
     "date": "2026-10-02",
     "code": "688265",
     "name": "南模生物",
@@ -1167,21 +1152,6 @@
     "tp_price": 71.48,
     "status": "WATCHING",
     "type": "C_TAIL",
-    "support": null,
-    "pressure": null,
-    "weight": 1.0,
-    "regime_state": null,
-    "regime_scale": null
-  },
-  {
-    "date": "2026-09-30",
-    "code": "000426",
-    "name": "兴业银锡",
-    "price": 31.5,
-    "sl_price": 26.77,
-    "tp_price": 36.22,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
     "support": null,
     "pressure": null,
     "weight": 1.0,
