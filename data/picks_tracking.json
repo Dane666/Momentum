@@ -1157,5 +1157,20 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-10-07",
+    "code": "688265",
+    "name": "南模生物",
+    "price": 64.98,
+    "sl_price": 61.73,
+    "tp_price": 71.48,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
