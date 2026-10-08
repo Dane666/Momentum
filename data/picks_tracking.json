@@ -1190,5 +1190,20 @@
     "trigger_type": "SL",
     "trigger_time": "2026-10-08 09:31:37",
     "pnl_ratio": -9.19
+  },
+  {
+    "date": "2026-10-08",
+    "code": "601872",
+    "name": "招商轮船",
+    "price": 22.01,
+    "sl_price": 20.91,
+    "tp_price": 24.21,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
