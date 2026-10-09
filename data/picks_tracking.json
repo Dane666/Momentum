@@ -1272,5 +1272,15 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-10-09",
+    "code": "000607",
+    "name": "华媒控股",
+    "price": 4.11,
+    "sl_price": 3.9045,
+    "tp_price": 4.521000000000001,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
