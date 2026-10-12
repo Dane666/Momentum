@@ -1301,5 +1301,20 @@
     "tp_price": 7.029,
     "status": "WATCHING",
     "type": "STRATEGY"
+  },
+  {
+    "date": "2026-10-12",
+    "code": "000426",
+    "name": "兴业银锡",
+    "price": 30.29,
+    "sl_price": 25.75,
+    "tp_price": 34.83,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
