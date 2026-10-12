@@ -1291,5 +1291,15 @@
     "status": "WATCHING",
     "type": "STRATEGY",
     "max_pnl": 1.22
+  },
+  {
+    "date": "2026-10-12",
+    "code": "000601",
+    "name": "韶能股份",
+    "price": 6.39,
+    "sl_price": 6.070499999999999,
+    "tp_price": 7.029,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
