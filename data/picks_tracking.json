@@ -1312,5 +1312,20 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -2.38
+  },
+  {
+    "date": "2026-10-13",
+    "code": "002640",
+    "name": "跨境通",
+    "price": 3.89,
+    "sl_price": 3.7,
+    "tp_price": 4.28,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
