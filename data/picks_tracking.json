@@ -1376,5 +1376,20 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-10-14",
+    "code": "000426",
+    "name": "兴业银锡",
+    "price": 29.47,
+    "sl_price": 25.05,
+    "tp_price": 33.89,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
