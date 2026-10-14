@@ -1331,5 +1331,50 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-10-14",
+    "code": "301132",
+    "name": "满坤科技",
+    "price": 75.61,
+    "sl_price": 71.83,
+    "tp_price": 83.17,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-14",
+    "code": "000573",
+    "name": "粤宏远Ａ",
+    "price": 4.33,
+    "sl_price": 4.11,
+    "tp_price": 4.76,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-14",
+    "code": "001216",
+    "name": "华瓷股份",
+    "price": 23.95,
+    "sl_price": 22.75,
+    "tp_price": 26.35,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
