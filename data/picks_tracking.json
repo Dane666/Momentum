@@ -1276,17 +1276,6 @@
     "pnl_ratio": -9.85
   },
   {
-    "date": "2026-10-09",
-    "code": "000607",
-    "name": "华媒控股",
-    "price": 4.11,
-    "sl_price": 3.9045,
-    "tp_price": 4.521000000000001,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": 1.22
-  },
-  {
     "date": "2026-10-12",
     "code": "000601",
     "name": "韶能股份",
