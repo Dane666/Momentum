@@ -1408,5 +1408,50 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -3.53
+  },
+  {
+    "date": "2026-10-15",
+    "code": "600812",
+    "name": "华北制药",
+    "price": 6.56,
+    "sl_price": 6.23,
+    "tp_price": 7.22,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-15",
+    "code": "601811",
+    "name": "新华文轩",
+    "price": 25.44,
+    "sl_price": 24.17,
+    "tp_price": 27.98,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-15",
+    "code": "000892",
+    "name": "欢瑞世纪",
+    "price": 5.6,
+    "sl_price": 5.32,
+    "tp_price": 6.16,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
