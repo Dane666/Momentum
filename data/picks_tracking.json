@@ -1421,14 +1421,19 @@
     "price": 6.56,
     "sl_price": 6.23,
     "tp_price": 7.22,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -0.76
+    "max_pnl": -0.76,
+    "exit_price": 6.22,
+    "pnl_pct": -5.18,
+    "trigger_type": "SL",
+    "trigger_time": "2026-10-16 14:32:10",
+    "pnl_ratio": -5.18
   },
   {
     "date": "2026-10-15",
