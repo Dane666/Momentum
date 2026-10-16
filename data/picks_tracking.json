@@ -1494,5 +1494,50 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": 3.78
+  },
+  {
+    "date": "2026-10-16",
+    "code": "300681",
+    "name": "英搏尔",
+    "price": 20.79,
+    "sl_price": 19.75,
+    "tp_price": 22.87,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-16",
+    "code": "600732",
+    "name": "爱旭股份",
+    "price": 11.25,
+    "sl_price": 10.69,
+    "tp_price": 12.38,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-16",
+    "code": "002531",
+    "name": "天顺风能",
+    "price": 7.34,
+    "sl_price": 6.97,
+    "tp_price": 8.07,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
