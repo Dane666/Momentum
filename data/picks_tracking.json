@@ -1539,5 +1539,15 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-10-16",
+    "code": "000011",
+    "name": "深物业A",
+    "price": 11.28,
+    "sl_price": 10.716,
+    "tp_price": 12.408,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
