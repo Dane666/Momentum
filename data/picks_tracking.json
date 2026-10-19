@@ -1276,34 +1276,6 @@
     "pnl_ratio": -9.85
   },
   {
-    "date": "2026-10-12",
-    "code": "000601",
-    "name": "韶能股份",
-    "price": 6.39,
-    "sl_price": 6.070499999999999,
-    "tp_price": 7.029,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": 8.61,
-    "trail_stop": 6.45
-  },
-  {
-    "date": "2026-10-12",
-    "code": "000426",
-    "name": "兴业银锡",
-    "price": 30.29,
-    "sl_price": 25.75,
-    "tp_price": 34.83,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 1.0,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -2.38
-  },
-  {
     "date": "2026-10-13",
     "code": "002640",
     "name": "跨境通",
@@ -1323,22 +1295,6 @@
     "trigger_type": "SL",
     "trigger_time": "2026-10-15 09:31:38",
     "pnl_ratio": -5.14
-  },
-  {
-    "date": "2026-10-13",
-    "code": "000426",
-    "name": "兴业银锡",
-    "price": 30.3,
-    "sl_price": 25.75,
-    "tp_price": 34.84,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 1.0,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -4.79
   },
   {
     "date": "2026-10-14",
@@ -1381,38 +1337,6 @@
     "trigger_type": "SL",
     "trigger_time": "2026-10-15 11:31:54",
     "pnl_ratio": -6.0
-  },
-  {
-    "date": "2026-10-14",
-    "code": "001216",
-    "name": "华瓷股份",
-    "price": 23.95,
-    "sl_price": 22.75,
-    "tp_price": 26.35,
-    "status": "WATCHING",
-    "type": "C_TAIL",
-    "support": null,
-    "pressure": null,
-    "weight": 0.3333,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 2.38
-  },
-  {
-    "date": "2026-10-14",
-    "code": "000426",
-    "name": "兴业银锡",
-    "price": 29.47,
-    "sl_price": 25.05,
-    "tp_price": 33.89,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 1.0,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -2.07
   },
   {
     "date": "2026-10-15",
