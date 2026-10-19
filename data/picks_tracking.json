@@ -1533,5 +1533,15 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-10-19",
+    "code": "000503",
+    "name": "国新健康",
+    "price": 8.42,
+    "sl_price": 7.999,
+    "tp_price": 9.262,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
