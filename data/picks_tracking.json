@@ -1404,22 +1404,6 @@
     "pnl_ratio": -5.36
   },
   {
-    "date": "2026-10-15",
-    "code": "000426",
-    "name": "兴业银锡",
-    "price": 27.78,
-    "sl_price": 23.61,
-    "tp_price": 31.95,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 1.0,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 3.78
-  },
-  {
     "date": "2026-10-16",
     "code": "300681",
     "name": "英搏尔",
