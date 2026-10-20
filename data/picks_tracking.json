@@ -1562,5 +1562,50 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -2.18
+  },
+  {
+    "date": "2026-10-20",
+    "code": "002076",
+    "name": "星光股份",
+    "price": 2.23,
+    "sl_price": 2.12,
+    "tp_price": 2.45,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-20",
+    "code": "603893",
+    "name": "瑞芯微",
+    "price": 188.67,
+    "sl_price": 179.24,
+    "tp_price": 207.54,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-20",
+    "code": "002596",
+    "name": "海南瑞泽",
+    "price": 3.41,
+    "sl_price": 3.24,
+    "tp_price": 3.75,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
