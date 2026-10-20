@@ -1410,13 +1410,19 @@
     "price": 20.79,
     "sl_price": 19.75,
     "tp_price": 22.87,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -5.0,
+    "exit_price": 19.75,
+    "pnl_pct": -5.0,
+    "trigger_type": "SL",
+    "trigger_time": "2026-10-20 10:01:24",
+    "pnl_ratio": -5.0
   },
   {
     "date": "2026-10-16",
@@ -1431,7 +1437,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 4.89
   },
   {
     "date": "2026-10-16",
@@ -1446,7 +1453,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -3.81
   },
   {
     "date": "2026-10-16",
@@ -1456,7 +1464,8 @@
     "sl_price": 10.716,
     "tp_price": 12.408,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": 0.27
   },
   {
     "date": "2026-10-16",
@@ -1471,7 +1480,8 @@
     "pressure": null,
     "weight": 1.0,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.26
   },
   {
     "date": "2026-10-19",
@@ -1486,7 +1496,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 3.54
   },
   {
     "date": "2026-10-19",
@@ -1501,7 +1512,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -2.34
   },
   {
     "date": "2026-10-19",
@@ -1516,7 +1528,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.3
   },
   {
     "date": "2026-10-19",
@@ -1525,8 +1538,14 @@
     "price": 8.42,
     "sl_price": 7.999,
     "tp_price": 9.262,
-    "status": "WATCHING",
-    "type": "STRATEGY"
+    "status": "TRIGGERED",
+    "type": "STRATEGY",
+    "max_pnl": -7.24,
+    "exit_price": 7.81,
+    "pnl_pct": -7.24,
+    "trigger_type": "SL",
+    "trigger_time": "2026-10-20 10:02:44",
+    "pnl_ratio": -7.24
   },
   {
     "date": "2026-10-19",
@@ -1541,6 +1560,7 @@
     "pressure": null,
     "weight": 1.0,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -2.18
   }
 ]
