@@ -1578,5 +1578,20 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": 1.51
+  },
+  {
+    "date": "2026-10-21",
+    "code": "000518",
+    "name": "四环生物",
+    "price": 3.62,
+    "sl_price": 3.44,
+    "tp_price": 3.98,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
