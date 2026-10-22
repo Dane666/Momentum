@@ -1593,5 +1593,35 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-10-22",
+    "code": "000430",
+    "name": "张家界",
+    "price": 6.02,
+    "sl_price": 5.12,
+    "tp_price": 6.92,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY",
+    "support": null,
+    "pressure": null,
+    "weight": 0.6017,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-22",
+    "code": "000426",
+    "name": "兴业银锡",
+    "price": 27.86,
+    "sl_price": 23.68,
+    "tp_price": 32.04,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3983,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
