@@ -1600,5 +1600,15 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -0.36
+  },
+  {
+    "date": "2026-10-26",
+    "code": "000513",
+    "name": "丽珠集团",
+    "price": 28.33,
+    "sl_price": 26.913499999999996,
+    "tp_price": 31.163,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
