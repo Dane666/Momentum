@@ -1577,7 +1577,8 @@
     "sl_price": 26.913499999999996,
     "tp_price": 31.163,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -1.52
   },
   {
     "date": "2026-10-26",
@@ -1592,7 +1593,8 @@
     "pressure": null,
     "weight": 1.0,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -3.46
   },
   {
     "date": "2026-10-27",
@@ -1601,13 +1603,19 @@
     "price": 3.11,
     "sl_price": 2.95,
     "tp_price": 3.42,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -5.79,
+    "exit_price": 2.93,
+    "pnl_pct": -5.79,
+    "trigger_type": "SL",
+    "trigger_time": "2026-10-28 13:31:45",
+    "pnl_ratio": -5.79
   },
   {
     "date": "2026-10-27",
@@ -1622,7 +1630,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.69
   },
   {
     "date": "2026-10-27",
@@ -1637,7 +1646,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -3.35
   },
   {
     "date": "2026-10-27",
@@ -1652,7 +1662,8 @@
     "pressure": null,
     "weight": 0.4674,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -2.36
   },
   {
     "date": "2026-10-27",
@@ -1667,6 +1678,7 @@
     "pressure": null,
     "weight": 0.5326,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.88
   }
 ]
