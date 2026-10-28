@@ -1680,5 +1680,50 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -0.88
+  },
+  {
+    "date": "2026-10-28",
+    "code": "688698",
+    "name": "伟创电气",
+    "price": 45.2,
+    "sl_price": 42.94,
+    "tp_price": 49.72,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-28",
+    "code": "603303",
+    "name": "得邦照明",
+    "price": 29.67,
+    "sl_price": 28.19,
+    "tp_price": 32.64,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-28",
+    "code": "002472",
+    "name": "双环传动",
+    "price": 45.25,
+    "sl_price": 42.99,
+    "tp_price": 49.78,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
