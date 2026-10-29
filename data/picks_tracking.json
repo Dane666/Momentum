@@ -1791,5 +1791,20 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -0.51
+  },
+  {
+    "date": "2026-10-29",
+    "code": "002086",
+    "name": "东方海洋",
+    "price": 2.57,
+    "sl_price": 2.44,
+    "tp_price": 2.83,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
