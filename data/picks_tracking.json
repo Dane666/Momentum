@@ -1806,5 +1806,50 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-10-29",
+    "code": "000430",
+    "name": "张家界",
+    "price": 5.91,
+    "sl_price": 5.02,
+    "tp_price": 6.8,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY",
+    "support": null,
+    "pressure": null,
+    "weight": 0.4113,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-29",
+    "code": "000426",
+    "name": "兴业银锡",
+    "price": 24.65,
+    "sl_price": 20.95,
+    "tp_price": 28.35,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY",
+    "support": null,
+    "pressure": null,
+    "weight": 0.2804,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-10-29",
+    "code": "000526",
+    "name": "学大教育",
+    "price": 29.91,
+    "sl_price": 25.42,
+    "tp_price": 34.4,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3083,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
