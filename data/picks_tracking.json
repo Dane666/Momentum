@@ -1874,5 +1874,20 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": 0.53
+  },
+  {
+    "date": "2026-10-30",
+    "code": "603278",
+    "name": "大业股份",
+    "price": 19.59,
+    "sl_price": 18.61,
+    "tp_price": 21.55,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
