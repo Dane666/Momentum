@@ -1889,5 +1889,15 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-10-30",
+    "code": "000415",
+    "name": "渤海租赁",
+    "price": 4.62,
+    "sl_price": 4.389,
+    "tp_price": 5.082000000000001,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
