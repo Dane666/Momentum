@@ -1578,7 +1578,7 @@
     "tp_price": 31.163,
     "status": "WATCHING",
     "type": "STRATEGY",
-    "max_pnl": -0.56
+    "max_pnl": 1.02
   },
   {
     "date": "2026-10-26",
@@ -1700,14 +1700,19 @@
     "price": 45.2,
     "sl_price": 42.94,
     "tp_price": 49.72,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 2.52
+    "max_pnl": 2.52,
+    "exit_price": 42.66,
+    "pnl_pct": -5.62,
+    "trigger_type": "SL",
+    "trigger_time": "2026-10-30 14:31:48",
+    "pnl_ratio": -5.62
   },
   {
     "date": "2026-10-28",
