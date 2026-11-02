@@ -1892,5 +1892,25 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-02",
+    "code": "000596",
+    "name": "古井贡酒",
+    "price": 102.86,
+    "sl_price": 97.717,
+    "tp_price": 113.14600000000002,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-02",
+    "code": "000410",
+    "name": "沈阳机床",
+    "price": 5.79,
+    "sl_price": 5.5,
+    "tp_price": 6.2,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
