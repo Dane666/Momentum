@@ -1952,5 +1952,35 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-03",
+    "code": "000426",
+    "name": "兴业银锡",
+    "price": 21.98,
+    "sl_price": 18.68,
+    "tp_price": 25.28,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY",
+    "support": null,
+    "pressure": null,
+    "weight": 0.4546,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-03",
+    "code": "000526",
+    "name": "学大教育",
+    "price": 29.39,
+    "sl_price": 24.98,
+    "tp_price": 33.8,
+    "status": "WATCHING",
+    "type": "LOW_QUALITY",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5454,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
