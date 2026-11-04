@@ -1818,9 +1818,14 @@
     "price": 5.79,
     "sl_price": 5.5,
     "tp_price": 6.2,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "STRATEGY",
-    "max_pnl": 2.76
+    "max_pnl": 2.76,
+    "exit_price": 5.4,
+    "pnl_pct": -6.74,
+    "trigger_type": "SL",
+    "trigger_time": "2026-11-04 10:01:44",
+    "pnl_ratio": -6.74
   },
   {
     "date": "2026-11-02",
@@ -1868,7 +1873,7 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -4.5
+    "max_pnl": -2.5
   },
   {
     "date": "2026-11-03",
