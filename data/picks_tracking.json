@@ -1944,5 +1944,50 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": 1.02
+  },
+  {
+    "date": "2026-11-04",
+    "code": "300903",
+    "name": "科翔股份",
+    "price": 83.77,
+    "sl_price": 79.58,
+    "tp_price": 92.15,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-04",
+    "code": "600605",
+    "name": "汇通能源",
+    "price": 27.52,
+    "sl_price": 26.14,
+    "tp_price": 30.27,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-04",
+    "code": "002155",
+    "name": "湖南黄金",
+    "price": 19.29,
+    "sl_price": 18.33,
+    "tp_price": 21.22,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
