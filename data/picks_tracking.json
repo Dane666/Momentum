@@ -2046,5 +2046,50 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": 1.4
+  },
+  {
+    "date": "2026-11-05",
+    "code": "003033",
+    "name": "征和工业",
+    "price": 85.0,
+    "sl_price": 80.75,
+    "tp_price": 93.5,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-05",
+    "code": "600481",
+    "name": "双良节能",
+    "price": 4.11,
+    "sl_price": 3.9,
+    "tp_price": 4.52,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-05",
+    "code": "603110",
+    "name": "东方材料",
+    "price": 22.56,
+    "sl_price": 21.43,
+    "tp_price": 24.82,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3333,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
