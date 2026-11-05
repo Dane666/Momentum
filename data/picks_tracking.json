@@ -1841,7 +1841,8 @@
     "weight": 0.4553,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 0.87
+    "max_pnl": 5.07,
+    "trail_stop": 22.88
   },
   {
     "date": "2026-11-02",
@@ -1873,7 +1874,7 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -2.5
+    "max_pnl": -1.75
   },
   {
     "date": "2026-11-03",
@@ -1927,7 +1928,8 @@
     "weight": 0.4546,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 1.73
+    "max_pnl": 9.37,
+    "trail_stop": 22.36
   },
   {
     "date": "2026-11-03",
@@ -1943,7 +1945,7 @@
     "weight": 0.5454,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 1.02
+    "max_pnl": 1.67
   },
   {
     "date": "2026-11-04",
@@ -1952,13 +1954,19 @@
     "price": 83.77,
     "sl_price": 79.58,
     "tp_price": 92.15,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -6.89,
+    "exit_price": 78.0,
+    "pnl_pct": -6.89,
+    "trigger_type": "SL",
+    "trigger_time": "2026-11-05 09:02:41",
+    "pnl_ratio": -6.89
   },
   {
     "date": "2026-11-04",
@@ -1973,7 +1981,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 0.11
   },
   {
     "date": "2026-11-04",
@@ -1988,7 +1997,8 @@
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 0.16
   },
   {
     "date": "2026-11-04",
@@ -2003,7 +2013,8 @@
     "pressure": null,
     "weight": 0.4452,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-04",
@@ -2018,6 +2029,7 @@
     "pressure": null,
     "weight": 0.5548,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.3
   }
 ]
