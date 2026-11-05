@@ -1834,15 +1834,21 @@
     "price": 22.88,
     "sl_price": 19.45,
     "tp_price": 26.31,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "LOW_QUALITY",
     "support": null,
     "pressure": null,
     "weight": 0.4553,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 9.79,
-    "trail_stop": 23.36
+    "max_pnl": 15.08,
+    "trail_stop": 24.49,
+    "tp_part_10": true,
+    "exit_price": 26.33,
+    "pnl_pct": 15.08,
+    "trigger_type": "TP",
+    "trigger_time": "2026-11-05 10:01:39",
+    "pnl_ratio": 15.08
   },
   {
     "date": "2026-11-02",
@@ -1858,7 +1864,7 @@
     "weight": 0.5447,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 1.04
+    "max_pnl": 1.85
   },
   {
     "date": "2026-11-03",
@@ -1874,7 +1880,7 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -1.75
+    "max_pnl": -0.75
   },
   {
     "date": "2026-11-03",
@@ -1921,16 +1927,22 @@
     "price": 21.98,
     "sl_price": 18.68,
     "tp_price": 25.28,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "LOW_QUALITY",
     "support": null,
     "pressure": null,
     "weight": 0.4546,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 14.24,
-    "trail_stop": 23.35,
-    "tp_part_10": true
+    "max_pnl": 20.02,
+    "trail_stop": 24.53,
+    "tp_part_10": true,
+    "tp_part_20": true,
+    "exit_price": 26.38,
+    "pnl_pct": 20.02,
+    "trigger_type": "TP",
+    "trigger_time": "2026-11-05 10:02:22",
+    "pnl_ratio": 20.02
   },
   {
     "date": "2026-11-03",
@@ -1946,7 +1958,7 @@
     "weight": 0.5454,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 2.96
+    "max_pnl": 3.4
   },
   {
     "date": "2026-11-04",
@@ -1999,7 +2011,8 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 1.92
+    "max_pnl": 5.24,
+    "trail_stop": 19.29
   },
   {
     "date": "2026-11-04",
@@ -2015,7 +2028,8 @@
     "weight": 0.4452,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 4.37
+    "max_pnl": 9.86,
+    "trail_stop": 24.56
   },
   {
     "date": "2026-11-04",
@@ -2031,6 +2045,6 @@
     "weight": 0.5548,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 1.2
+    "max_pnl": 1.4
   }
 ]
