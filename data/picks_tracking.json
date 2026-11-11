@@ -1973,5 +1973,20 @@
     "trigger_type": "SL",
     "trigger_time": "2026-11-06 11:02:54",
     "pnl_ratio": -5.14
+  },
+  {
+    "date": "2026-11-11",
+    "code": "002765",
+    "name": "蓝黛科技",
+    "price": 7.56,
+    "sl_price": 6.96,
+    "tp_price": 8.58,
+    "status": "PLAN",
+    "type": "VP_BREAKOUT",
+    "support": 7.56,
+    "pressure": 8.58,
+    "weight": null,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
