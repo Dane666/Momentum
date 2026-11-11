@@ -103,8 +103,8 @@ def fetch_sina_batch(codes: Dict[str, str]) -> Dict[str, Dict]:
     解析三种返回格式:
       - 美股指数/个股 (gb_*):   [0]名称 [1]价 [2]涨跌幅 [3]时间 [4]涨跌额
       - 恒生 (rt_hkHSI):        [1]名称 [2]现价 [6]涨跌额 [7]涨跌幅 [17]日期
-      - 美元指数 (DINIW):       [8]名称 [1]现价 [12]涨跌额? [13]涨跌幅
-      - 外汇 (fx_susdcnh):      [8]名称 [1]现价 ... 涨跌幅在尾段
+      - 美元指数 (DINIW):       [1]现价 [3]昨收 [5]今开 [6]高 [7]低 [9]名称
+      - 外汇 (fx_susdcnh):      [1]现价 [3]昨收 [10]涨跌幅% [11]涨跌额
     对无法可靠映射的, 用「今开/昨收」兜底计算涨跌幅。
     """
     try:
@@ -156,24 +156,29 @@ def _parse_sina_parts(code: str, parts: List[str], display: str) -> Optional[Dic
         change = _parse_num(parts[7]) if len(parts) > 7 else float('nan')
         change_pct = _parse_num(parts[8]) if len(parts) > 8 else float('nan')
     elif code == 'DINIW':
-        # 美元指数: [0]时间 [1]现价 [2]昨收 [6]最高 [7]最低 [9]名称 [10]日期
+        # 美元指数(2026-11-11 实采校准):
+        #   [0]时间 [1]现价 [2]现价(跟随最新, 非昨收!) [3]昨收 [4]成交量
+        #   [5]今开 [6]最高 [7]最低 [8]最新价 [9]名称 [10]日期
+        # 注意: [1]/[2]/[8] 三个字段同步跳动, 早期误把 [2] 当昨收 → 涨跌幅恒为 0.00%.
         name = parts[9] if len(parts) > 9 and parts[9] else display
         close = _parse_num(parts[1])
-        # 无涨跌幅字段, 用 parts[2](昨收) 兜底计算
-        prev = _parse_num(parts[2])
+        prev = _parse_num(parts[3]) if len(parts) > 3 else float('nan')
         if pd.notna(close) and pd.notna(prev) and prev > 0:
             change = close - prev
             change_pct = change / prev * 100
     elif code.startswith('fx_'):
-        # 外汇: [0]时间 [1]现价 [8]昨收 [9]名称 [10]涨跌额 [11]涨跌幅(小数, 需×100)
+        # 外汇(2026-11-11 实采校准):
+        #   [1]现价 [3]昨收 [5]今开 [6]最高 [7]最低 [8]最新价
+        #   [10]涨跌幅(已是百分数, 如 -0.08) [11]涨跌额(如 -0.0055)
+        # 早期把 [10]/[11] 用反并且 ×100, 导致人民币涨跌幅被放大约 7 倍.
         name = parts[9] if len(parts) > 9 and parts[9] else display
         close = _parse_num(parts[1])
         if len(parts) > 11:
-            change = _parse_num(parts[10])
-            change_pct = _parse_num(parts[11]) * 100  # 小数 → 百分数
-        # 涨跌幅兜底: 用昨收 parts[8]
+            change_pct = _parse_num(parts[10])   # 已是百分数, 不要再乘 100
+            change = _parse_num(parts[11])
+        # 涨跌幅兜底: 用昨收 parts[3]
         if pd.isna(change_pct):
-            prev = _parse_num(parts[8])
+            prev = _parse_num(parts[3]) if len(parts) > 3 else float('nan')
             if pd.notna(close) and pd.notna(prev) and prev > 0:
                 change = close - prev
                 change_pct = change / prev * 100

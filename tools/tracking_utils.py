@@ -41,6 +41,32 @@ def _db_path(db_path=None):
         'MOMENTUM_DB_PATH', str(PROJ / 'qlib_pro_v16.db'))
 
 
+def _split_utf8_bytes(text: str, limit: int = 3500):
+    """按 UTF-8 字节切分(尽量以行边界), 每段 <= limit 字节。
+
+    Bark 服务端限制的是 payload 字节数, 中文 1 字≈3 字节, 旧的 body[:3800] 字符截断
+    实际可达 11KB, 会返回 500 PayloadTooLarge 导致整条推送丢失。
+    """
+    if len(text.encode('utf-8')) <= limit:
+        return [text]
+    chunks, cur, cur_b = [], [], 0
+    for line in text.splitlines(keepends=True):
+        lb = len(line.encode('utf-8'))
+        if lb > limit:
+            for ch in line:
+                cb = len(ch.encode('utf-8'))
+                if cur_b + cb > limit:
+                    chunks.append(''.join(cur)); cur, cur_b = [], 0
+                cur.append(ch); cur_b += cb
+            continue
+        if cur_b + lb > limit:
+            chunks.append(''.join(cur)); cur, cur_b = [], 0
+        cur.append(line); cur_b += lb
+    if cur:
+        chunks.append(''.join(cur))
+    return chunks or ['']
+
+
 def bark_notify(title: str, body: str):
     """统一 Bark 推送(自动解析 device key, 兼容 https://api.day.app/<key>/ 形式)."""
     try:
@@ -55,18 +81,24 @@ def bark_notify(title: str, body: str):
     if key.startswith('http'):
         parts = key.rstrip('/').split('/')
         key = parts[-1] if parts[-1] else (parts[-2] if len(parts) > 1 else key)
-    try:
-        r = requests.post(
-            'https://api.day.app/push',
-            json={'device_key': key, 'title': title,
-                  'body': body[:3800], 'group': 'Momentum'},
-            timeout=10)
-        if r.status_code == 200:
-            logger.info("[tracking] Bark 推送成功: %s", title)
-        else:
-            logger.error("[tracking] Bark 失败: %s", r.text)
-    except Exception as e:
-        logger.error("[tracking] Bark 推送异常: %s", e)
+    # Bark 按 UTF-8 字节限流, 中文长报告按字符截断仍会 PayloadTooLarge -> 按字节分条发送
+    chunks = _split_utf8_bytes(body or '')
+    total = len(chunks)
+    for i, chunk in enumerate(chunks, 1):
+        t = title if total == 1 else f"{title} ({i}/{total})"
+        try:
+            r = requests.post(
+                'https://api.day.app/push',
+                json={'device_key': key, 'title': t,
+                      'body': chunk, 'group': 'Momentum'},
+                timeout=10)
+            if r.status_code == 200:
+                logger.info("[tracking] Bark 推送成功: %s%s", t,
+                            "" if total == 1 else f" [{i}/{total}]")
+            else:
+                logger.error("[tracking] Bark 失败: %s", r.text)
+        except Exception as e:
+            logger.error("[tracking] Bark 推送异常: %s", e)
 
 
 def _sync_db(recs, db_path=None):

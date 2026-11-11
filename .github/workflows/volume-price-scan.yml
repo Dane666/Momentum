@@ -174,11 +174,14 @@ jobs:
 
       - name: Push plan pool (PLAN) to repo
         # 把 CI 登记的价量 PLAN 写回仓库, 使 GitHub 上的 data/picks_tracking.json 能体现
-        # "出现 -> 5天后被 expire_old_picks 清理" 的真实效果. 与 momentum-scan/position-monitor
-        # 的 push 同样先 rebase 再提交, 规避并发 push 冲突.
+        # "出现 -> 5天后被 expire_old_picks 清理" 的真实效果.
+        # ⚠️ 顺序必须是 commit -> pull --rebase --autostash -> push:
+        #    2026-11-11 实测, 先 pull 会因暂存区有未提交改动直接报
+        #    "cannot pull with rebase: Your index contains uncommitted changes" (exit 128),
+        #    导致只要当天有新增计划就必然失败、计划池永远推不上去.
         if: always()
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add data/picks_tracking.json 2>/dev/null || true
-          if git diff --cached --quiet; then echo "No changes"; else git pull --rebase origin main && git commit -m "auto: volume-price scan plan pool" && git push origin main; fi
+          if git diff --cached --quiet; then echo "No changes"; else git commit -m "auto: volume-price scan plan pool" && git pull --rebase --autostash origin main && git push origin main; fi
