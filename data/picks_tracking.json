@@ -1988,5 +1988,50 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-11",
+    "code": "002154",
+    "name": "报 喜 鸟",
+    "price": 3.89,
+    "sl_price": 3.7,
+    "tp_price": 4.28,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.411,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-11",
+    "code": "600162",
+    "name": "香江控股",
+    "price": 3.67,
+    "sl_price": 3.49,
+    "tp_price": 4.04,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.17,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-11",
+    "code": "002110",
+    "name": "三钢闽光",
+    "price": 3.01,
+    "sl_price": 2.86,
+    "tp_price": 3.31,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.419,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
