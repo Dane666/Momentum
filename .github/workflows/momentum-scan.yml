@@ -58,9 +58,27 @@ jobs:
           path: |
             qlib_pro_v16.db
             data/eod_last_date.txt
-          key: state-v1-${{ runner.os }}-${{ hashFiles('config.py') }}
+          # v2: 旧 state-v1 缓存条目已腐化为空壳(~686B, 导致每次运行都是空库 ->
+          # 低位绩优只看到 200~373 只标的、动量扫描缺历史特征), 换 key 强制重建一次,
+          # 之后命中真实 220MB 基准库缓存。
+          key: state-scan-v2-${{ runner.os }}-${{ hashFiles('config.py') }}
           restore-keys: |
-            state-v1-${{ runner.os }}-
+            state-scan-v2-${{ runner.os }}-
+
+      - name: Download DB baseline (full-market, 消除空库漂移)
+        # 2026-11-11 修复: 此前本工作流只依赖 actions/cache 且无基准库下载, 缓存一旦为空壳,
+        # kline_cache 只剩当日预热的 200 只 -> 低位绩优"标的数=373"、C-Tail/动量缺历史特征,
+        # 且全程不报错。改为与 volume-price-scan 同款: 库缺失或过小(<100MB)才下载。
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -f qlib_pro_v16.db ] || [ "$(stat -c%s qlib_pro_v16.db 2>/dev/null || echo 0)" -lt 104857600 ]; then
+            echo "DB 缺失或过小(<100MB), 从 release db-baseline-v1 下载全量基准库..."
+            gh release download db-baseline-v1 -p qlib_pro_v16.db --clobber
+            echo "下载完成: $(du -h qlib_pro_v16.db | cut -f1)"
+          else
+            echo "DB 已存在(缓存命中), 跳过下载 ($(du -h qlib_pro_v16.db | cut -f1))"
+          fi
 
       - name: Import fundamentals & sector cache into DB (if missing)
         # fundamentals / stock_sector_cache 不在 CI 缓存里(仅本地构建), 这里从提交的 CSV 导入,

@@ -33,6 +33,20 @@
 | 资金流向 | efinance | ⚠️ 可能不稳定 |
 | 北向资金 | adata | ✅ 稳定 |
 
+### 市值 / 股息率快照 `market_stats`(小盘倾斜依赖)
+| 项目 | 说明 |
+|------|------|
+| 表结构 | `market_stats(code, trade_date, total_mv, circ_mv, dividend_yield)`, 月频, 单位元 |
+| 历史回填 | `opt_study/market_stats.py --backfill`(akshare `stock_value_em` + `stock_history_dividend`) |
+| **随仓库分发** | `data/market_stats.csv.gz`(2024-04 ~ 2026-11, 64 期 / 5245 只, 2.5MB) |
+| 自举 | `python -m tools.market_stats_store --import`(表缺失时导入, 幂等, 0.3s) |
+| 刷新 | `python -m tools.market_stats_store --refresh`(腾讯 `qt.gtimg.cn` 批量 `[44]`流通市值/`[45]`总市值, 亿元→元, 全市场 3s) |
+| 自检 | `--status` 打印覆盖区间 + 最新快照年龄; 超过 `MARKET_STATS_STALE_DAYS`(默认 45) 判为偏旧 |
+| 失效后果 | 低位绩优的「小盘倾斜」加分静默归零(2026-11-11 事故: 表只存在于本地库, CI 基准库无此表, 连续数月未生效且无提示) |
+
+> 该表**必须**随仓库分发, 不可依赖本地回填或 `db-baseline-v1` 基准库(打包时不含此表)。
+> 扫描侧在读取前会自举 + 校验新鲜度, 状态显式写入日志与 Bark 报告, 禁止再退回静默降级。
+
 ## 公共接口
 
 所有数据获取统一使用 `momentum/data/fetcher.py`:

@@ -27,6 +27,20 @@ _sys_parent = str(_PROJ.parent)
 if _sys_parent not in sys.path:
     sys.path.insert(0, _sys_parent)
 
+# 与 other tools 一致的包引导: CI checkout 目录名是 `Momentum`(不是 momentum),
+# 仅靠 sys.path 无法 `import momentum` -> warm_universe 初始化失败被吞成 warning,
+# 全市场预热长期静默 no-op(2026-11-11 修复)。这里按文件位置注册包, 与目录名无关。
+try:
+    import momentum as _m  # noqa: F401
+except ImportError:
+    import importlib.util as _ilu
+    _spec = _ilu.spec_from_file_location(
+        'momentum', _PROJ / '__init__.py',
+        submodule_search_locations=[str(_PROJ)])
+    _mod = _ilu.module_from_spec(_spec)
+    sys.modules['momentum'] = _mod
+    _spec.loader.exec_module(_mod)
+
 logger = logging.getLogger('kline_warm')
 
 DB_PATH = os.environ.get('MOMENTUM_DB_PATH',
@@ -86,7 +100,8 @@ def warm_universe(limit: int = None, use_realtime_bulk: bool = True) -> dict:
         from momentum.data.cache import upsert_kline_bars
         init_db()
     except Exception as e:
-        logger.warning(f"[kline_warm] 初始化失败: {e}")
+        # 不再静默: 初始化失败意味着全市场预热完全没跑, 必须让日志显眼
+        logger.error(f"[kline_warm] 初始化失败(预热未执行): {type(e).__name__}: {e}")
         return dict(ok=0, fail=0, from_bulk=False, codes=0)
 
     # 全市场非 ST A 股 (60/00/30/68)
