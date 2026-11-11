@@ -203,7 +203,9 @@ jobs:
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         continue-on-error: true
         run: |
-          python -c "from tools.kline_warm import warm_universe; warm_universe()"
+          # 用 -m 形式执行, 使 warm_universe 的日志真正可见(此前 -c 形式下 INFO 全丢,
+          # 失败只剩一行 warning, 预热是否生效无法判断).
+          python -m tools.kline_warm
 
       - name: Wait for 14:44 scan window
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
