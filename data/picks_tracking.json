@@ -2033,5 +2033,35 @@
     "weight": 0.419,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-11",
+    "code": "601689",
+    "name": "拓普集团",
+    "price": 51.25,
+    "sl_price": 48.6875,
+    "tp_price": 56.37500000000001,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-11",
+    "code": "603660",
+    "name": "苏州科达",
+    "price": 10.5,
+    "sl_price": 9.97,
+    "tp_price": 11.24,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-11",
+    "code": "603275",
+    "name": "众辰科技",
+    "price": 37.91,
+    "sl_price": 36.01,
+    "tp_price": 41.7,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
