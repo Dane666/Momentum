@@ -117,6 +117,18 @@ jobs:
           con.close()
           PY
 
+      - name: Restore market_stats (小盘倾斜) into DB
+        # 基准库 db-baseline-v1 / actions cache 都不含 market_stats 表(历史上只由本地
+        # opt_study/market_stats.py 回填), 导致 CI 每日抛 `no such table: market_stats`,
+        # 小盘倾斜静默失效数月(2026-11-11 修复)。这里从随仓库分发的
+        # data/market_stats.csv.gz 自举(0.3s), 并在快照偏旧时用腾讯批量行情刷新(3s)。
+        # 失败不阻断主流程: 扫描内部还会再兜底自举一次, 并在报告里显式标注状态。
+        continue-on-error: true
+        run: |
+          python -m tools.market_stats_store --import
+          python -m tools.market_stats_store --refresh-if-stale 7
+          python -m tools.market_stats_store --status
+
       - name: Pre-fetch K-line data (warm cache)
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: |
@@ -211,7 +223,7 @@ jobs:
 
       - name: Run unit tests (push only)
         if: github.event_name == 'push'
-        run: python -m pytest tests/test_backtest.py tests/test_fetcher.py tests/test_fetcher_local_fallback.py -q
+        run: python -m pytest tests/test_backtest.py tests/test_fetcher.py tests/test_fetcher_local_fallback.py tests/test_market_stats_store.py -q
 
       - name: Smoke scan (manual smoke trigger)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'smoke'

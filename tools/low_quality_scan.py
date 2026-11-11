@@ -10,7 +10,9 @@
   热门 : 过去 30 日资金净流入 Top-K 题材成分股(加分项, 非硬约束)
 
 输出: 低位绩优候选 → data/picks_tracking.json(type=LOW_QUALITY) → Bark
-依赖: qlib_pro_v16.db (kline_cache + fundamentals + stock_sector_cache)
+依赖: qlib_pro_v16.db (kline_cache + fundamentals + stock_sector_cache + market_stats)
+      market_stats 缺失时自动从 data/market_stats.csv.gz 自举(见 tools/market_stats_store.py);
+      小盘倾斜状态会显式写入报告, 不会静默失效.
       BARK_DEVICE_KEY 环境变量(由 workflow / 本地 shell 注入)
 """
 import json, logging, os, sys, sqlite3
@@ -266,21 +268,65 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
     today = str(last)[:10]
     logger.info(f"[低位绩优] 扫描日={today} 标的数={len(ctx)}")
 
-    # 小盘倾斜偏好: 加载市值分位阈值(point-in-time). 失败则优雅降级(小盘倾向不生效).
+    # 小盘倾斜偏好: 加载市值分位阈值(point-in-time). 失败则降级(小盘倾向不生效).
     # 必须在 today 确定之后执行(today 在上方才赋值, 否则局部变量未绑定).
+    #
+    # ⚠️ 2026-11-11 事故修复: market_stats 历史上只由本地 opt_study/market_stats.py
+    # 回填, 从未入库分发; CI 基准库(db-baseline-v1)不含此表 -> 每日抛
+    # `no such table: market_stats` 并被 except 吞成一行 warning, 小盘倾斜在 CI
+    # **静默失效数月**(本地好、CI 坏, 报告里完全看不出来)。现改为:
+    #   ① 读之前先 ensure: 表缺失则从随仓库分发的 data/market_stats.csv.gz 自举;
+    #   ② 失败一律 ERROR 级日志 + 报告里显式标注「未生效(原因)」, 不再静默;
+    #   ③ 快照偏旧(>MARKET_STATS_STALE_DAYS)也在日志/报告提示, 防再次悄悄腐化。
     cap_tiers = None
     mmap = {}
-    if ENABLE_SMALL_CAP:
+    cap_info = dict(enabled=False, reason="", snap=None, age_days=None, stale=False)
+    if not ENABLE_SMALL_CAP:
+        cap_info["reason"] = "已由 LOW_QUALITY_SMALL_CAP=0 关闭"
+    else:
         try:
-            mmap = H.load_market_stats()
-            if mmap:
-                cap_tiers = _small_cap_tiers(mmap, today)
-                if cap_tiers:
-                    logger.info(f"[低位绩优] 小盘倾斜已启用(扫描日 {today} 市值快照 {cap_tiers[0]})")
+            from tools.market_stats_store import (ensure_market_stats, STALE_DAYS as MS_STALE_DAYS,
+                                                  status as ms_status)
+        except Exception as e:  # noqa: BLE001
+            ensure_market_stats = None
+            ms_status = None
+            MS_STALE_DAYS = 45
+            logger.error(f"[低位绩优] 市值快照模块导入失败, 小盘倾斜不生效: {e}")
+            cap_info["reason"] = f"模块导入失败({type(e).__name__})"
+        if ensure_market_stats is not None:
+            try:
+                boot = ensure_market_stats(DB_PATH)
+                if not boot["ok"]:
+                    logger.error(f"[低位绩优] market_stats 自举失败, 小盘倾斜不生效: {boot['msg']}")
+                    cap_info["reason"] = "市值表缺失且无法自举"
+            except Exception as e:  # noqa: BLE001
+                logger.error(f"[低位绩优] market_stats 自举异常, 小盘倾斜不生效: {e}")
+                cap_info["reason"] = f"自举异常({type(e).__name__})"
+            try:
+                mmap = H.load_market_stats()
+                if mmap:
+                    cap_tiers = _small_cap_tiers(mmap, today)
+                    if cap_tiers:
+                        st = ms_status(DB_PATH) if ms_status else {}
+                        cap_info.update(enabled=True, snap=cap_tiers[0],
+                                        age_days=st.get("age_days"),
+                                        stale=bool(st.get("stale")))
+                        logger.info(f"[低位绩优] 小盘倾斜已启用(扫描日 {today} 市值快照 {cap_tiers[0]}, "
+                                    f"{st.get('rows', '?')} 行/{st.get('codes', '?')} 只)")
+                        if cap_info["stale"]:
+                            logger.warning(
+                                "[低位绩优] 市值快照偏旧(%s, %s 天前 > %s 天), 分位阈值精度下降; "
+                                "建议 python -m tools.market_stats_store --refresh",
+                                cap_info["snap"], cap_info["age_days"], MS_STALE_DAYS)
+                    else:
+                        logger.error("[低位绩优] 无可用市值快照(表为空或日期全晚于扫描日), 小盘倾斜不生效")
+                        cap_info["reason"] = "无可用市值快照"
                 else:
-                    logger.warning("[低位绩优] 无市值快照, 小盘倾斜不生效")
-        except Exception as e:
-            logger.warning(f"[低位绩优] market_stats 读取失败, 小盘倾斜不生效: {e}")
+                    logger.error("[低位绩优] market_stats 表为空, 小盘倾斜不生效")
+                    cap_info["reason"] = "市值表为空"
+            except Exception as e:  # noqa: BLE001
+                logger.error(f"[低位绩优] market_stats 读取失败, 小盘倾斜不生效: {e}")
+                cap_info["reason"] = f"读取失败({type(e).__name__})"
 
     # 热门题材(加分项)
     hot_at = H.build_hot_themes(ctx, [last])
@@ -357,7 +403,7 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
     # 仅把该子集登记到监控(与实盘持仓上限一致); 报告仍展示全部 top_n 候选。
     from momentum.tools.position_sizing import build_portfolio, MAX_HOLDINGS
     sized = build_portfolio(picks, DB_PATH, max_n=MAX_HOLDINGS, method='risk_parity')
-    report = _build_report(picks, today, sized)
+    report = _build_report(picks, today, sized, cap_info)
     print(report)
     if picks and os.environ.get('LOW_QUALITY_NO_TRACK') != '1':
         from momentum.tools.tracking_utils import add_picks
@@ -368,19 +414,27 @@ def run(scan_date=None, top_n=TOP_N, prefetch=True):
     return picks, report
 
 
-def _build_report(picks, today, sized=None):
+def _build_report(picks, today, sized=None, cap_info=None):
+    cap_on = bool(cap_info and cap_info.get('enabled'))
     unverified = bool(picks) and bool(picks[0].get('quality_unverified'))
     if unverified:
         sub = "低位=深度超跌(距60日高≤-15%&RSI<35) [基本面缺失: 仅按低位筛选, 绩优未验证]"
-        score_desc = "评分=超跌深度×0.5+热门+10 (低位+热门)" + ("+小盘加分" if ENABLE_SMALL_CAP else "")
+        score_desc = "评分=超跌深度×0.5+热门+10 (低位+热门)" + ("+小盘加分" if cap_on else "")
     else:
         sub = "低位=深度超跌(距60日高≤-15%&RSI<35) + 绩优(ROE≥8%&净利>0&PE≤50&PB≤10)"
-        score_desc = "评分=超跌深度×0.5+ROE×0.3+净利×0.1+热门+10" + ("+小盘加分" if ENABLE_SMALL_CAP else "")
+        score_desc = "评分=超跌深度×0.5+ROE×0.3+净利×0.1+热门+10" + ("+小盘加分" if cap_on else "")
     lines = [f"📉 低位绩优股筛选 | {today}", sub,
-             f"命中 {len(picks)} 只 (按 超跌深度/ROE/净利/热门/小盘 评分)"]
-    # 小盘倾斜已启用提示
-    if ENABLE_SMALL_CAP and picks and any(p.get('cap_tier') and p['cap_tier'] != '无数据' for p in picks):
-        lines.append("📐 小盘倾斜已启用(同等条件下优先小盘, 因子回测正向 edge)")
+             f"命中 {len(picks)} 只 (按 超跌深度/ROE/净利/热门"
+             + ("/小盘" if cap_on else "") + " 评分)"]
+    # 小盘倾斜状态必须显式可见: 启用要能看见, 未生效更要能看见(避免再次静默失效)
+    if cap_on:
+        stale_s = ""
+        if cap_info.get('stale') and cap_info.get('age_days') is not None:
+            stale_s = f", 快照偏旧{cap_info['age_days']}天"
+        lines.append(f"📐 小盘倾斜已启用(市值快照 {cap_info.get('snap')}{stale_s}; 同等条件下优先小盘)")
+    elif ENABLE_SMALL_CAP:
+        reason = (cap_info or {}).get('reason') or '未知原因'
+        lines.append(f"⚠️ 小盘倾斜未生效({reason}) — 本次仅按 超跌/ROE/净利/热门 排序")
     if not picks:
         lines.append("（今日无满足双条件的标的）")
         return "\n".join(lines)
