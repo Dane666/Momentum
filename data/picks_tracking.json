@@ -1973,20 +1973,5 @@
     "trigger_type": "SL",
     "trigger_time": "2026-11-06 11:02:54",
     "pnl_ratio": -5.14
-  },
-  {
-    "date": "2026-11-06",
-    "code": "000526",
-    "name": "学大教育",
-    "price": 29.42,
-    "sl_price": 25.01,
-    "tp_price": 33.83,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 1.0,
-    "regime_state": null,
-    "regime_scale": null
   }
 ]
