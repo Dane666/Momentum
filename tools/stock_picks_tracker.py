@@ -656,19 +656,24 @@ def run(archive=True):
     return report_lines
 
 
-def push_report():
+def push_report(sender=None):
     """生成并推送监控日报 — 全流程只发一条 Bark 消息。
 
-    报告已按 REPORT_MAX_BYTES 裁剪, 正常情况下 send_bark 只会发出 1 条;
+    报告已按 REPORT_MAX_BYTES 裁剪, 正常情况下只会发出 1 条;
     若真超过 Bark 单条上限会记 WARNING 并拆条(兜底, 不应发生)。
+
+    Args:
+        sender: 推送函数 (title, content) -> None。默认用 momentum.notify.bark.send_bark;
+                测试可注入桩函数(避免依赖 momentum/tools 两套包命名空间的模块同一性)。
     """
     lines = run()
     if not lines:
         logger.info("[Tracker] 无监控日报内容, 跳过推送")
         return False
     text = '\n'.join(lines)
-    from momentum.notify.bark import send_bark
-    send_bark('策略表现监控日报', text)
+    if sender is None:
+        from momentum.notify.bark import send_bark as sender
+    sender('策略表现监控日报', text)
     logger.info("[Tracker] 监控日报已推送: %d 行 / %d 字节", len(lines),
                 len(text.encode('utf-8')))
     return True

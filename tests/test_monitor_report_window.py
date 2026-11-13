@@ -18,19 +18,21 @@ from ..notify.bark import _split_utf8
 
 def _mk_db(path, days, per_day=3, start_day=1):
     """构造 stock_picks 测试库: days 个选股日 × per_day 只(全部已攒满 D+3)。"""
+    from datetime import date, timedelta
     ST.DB_PATH = str(path)
     ST._init_tables()
     import sqlite3
     conn = sqlite3.connect(str(path))
+    base = date(2026, 10, 1)
     for d in range(days):
-        date = f'2026-10-{start_day + d:02d}'
+        date_s = (base + timedelta(days=d)).strftime('%Y-%m-%d')
         for k in range(per_day):
             conn.execute(
                 '''INSERT INTO stock_picks
                    (date, code, name, price, status, type, track_status, track_count,
                     day1_pnl, day2_pnl, day3_pnl, max_pnl_3d, sl_triggered, sl_recovery)
                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
-                (date, f'{600000 + d * 10 + k:06d}', f'股{d}-{k}', 10.0, 'WATCHING',
+                (date_s, f'{600000 + d * 10 + k:06d}', f'股{d}-{k}', 10.0, 'WATCHING',
                  'STRATEGY', 'FINISHED', 3, 1.0, 2.0, 3.0, 5.0 + k, k % 2, 0.0))
     conn.commit()
     conn.close()
@@ -141,17 +143,13 @@ def test_empty_table_returns_no_report(env):
 
 
 def test_push_report_sends_exactly_one_bark(env, monkeypatch):
-    """push_report 只调用一次 Bark(消息不拆分), 内容不超过单条上限。"""
+    """push_report 只调用一次推送(消息不拆分), 内容不超过单条上限。"""
     _mk_db(env / 'test.db', days=40, per_day=8)
     monkeypatch.setattr(ST, 'sync_picks_to_db', lambda: 0)
     monkeypatch.setattr(ST, 'update_tracking_stocks', lambda: 0)
 
-    from ..notify import bark
     calls = []
-    monkeypatch.setattr(bark, 'send_bark',
-                        lambda title, content, **kw: calls.append((title, content)))
-
-    assert ST.push_report() is True
+    assert ST.push_report(sender=lambda title, content: calls.append((title, content))) is True
     assert len(calls) == 1, f'应为 1 条 Bark, 实际 {len(calls)} 条'
     title, content = calls[0]
     assert title == '策略表现监控日报'
