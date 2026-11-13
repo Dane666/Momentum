@@ -2168,5 +2168,35 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-13",
+    "code": "605288",
+    "name": "凯迪股份",
+    "price": 73.89,
+    "sl_price": 70.1955,
+    "tp_price": 81.27900000000001,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-13",
+    "code": "603786",
+    "name": "科博达",
+    "price": 41.24,
+    "sl_price": 39.18,
+    "tp_price": 45.36,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-13",
+    "code": "603477",
+    "name": "巨星农牧",
+    "price": 15.85,
+    "sl_price": 15.06,
+    "tp_price": 17.12,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
