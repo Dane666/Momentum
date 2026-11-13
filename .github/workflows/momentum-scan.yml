@@ -243,7 +243,7 @@ jobs:
 
       - name: Run unit tests (push only)
         if: github.event_name == 'push'
-        run: python -m pytest tests/test_backtest.py tests/test_fetcher.py tests/test_fetcher_local_fallback.py tests/test_market_stats_store.py -q
+        run: python -m pytest tests/test_backtest.py tests/test_fetcher.py tests/test_fetcher_local_fallback.py tests/test_market_stats_store.py tests/test_monitor_report_window.py -q
 
       - name: Smoke scan (manual smoke trigger)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_mode == 'smoke'
@@ -501,49 +501,9 @@ jobs:
               except Exception:
                   lines.append('🛑 主动量策略今日无选股（详见运行日志）')
 
-          # Tracking report from DB
-          try:
-              import sqlite3
-              def _dw(s):
-                  w=0
-                  for c in str(s):
-                      cp=ord(c)
-                      if (0x1100<=cp<=0x115F or 0x2E80<=cp<=0xA4CF or
-                          0xAC00<=cp<=0xD7A3 or 0xF900<=cp<=0xFAFF or
-                          0xFF01<=cp<=0xFF60): w+=2
-                      else: w+=1
-                  return w
-              def _pd(s,w):
-                  d=_dw(str(s))
-                  return str(s)+' '*(w-d) if d<w else str(s)
-              def _p(v,w=7):
-                  if v is None: return _pd('  -   ',w)
-                  return _pd(f'{v:+.1f}%',w)
-
-              conn = sqlite3.connect(os.environ.get('MOMENTUM_DB_PATH','qlib_pro_v16.db'))
-              cur = conn.cursor()
-              cur.execute("SELECT code,name,date,price,track_count,track_status,day1_pnl,day2_pnl,day3_pnl,max_pnl_3d,type FROM stock_picks WHERE track_count>0 ORDER BY date DESC LIMIT 12")
-              rows = cur.fetchall()
-              conn.close()
-              if rows:
-                  icons={'STRATEGY':'🎯','MANUAL':'📋','C_TAIL':'🎯'}
-                  sep='━'*56
-                  t_lines=['📊 策略表现监控日报',sep,
-                           f'{_pd("名称",16)}{_pd("标识",4)}{_pd("T+1",8)}{_pd("T+2",8)}{_pd("T+3",8)}{_pd("3D最高",8)}{_pd("止损",6)}状态',sep]
-                  up=0;sl=0;slr=0
-                  for r in rows:
-                      cd,nm,dt,pr,cn,st,d1,d2,d3,mx,pt=r
-                      done=' ✅' if st=='FINISHED' else '    '
-                      mx_v=mx if mx and mx!=0 else None
-                      if mx_v and mx_v>0: up+=1
-                      icon=icons.get(pt,'📌')
-                      t_lines.append(f'{_pd(nm,16)}{_pd(icon,4)}{_p(d1)}{_p(d2)}{_p(d3)}{_p(mx_v)}{_pd("   - ",6)}{done}')
-                  t_lines.append(sep)
-                  t=len(rows)
-                  t_lines.append(f'💹 3D最高为正: {up}/{t} ({up/t*100:.0f}%)')
-                  t_lines.append('🎯 策略选股 | 📋 模拟选股')
-                  bark_push('策略表现监控日报', '\n'.join(t_lines))
-          except: pass
+          # 监控日报(策略表现)已统一由 16:00 盘后归档(eod_analysis -> push_report)推送,
+          # 每天只发一条且带窗口裁剪+归档统计; 此处不再重复推送。
+          # 14:44 时当日 D+1/T+3 数据尚未定盘, 重复推一份反而口径不一致。
 
           bark_push(f'尾盘选股 {today}', '\n'.join(lines))
           print('\n'.join(lines))
