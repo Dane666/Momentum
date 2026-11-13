@@ -142,6 +142,68 @@ def test_empty_table_returns_no_report(env):
     assert ST.generate_report() == []
 
 
+def test_archive_is_idempotent_against_resurrection(env):
+    """归档后再被同步回来的同一条记录: 只删除, 不重复计入归档统计。"""
+    _mk_db(env / 'test.db', days=12, per_day=3)
+    first = ST.archive_old_picks()
+    assert first['n'] == 26
+    entries = json.loads(ST.ARCHIVE_STATS_FILE.read_text(encoding='utf-8'))
+    assert sum(e['n'] for e in entries) == 26
+
+    # 模拟 json 把这些老记录又同步回活动表
+    import sqlite3
+    conn = sqlite3.connect(ST.DB_PATH)
+    rows = conn.execute('SELECT * FROM stock_picks_archive').fetchall()
+    cols = [d[0] for d in conn.execute('SELECT * FROM stock_picks_archive LIMIT 0').description]
+    idx = {c: i for i, c in enumerate(cols)}
+    for r in rows[:5]:
+        conn.execute(
+            '''INSERT INTO stock_picks (date, code, name, price, status, type,
+                                        track_status, track_count, max_pnl_3d)
+               VALUES (?,?,?,?,?,?,?,?,?)''',
+            (r[idx['date']], r[idx['code']], r[idx['name']], r[idx['price']],
+             'WATCHING', r[idx['type']], 'FINISHED', 3, 5.0))
+    conn.commit()
+    conn.close()
+
+    second = ST.archive_old_picks()
+    assert second['n'] == 0, '回流记录不应再次计入归档统计'
+    entries = json.loads(ST.ARCHIVE_STATS_FILE.read_text(encoding='utf-8'))
+    assert sum(e['n'] for e in entries) == 26, '归档统计被重复累加'
+
+    conn = sqlite3.connect(ST.DB_PATH)
+    left = conn.execute("SELECT COUNT(*) FROM stock_picks WHERE code IN "
+                        "(SELECT code FROM stock_picks_archive)").fetchone()[0]
+    conn.close()
+    assert left == 0, '回流记录应从活动表删除'
+
+
+def test_sync_skips_already_archived(env, monkeypatch):
+    """picks_tracking.json 里残留的已归档记录不再被同步回活动表。"""
+    _mk_db(env / 'test.db', days=12, per_day=3)
+    ST.archive_old_picks()
+    import sqlite3
+    conn = sqlite3.connect(ST.DB_PATH)
+    archived = conn.execute(
+        'SELECT date, code, name FROM stock_picks_archive LIMIT 3').fetchall()
+    conn.close()
+
+    monkeypatch.chdir(env)
+    (env / 'data').mkdir(exist_ok=True)
+    payload = [{'date': d, 'code': c, 'name': n, 'price': 10.0, 'type': 'STRATEGY'}
+               for d, c, n in archived]
+    (env / 'data' / 'picks_tracking.json').write_text(
+        json.dumps(payload, ensure_ascii=False), encoding='utf-8')
+
+    assert ST.sync_picks_to_db() == 0
+    conn = sqlite3.connect(ST.DB_PATH)
+    back = conn.execute(
+        f"SELECT COUNT(*) FROM stock_picks WHERE code IN ({','.join('?' * len(archived))})",
+        [c for _, c, _ in archived]).fetchone()[0]
+    conn.close()
+    assert back == 0
+
+
 def test_push_report_sends_exactly_one_bark(env, monkeypatch):
     """push_report 只调用一次推送(消息不拆分), 内容不超过单条上限。"""
     _mk_db(env / 'test.db', days=40, per_day=8)

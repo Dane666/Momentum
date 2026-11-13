@@ -136,11 +136,19 @@ def sync_picks_to_db():
     conn = _get_db()
     cursor = conn.cursor()
     inserted = 0
+    archived = set()
+    try:   # 已归档的 record 不能被 json 重新同步回来(否则归档统计会重复计数)
+        archived = {(r[0], r[1]) for r in
+                    cursor.execute('SELECT date, code FROM stock_picks_archive')}
+    except sqlite3.OperationalError:
+        pass   # 归档表尚未建立
 
     for p in picks:
         date = p.get('date', '')
         code = p.get('code', '')
         if not date or not code:
+            continue
+        if (date, code) in archived:
             continue
 
         # 按 date + code 去重
@@ -451,37 +459,47 @@ def archive_old_picks():
         f"SELECT id, {', '.join(ARCHIVE_COLS)} FROM stock_picks "
         "WHERE track_count > 0 ORDER BY date DESC, code").fetchall()
 
-    moved, kept_tracking = [], []
+    moved, kept_tracking, dup = [], [], []
+    existing = {(r[0], r[1]) for r in
+                cur.execute('SELECT date, code FROM stock_picks_archive')}
     for r in rows:
         if r['id'] in keep_ids:
             continue
         if _still_tracking(r['date'], r['track_status'], r['track_count']):
             kept_tracking.append(r['code'])
             continue
-        moved.append(r)
+        # 同一 (date, code) 已在归档表(上次归档后又被 json 同步回来) -> 只删除不重复计数
+        (dup if (r['date'], r['code']) in existing else moved).append(r)
 
-    if not moved:
+    if not moved and not dup:
         conn.close()
         logger.info('[Tracker] 无需归档(活动表 %d 条, 报告保留 %d 条)',
                     sel['tracked_total'], len(sel['keep']))
         return dict(n=0)
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    placeholders = ','.join('?' * (len(ARCHIVE_COLS) + 1))
-    cur.executemany(
-        f"INSERT INTO stock_picks_archive ({', '.join(ARCHIVE_COLS)}, archived_at) "
-        f"VALUES ({placeholders})",
-        [tuple(r[c] for c in ARCHIVE_COLS) + (now,) for r in moved])
-    cur.executemany('DELETE FROM stock_picks WHERE id=?', [(r['id'],) for r in moved])
+    if moved:
+        placeholders = ','.join('?' * (len(ARCHIVE_COLS) + 1))
+        cur.executemany(
+            f"INSERT INTO stock_picks_archive ({', '.join(ARCHIVE_COLS)}, archived_at) "
+            f"VALUES ({placeholders})",
+            [tuple(r[c] for c in ARCHIVE_COLS) + (now,) for r in moved])
+    # 重复项(归档表已有)与真正迁移项都要从活动表删掉
+    cur.executemany('DELETE FROM stock_picks WHERE id=?',
+                    [(r['id'],) for r in (moved + dup)])
     conn.commit()
 
     stats = _archive_stats(moved)
-    _append_archive_stats(stats)
+    if moved:
+        _append_archive_stats(stats)
     conn.close()
+    if dup:
+        logger.info('[Tracker] 清理 %d 条重复回流记录(json 重新同步的已归档项, 不重复计数)',
+                    len(dup))
     logger.info('[Tracker] 归档 %d 条(%s~%s) → stock_picks_archive; 活动表余 %d 条, '
                 '其中跟踪中未满 D+3 保留 %d 条',
-                stats['n'], stats['date_from'], stats['date_to'],
-                sel['tracked_total'] - stats['n'], len(kept_tracking))
+                stats.get('n', 0), stats.get('date_from', ''), stats.get('date_to', ''),
+                sel['tracked_total'] - len(moved) - len(dup), len(kept_tracking))
     return stats
 
 
