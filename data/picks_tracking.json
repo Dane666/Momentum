@@ -2153,5 +2153,20 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -5.09
+  },
+  {
+    "date": "2026-11-13",
+    "code": "300237",
+    "name": "美晨科技",
+    "price": 3.26,
+    "sl_price": 3.1,
+    "tp_price": 3.59,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
