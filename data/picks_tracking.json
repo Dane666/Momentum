@@ -2186,5 +2186,35 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -2.26
+  },
+  {
+    "date": "2026-11-16",
+    "code": "000400",
+    "name": "许继电气",
+    "price": 26.12,
+    "sl_price": 24.814,
+    "tp_price": 28.732000000000003,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-16",
+    "code": "600853",
+    "name": "龙建股份",
+    "price": 4.46,
+    "sl_price": 4.24,
+    "tp_price": 4.77,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-16",
+    "code": "002690",
+    "name": "美亚光电",
+    "price": 17.48,
+    "sl_price": 16.61,
+    "tp_price": 18.88,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
