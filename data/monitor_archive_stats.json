@@ -10,5 +10,17 @@
     "sl_recover": 62,
     "with_3d": 102,
     "run_date": "2026-11-13"
+  },
+  {
+    "n": 10,
+    "date_from": "2026-11-11",
+    "date_to": "2026-11-11",
+    "win": 9,
+    "avg_max3d": 2.96,
+    "avg_d3": -8.46,
+    "sl": 9,
+    "sl_recover": 8,
+    "with_3d": 10,
+    "run_date": "2026-11-17"
   }
 ]
