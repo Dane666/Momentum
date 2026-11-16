@@ -18,7 +18,11 @@ from pathlib import Path
 
 PROJ = Path(__file__).resolve().parent.parent
 DB = str(PROJ / 'qlib_pro_v16.db')
-INDEX_CODE = '000001'          # 上证指数作为大盘 proxy(与 risk_gate / config 一致)
+# 大盘 proxy 默认用沪深300(000300): kline_cache 里的 000001 实为"平安银行"个股
+# 错乱数据(收盘 7~13 元), 长期被误当上证指数导致择时恒判"强势"(2026-11-16 定位)。
+# 现改用 tools.index_data 实时抓取真·宽基指数(新浪/腾讯), 并做强量级+新鲜度校验。
+INDEX_CODE = '000300'          # 沪深300 作为大盘 proxy(真宽基指数)
+INDEX_NAME = '沪深300'
 MA20 = 20
 MA60 = 60
 
@@ -56,25 +60,49 @@ def position_scale_for(label: str) -> float:
 
 
 def _proxy_closes(n=66):
-    """返回 (dates, closes) 最近 n 个交易日的 proxy 收盘序列。"""
-    con = sqlite3.connect(DB)
-    rows = con.execute(
-        "SELECT trade_date, close FROM kline_cache WHERE code=? "
-        "ORDER BY trade_date DESC LIMIT ?",
-        (INDEX_CODE, n)).fetchall()
-    con.close()
-    rows.reverse()
-    return [d for d, _ in rows], [float(c) for _, c in rows]
+    """返回 (dates, closes, meta) 最近 n 个交易日的 proxy 收盘序列(升序)。
+
+    用 tools.index_data.load_index_closes 实时抓取真·宽基指数(沪深300),
+    替代原先读 kline_cache[000001] 的错乱数据(平安银行个股, 非指数)。
+    meta 含 source/fresh/warn, 供上层判断数据是否可信。
+    """
+    try:
+        import sys
+        if str(PROJ) not in sys.path:
+            sys.path.insert(0, str(PROJ))
+        try:
+            from momentum.tools.index_data import load_index_closes
+        except (ImportError, ModuleNotFoundError):
+            from tools.index_data import load_index_closes
+        dates, closes, meta = load_index_closes(INDEX_CODE, n=n)
+        return dates, closes, meta
+    except Exception as e:
+        return [], [], {'source': 'err', 'warn': f'index_data 加载异常: {e}'}
 
 
 def market_verdict():
-    """返回当日择时 verdict dict: state/label/action/msg/dev20/dev60/nav。"""
+    """返回当日择时 verdict dict: state/label/action/msg/dev20/dev60/nav。
+
+    数据失效(抓取失败/陈旧/量级错乱)时, 不再静默当"强势", 而是保守返回
+    '弱势/观望' 并带 ⚠️ 告警 —— 宁可少买, 不可在失真 proxy 下满仓。
+    """
     try:
-        dates, closes = _proxy_closes(MA60 + 6)
-        if len(closes) < MA20 + 1:
-            return dict(state='unknown', crash=False, label='未知',
-                        action='全部买入(≤5)',
-                        msg='大盘数据不足, 按常态推荐全买')
+        dates, closes, meta = _proxy_closes(MA60 + 6)
+        # 数据不可信 -> 保守降级
+        if not closes or len(closes) < MA20 + 1:
+            return dict(state='bear', crash=False, label='弱势',
+                        action='观望(前2 / 空仓)',
+                        msg=f'⚠️ 大盘proxy({INDEX_NAME})数据不足/获取失败'
+                            f'({meta.get("warn") or "无有效收盘"}), 按弱势观望处理',
+                        position_scale=position_scale_for('弱势'),
+                        data_warn=meta.get('warn', ''))
+        if not meta.get('fresh', True) or meta.get('warn'):
+            return dict(state='bear', crash=False, label='弱势',
+                        action='观望(前2 / 空仓)',
+                        msg=f'⚠️ 大盘proxy({INDEX_NAME})数据异常'
+                            f'({meta.get("warn")}), 按弱势观望处理',
+                        position_scale=position_scale_for('弱势'),
+                        data_warn=meta.get('warn', ''))
         nav = closes[-1]
         ma20 = sum(closes[-MA20:]) / MA20
         ma60 = sum(closes[-MA60:]) / MA60
@@ -86,14 +114,14 @@ def market_verdict():
             state, label, action = 'ranging', '中性', '半仓(前3)'
         else:
             state, label, action = 'bear', '弱势', '观望(前2 / 空仓)'
-        msg = (f"大盘proxy偏离MA20 {dev20*100:+.1f}% | 偏离MA60 {dev60*100:+.1f}%")
+        msg = (f"大盘proxy({INDEX_NAME})偏离MA20 {dev20*100:+.1f}% | 偏离MA60 {dev60*100:+.1f}%")
         return dict(state=state, crash=False, label=label, action=action, msg=msg,
                     dev20=round(dev20, 4), dev60=round(dev60, 4), nav=round(nav, 2),
                     position_scale=position_scale_for(label))
     except Exception as e:
-        return dict(state='unknown', crash=False, label='未知', action='全部买入(≤5)',
-                    msg=f'择时检查异常(放行): {e}',
-                    position_scale=position_scale_for('未知'))
+        return dict(state='bear', crash=False, label='弱势', action='观望(前2 / 空仓)',
+                    msg=f'⚠️ 择时检查异常(按弱势观望): {e}',
+                    position_scale=position_scale_for('弱势'))
 
 
 def timing_gate():

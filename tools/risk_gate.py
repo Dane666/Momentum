@@ -24,27 +24,45 @@ from pathlib import Path
 
 PROJ = Path(__file__).resolve().parent.parent
 DB = str(PROJ / 'qlib_pro_v16.db')
-INDEX_CODE = '000001'     # 上证指数作为大盘 proxy(库内唯一完整宽基指数)
+# 大盘 proxy 改用沪深300(000300): kline_cache[000001] 实为平安银行个股错乱数据
+# (收盘 7~13 元), 长期被误当上证指数(2026-11-16 定位)。现用 tools.index_data 实时抓取。
+INDEX_CODE = '000300'     # 沪深300 作为大盘 proxy(真宽基指数)
 MA = 60
 HARD_THRESHOLD = -0.15   # nav/MA60 - 1 低于此值 → 硬熔断(与 macro_overwrite 一致)
 DROP_PCT = 0.03          # 单日跌幅超此值 → 暂停开仓(总结建议"大盘跌幅>3%暂停")
 
 
+def _import_index_data():
+    """加载 tools.index_data, 兼容 CI(momentum.tools) / 本地直接跑(tools) 两种包路径。"""
+    import sys
+    if str(PROJ) not in sys.path:
+        sys.path.insert(0, str(PROJ))
+    try:
+        from momentum.tools.index_data import load_index_closes
+    except (ImportError, ModuleNotFoundError):
+        from tools.index_data import load_index_closes
+    return load_index_closes
+
+
+def _proxy_rows(n):
+    """返回 (dates, closes, meta) — 真·宽基指数收盘序列(升序, 最近 n 条)。"""
+    try:
+        load_index_closes = _import_index_data()
+        dates, closes, meta = load_index_closes(INDEX_CODE, n=n)
+        return dates, closes, meta
+    except Exception as e:
+        return [], [], {'warn': f'index_data 异常: {e}'}
+
+
 def crash_guard(threshold=HARD_THRESHOLD, drop_pct=DROP_PCT, ma=MA,
                 index=INDEX_CODE, db=DB):
-    """返回 (halt: bool, reason: str)。任何异常都放行(不阻断选股)。"""
+    """返回 (halt: bool, reason: str)。数据失效时保守暂停(不误判为安全)。"""
     try:
-        con = sqlite3.connect(db)
-        rows = con.execute(
-            "SELECT trade_date, close FROM kline_cache WHERE code=? "
-            "ORDER BY trade_date DESC LIMIT ?",
-            (index, ma + 2)).fetchall()
-        con.close()
-        if len(rows) < ma + 1:
-            return (False, '')  # 数据不足, 不误触发
-        rows.reverse()
-        dates = [d for d, _ in rows]
-        closes = [c for _, c in rows]
+        dates, closes, meta = _proxy_rows(ma + 2)
+        if len(closes) < ma + 1:
+            return (True, f'⚠️ 大盘proxy数据不足/失效({meta.get("warn") or "无有效收盘"}), 保守暂停开仓')
+        if meta.get('warn') and not meta.get('fresh', True):
+            return (True, f'⚠️ 大盘proxy数据异常({meta.get("warn")}), 保守暂停开仓')
         nav, prev = closes[-1], closes[-2]
         ma60 = sum(closes[-ma:]) / ma
         dev = nav / ma60 - 1.0
@@ -55,7 +73,7 @@ def crash_guard(threshold=HARD_THRESHOLD, drop_pct=DROP_PCT, ma=MA,
             return (True, f"大盘proxy单日暴跌{day_ret*100:.1f}% (>{(-drop_pct)*100:.0f}%暂停)")
         return (False, '')
     except Exception as e:
-        return (False, f'门禁检查异常(放行): {e}')
+        return (True, f'⚠️ 门禁检查异常(保守暂停): {e}')
 
 
 if __name__ == '__main__':

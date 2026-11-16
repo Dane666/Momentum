@@ -136,6 +136,30 @@ jobs:
               print(f"[warm] 预热异常(继续, 推理将沿用已有数据): {e}")
           PY
 
+      - name: Warm index data (择时 proxy 真实指数)
+        # 🔑 修复(2026-11-16): kline_cache[000001] 实为"平安银行"个股错乱数据(收盘7~13元),
+        # 曾被 market_timing/risk_gate 误当上证指数 -> 熊市恒判"强势"满仓推票(推荐票平均-3.8%)。
+        # 本步骤用 tools.index_data 实时抓取真·沪深300(000300), 缓存到 data/index_daily_cache/,
+        # 供 Bark push 步骤的 market_timing 使用, 并校验点位数(>500)与新鲜度。
+        run: |
+          python <<'PY'
+          import sys, json
+          from pathlib import Path
+          import importlib.util
+          p = Path('.').resolve(); sys.path.insert(0, str(p.parent))
+          s = importlib.util.spec_from_file_location('momentum', p/'__init__.py', submodule_search_locations=[str(p)])
+          m = importlib.util.module_from_spec(s); sys.modules['momentum']=m; s.loader.exec_module(m)
+          from momentum.tools.index_data import load_index_closes
+          for code in ['000300', '000001', '399001', '399006']:
+              dates, closes, meta = load_index_closes(code, n=66)
+              if closes:
+                  print(f"[index] {meta['name']}({code}) [{meta['source']}] "
+                        f"最新={meta['last_date']} 点位={closes[-1]:.0f} "
+                        f"新鲜={meta['fresh']} warn={meta.get('warn') or '-'}", flush=True)
+              else:
+                  print(f"[index] ⚠️ {meta['name']}({code}) 加载失败: {meta.get('warn') or '无数据'}", flush=True)
+          PY
+
       - name: Generate factor panel (当日)
         run: |
           python tasks/factor_engineering/factor_pipeline.py --db qlib_pro_v16.db

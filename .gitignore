@@ -34,3 +34,5 @@ data/volume_price_plan.json
 tasks/model_training/models/
 # 研究中间产物 parquet(可再生, 由 tasks/ 管线生成): 不入 git
 tasks/**/output/*.parquet
+# 宽基指数实时缓存(由 tools/index_data.py 运行时生成, 可再生): 不入 git
+data/index_daily_cache/
