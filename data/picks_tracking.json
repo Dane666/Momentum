@@ -2067,7 +2067,7 @@
     "weight": 1.0,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 0.0
+    "max_pnl": -2.76
   },
   {
     "date": "2026-11-13",
@@ -2185,7 +2185,7 @@
     "weight": 0.1879,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -2.26
+    "max_pnl": -0.05
   },
   {
     "date": "2026-11-16",
@@ -2195,7 +2195,8 @@
     "sl_price": 24.814,
     "tp_price": 28.732000000000003,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": 2.18
   },
   {
     "date": "2026-11-16",
@@ -2204,8 +2205,14 @@
     "price": 4.46,
     "sl_price": 4.24,
     "tp_price": 4.77,
-    "status": "WATCHING",
-    "type": "STRATEGY"
+    "status": "TRIGGERED",
+    "type": "STRATEGY",
+    "max_pnl": -9.42,
+    "exit_price": 4.04,
+    "pnl_pct": -9.42,
+    "trigger_type": "SL",
+    "trigger_time": "2026-11-17 09:32:41",
+    "pnl_ratio": -9.42
   },
   {
     "date": "2026-11-16",
@@ -2215,7 +2222,8 @@
     "sl_price": 16.61,
     "tp_price": 18.88,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -0.57
   },
   {
     "date": "2026-11-16",
@@ -2230,7 +2238,8 @@
     "pressure": null,
     "weight": 0.362,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.2
   },
   {
     "date": "2026-11-16",
@@ -2245,7 +2254,8 @@
     "pressure": null,
     "weight": 0.2119,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -2.67
   },
   {
     "date": "2026-11-16",
@@ -2260,7 +2270,8 @@
     "pressure": null,
     "weight": 0.0912,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -4.33
   },
   {
     "date": "2026-11-16",
@@ -2275,7 +2286,8 @@
     "pressure": null,
     "weight": 0.111,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.7
   },
   {
     "date": "2026-11-16",
@@ -2290,6 +2302,7 @@
     "pressure": null,
     "weight": 0.224,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -3.45
   }
 ]
