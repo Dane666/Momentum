@@ -2306,5 +2306,35 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -2.99
+  },
+  {
+    "date": "2026-11-18",
+    "code": "000980",
+    "name": "众泰汽车",
+    "price": 1.67,
+    "sl_price": 1.59,
+    "tp_price": 1.84,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5308,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-18",
+    "code": "002463",
+    "name": "沪电股份",
+    "price": 79.7,
+    "sl_price": 75.72,
+    "tp_price": 87.67,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.4692,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
