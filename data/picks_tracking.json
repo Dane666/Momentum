@@ -2190,7 +2190,8 @@
     "weight": 0.0912,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 0.59
+    "max_pnl": 8.13,
+    "trail_stop": 56.66
   },
   {
     "date": "2026-11-16",
@@ -2237,7 +2238,8 @@
     "pressure": null,
     "weight": 0.2736,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -2.09
   },
   {
     "date": "2026-11-17",
@@ -2252,7 +2254,8 @@
     "pressure": null,
     "weight": 0.1647,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.39
   },
   {
     "date": "2026-11-17",
@@ -2267,7 +2270,8 @@
     "pressure": null,
     "weight": 0.1736,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.61
   },
   {
     "date": "2026-11-17",
@@ -2282,7 +2286,10 @@
     "pressure": null,
     "weight": 0.1636,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 10.26,
+    "trail_stop": 56.66,
+    "tp_part_10": true
   },
   {
     "date": "2026-11-17",
@@ -2297,6 +2304,7 @@
     "pressure": null,
     "weight": 0.2245,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -2.99
   }
 ]
