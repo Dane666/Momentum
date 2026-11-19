@@ -2435,5 +2435,50 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -1.08
+  },
+  {
+    "date": "2026-11-19",
+    "code": "000656",
+    "name": "金科股份",
+    "price": 1.02,
+    "sl_price": 0.97,
+    "tp_price": 1.12,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3511,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-19",
+    "code": "603928",
+    "name": "兴业股份",
+    "price": 12.32,
+    "sl_price": 11.7,
+    "tp_price": 13.55,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.2879,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-19",
+    "code": "002146",
+    "name": "荣盛发展",
+    "price": 1.01,
+    "sl_price": 0.96,
+    "tp_price": 1.11,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.361,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
