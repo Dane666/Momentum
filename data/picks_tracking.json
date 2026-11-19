@@ -2480,5 +2480,35 @@
     "weight": 0.361,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-19",
+    "code": "605338",
+    "name": "巴比食品",
+    "price": 23.32,
+    "sl_price": 22.154,
+    "tp_price": 25.652,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-19",
+    "code": "000921",
+    "name": "海信家电",
+    "price": 26.08,
+    "sl_price": 24.78,
+    "tp_price": 28.69,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-19",
+    "code": "000889",
+    "name": "中嘉博创",
+    "price": 3.67,
+    "sl_price": 3.49,
+    "tp_price": 3.93,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
