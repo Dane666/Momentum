@@ -2174,7 +2174,7 @@
     "weight": 0.2119,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 1.05
+    "max_pnl": 1.74
   },
   {
     "date": "2026-11-16",
@@ -2183,15 +2183,21 @@
     "price": 56.35,
     "sl_price": 47.9,
     "tp_price": 64.8,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "LOW_QUALITY",
     "support": null,
     "pressure": null,
     "weight": 0.0912,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 8.13,
-    "trail_stop": 56.66
+    "max_pnl": 18.94,
+    "trail_stop": 62.33,
+    "tp_part_10": true,
+    "exit_price": 67.02,
+    "pnl_pct": 18.94,
+    "trigger_type": "TP",
+    "trigger_time": "2026-11-19 09:31:47",
+    "pnl_ratio": 18.94
   },
   {
     "date": "2026-11-16",
@@ -2255,7 +2261,7 @@
     "weight": 0.1647,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -1.39
+    "max_pnl": 2.97
   },
   {
     "date": "2026-11-17",
@@ -2271,7 +2277,7 @@
     "weight": 0.1736,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -1.61
+    "max_pnl": -1.58
   },
   {
     "date": "2026-11-17",
@@ -2280,16 +2286,22 @@
     "price": 55.26,
     "sl_price": 46.97,
     "tp_price": 63.55,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "LOW_QUALITY",
     "support": null,
     "pressure": null,
     "weight": 0.1636,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": 10.26,
-    "trail_stop": 56.66,
-    "tp_part_10": true
+    "max_pnl": 21.28,
+    "trail_stop": 62.33,
+    "tp_part_10": true,
+    "tp_part_20": true,
+    "exit_price": 67.02,
+    "pnl_pct": 21.28,
+    "trigger_type": "TP",
+    "trigger_time": "2026-11-19 09:32:37",
+    "pnl_ratio": 21.28
   },
   {
     "date": "2026-11-17",
@@ -2305,7 +2317,7 @@
     "weight": 0.2245,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -2.99
+    "max_pnl": -2.68
   },
   {
     "date": "2026-11-18",
@@ -2320,7 +2332,8 @@
     "pressure": null,
     "weight": 0.5308,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -3.59
   },
   {
     "date": "2026-11-18",
@@ -2335,7 +2348,8 @@
     "pressure": null,
     "weight": 0.4692,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -2.28
   },
   {
     "date": "2026-11-18",
@@ -2350,7 +2364,8 @@
     "pressure": null,
     "weight": 0.2601,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.88
   },
   {
     "date": "2026-11-18",
@@ -2365,7 +2380,8 @@
     "pressure": null,
     "weight": 0.1649,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.45
   },
   {
     "date": "2026-11-18",
@@ -2380,7 +2396,8 @@
     "pressure": null,
     "weight": 0.191,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.11
   },
   {
     "date": "2026-11-18",
@@ -2395,7 +2412,8 @@
     "pressure": null,
     "weight": 0.1711,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.64
   },
   {
     "date": "2026-11-18",
@@ -2410,6 +2428,7 @@
     "pressure": null,
     "weight": 0.2129,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.08
   }
 ]
