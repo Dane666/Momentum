@@ -2449,7 +2449,9 @@
     "pressure": null,
     "weight": 0.3511,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 5.88,
+    "trail_stop": 1.02
   },
   {
     "date": "2026-11-19",
@@ -2464,7 +2466,8 @@
     "pressure": null,
     "weight": 0.2879,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.22
   },
   {
     "date": "2026-11-19",
@@ -2479,7 +2482,8 @@
     "pressure": null,
     "weight": 0.361,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.98
   },
   {
     "date": "2026-11-19",
@@ -2489,7 +2493,8 @@
     "sl_price": 22.154,
     "tp_price": 25.652,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": 0.34
   },
   {
     "date": "2026-11-19",
@@ -2499,7 +2504,8 @@
     "sl_price": 24.78,
     "tp_price": 28.69,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -0.23
   },
   {
     "date": "2026-11-19",
@@ -2508,8 +2514,14 @@
     "price": 3.67,
     "sl_price": 3.49,
     "tp_price": 3.93,
-    "status": "WATCHING",
-    "type": "STRATEGY"
+    "status": "TRIGGERED",
+    "type": "STRATEGY",
+    "max_pnl": -5.45,
+    "exit_price": 3.47,
+    "pnl_pct": -5.45,
+    "trigger_type": "SL",
+    "trigger_time": "2026-11-20 09:34:10",
+    "pnl_ratio": -5.45
   },
   {
     "date": "2026-11-19",
@@ -2524,7 +2536,8 @@
     "pressure": null,
     "weight": 0.2684,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.81
   },
   {
     "date": "2026-11-19",
@@ -2539,7 +2552,8 @@
     "pressure": null,
     "weight": 0.1743,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -4.82
   },
   {
     "date": "2026-11-19",
@@ -2554,7 +2568,8 @@
     "pressure": null,
     "weight": 0.1227,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -4.19
   },
   {
     "date": "2026-11-19",
@@ -2569,7 +2584,8 @@
     "pressure": null,
     "weight": 0.1956,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -4.83
   },
   {
     "date": "2026-11-19",
@@ -2584,6 +2600,7 @@
     "pressure": null,
     "weight": 0.2391,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -3.28
   }
 ]
