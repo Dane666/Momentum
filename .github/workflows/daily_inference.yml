@@ -239,10 +239,43 @@ jobs:
               buy_n = min(3, len(picks))
           title = f"{flag}{state_emoji} LightGBM 买入{buy_n}只 {label} ({data.get('date')})"
           shown = picks[:buy_n]
-          lines = [f"{i+1}. {pk.get('name', pk['code'])} ({pk['code']}) 分{pk['score']:.3f} @{pk['close']}"
-                   for i, pk in enumerate(shown)] or ["无候选"]
+          # ---- 行业/风格注释 + 板块共振(2026-11-20 新增) ----
+          # 实证: 弱势深熊期防御风格(银行/红利)+11.5%胜率100%, 题材妖股-30%胜率0%。
+          # 给推荐票打申万行业标签, 弱势日提示防御优先, 并展示同行业共振(主线确认)。
+          style_info = {}
+          style_resonance = {}
+          try:
+              from momentum.tools.style_gate import StyleGate
+              gate = StyleGate()
+              style_info = gate.annotate([pk.get('code') for pk in shown])
+              style_resonance = gate.sector_resonance(style_info)
+          except Exception as e:
+              print(f"style_gate 注释失败(跳过): {e}")
+          style_emoji = {'defensive': '🛡️', 'aggressive': '🔥', 'neutral': '⚪', 'unknown': '❓'}
+          lines = []
+          for i, pk in enumerate(shown):
+              code = pk.get('code')
+              si = style_info.get(code, {})
+              ind = si.get('industry', '')
+              sty = si.get('style', 'unknown')
+              se = style_emoji.get(sty, '⚪')
+              tag = f"[{ind}]" if ind else ""
+              lines.append(f"{i+1}. {pk.get('name', code)} ({code}) {se}{tag} 分{pk['score']:.3f} @{pk['close']}")
+          if not lines:
+              lines = ["无候选"]
           if buy_n < len(picks):
               lines.append(f"…(弱势/中性市仅推前{buy_n}只, 余{len(picks)-buy_n}只暂不宜买)")
+          # 板块共振(同行业≥2 视为潜在主线)
+          res = [(ind, n) for ind, n in style_resonance.items() if n >= 2]
+          if res:
+              res_str = ", ".join(f"{ind}×{n}" for ind, n in sorted(res, key=lambda x: -x[1]))
+              lines.append(f"🎯 板块共振: {res_str}")
+          # 弱势日防御提示
+          if state == 'bear':
+              def_sty = sum(1 for si in style_info.values() if si.get('style') == 'defensive')
+              agg_sty = sum(1 for si in style_info.values() if si.get('style') == 'aggressive')
+              if agg_sty > 0 and def_sty == 0:
+                  lines.append("⚠️ 弱势日推荐票均为题材(进攻)风格, 历史弱势期此类票胜率仅22%; 建议观望或转防御(银行/红利)")
           # 择时 verdict 一行
           lines += ["", f"{state_emoji} 市场{label}: {verdict.get('msg','')}",
                     f"👉 建议: {action}",
@@ -260,6 +293,8 @@ jobs:
           # 审计: 把实际推送的 code 列表打进日志, 便于事后核对(如 ST 过滤是否生效)
           print("Bark 推送完成:", title)
           print("PUSH_CODES:", [p.get('code') for p in shown])
+          print("STYLE_AUDIT:", {c: f"{si.get('industry')}/{si.get('style')}"
+                                 for c, si in style_info.items()})
           st_in_push = [p.get('code') for p in shown
                         if 'ST' in str(p.get('name', '')).upper()]
           if st_in_push:

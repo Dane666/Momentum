@@ -36,3 +36,5 @@ tasks/model_training/models/
 tasks/**/output/*.parquet
 # 宽基指数实时缓存(由 tools/index_data.py 运行时生成, 可再生): 不入 git
 data/index_daily_cache/
+# 个股行业/板块实时缓存(由 tools/style_gate.py 运行时生成, 可再生): 不入 git
+data/industry_cache/
