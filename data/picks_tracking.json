@@ -2607,5 +2607,20 @@
     "regime_state": null,
     "regime_scale": null,
     "max_pnl": -3.28
+  },
+  {
+    "date": "2026-11-20",
+    "code": "600327",
+    "name": "大东方",
+    "price": 4.8,
+    "sl_price": 4.56,
+    "tp_price": 5.28,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 1.0,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
