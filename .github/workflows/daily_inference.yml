@@ -291,8 +291,8 @@ jobs:
                   lines.append("⚠️ 弱势日推荐票均为题材(进攻)风格, 历史弱势期此类票胜率仅22%; 建议观望或转防御(银行/红利)")
               if defensive_picks:
                   dp_str = ", ".join(f"{p['name']}({p['code']}){p['pct']:+.1f}%" for p in defensive_picks)
-                  lines.append(f"🛡️ 弱势日防御候选(温和逆势上涨, 已滤>7%涨停): {dp_str}")
-                  lines.append("   ↳ 次日开盘买入; 集合竞价若高开>3%或一字涨停则放弃等回踩")
+                  lines.append(f"🏦 弱势日防御候选(银行股, 已滤>7%涨停): {dp_str}")
+                  lines.append("   ↳ 买: 次日开盘(银行股低开居多, 无高开追高风险); 卖: 长拿10~20日, 不设紧止损")
           # 择时 verdict 一行
           lines += ["", f"{state_emoji} 市场{label}: {verdict.get('msg','')}",
                     f"👉 建议: {action}",
