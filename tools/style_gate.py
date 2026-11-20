@@ -108,13 +108,14 @@ def _fetch_eastmoney(url: str) -> Optional[dict]:
 
 
 def fetch_board_members(board_code: str, limit: int = 60) -> List[dict]:
-    """拉取东财板块成分股(含当天涨跌幅)。返回 [{code, name, pct}] 按涨幅降序。
+    """拉取东财板块成分股(含当天涨跌幅与最新价)。返回 [{code, name, pct, price}] 按涨幅降序。
 
-    board_code 形如 'BK0475'(银行Ⅱ)。pct 为当日涨跌幅(%, fltt=2 已还原)。
+    board_code 形如 'BK0475'(银行Ⅱ)。pct 为当日涨跌幅(%, fltt=2 已还原),
+    price 为最新价(收盘价, fltt=2 已还原), 供登记到统一持仓监控作买入参考价。
     """
     url = (f'https://push2.eastmoney.com/api/qt/clist/get'
            f'?pn=1&pz={limit}&po=1&np=1&fltt=2&invt=2&fid=f3'
-           f'&fs=b:{board_code}&fields=f12,f14,f3')
+           f'&fs=b:{board_code}&fields=f12,f14,f2,f3')
     d = _fetch_eastmoney(url)
     if not d:
         return []
@@ -124,13 +125,18 @@ def fetch_board_members(board_code: str, limit: int = 60) -> List[dict]:
         code = it.get('f12', '')
         name = it.get('f14', '')
         pct = it.get('f3')
+        price = it.get('f2')
         if not code:
             continue
         try:
             pct = float(pct) if pct is not None and pct != '-' else None
         except Exception:
             pct = None
-        out.append({'code': code, 'name': name, 'pct': pct})
+        try:
+            price = float(price) if price is not None and price != '-' else None
+        except Exception:
+            price = None
+        out.append({'code': code, 'name': name, 'pct': pct, 'price': price})
     return out
 
 
@@ -213,10 +219,11 @@ class StyleGate:
                              max_pct: float = 7.0) -> List[dict]:
         """弱势日防御候选清单: 从防御板块成分股里筛出当天逆势上涨(或抗跌)的票。
 
-        返回 [{code, name, pct, board}] 按涨幅降序, 最多 top_n 只。
+        返回 [{code, name, pct, price, board}] 按涨幅降序, 最多 top_n 只。
         min_pct: 只保留当日涨幅 >= min_pct 的票(默认 0 = 只留上涨的)。
         max_pct: 只保留当日涨幅 <= max_pct 的票(默认 7 = 过滤掉当天已涨停/暴涨、
                  次日大概率高开追高的票, 只留"温和逆势上涨"可次日开盘安全介入的)。
+        price: 当日最新价(收盘价), 供 add_picks 登记监控用(银行股次日开盘≈收盘, 低开仅-0.24%)。
         同一只票可能属于多个板块, 去重取首次出现。
         """
         seen = {}
@@ -230,7 +237,7 @@ class StyleGate:
                     continue
                 seen[m['code']] = {
                     'code': m['code'], 'name': m['name'],
-                    'pct': pct, 'board': bname,
+                    'pct': pct, 'price': m.get('price'), 'board': bname,
                 }
         ranked = sorted(seen.values(), key=lambda x: -x['pct'])
         return ranked[:top_n]

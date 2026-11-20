@@ -144,3 +144,30 @@ def test_defensive_candidates_handles_network_failure(monkeypatch):
                         lambda bk, limit=80: [])
     cands = gate.defensive_candidates(top_n=5)
     assert cands == []
+
+
+def test_defensive_candidates_carries_price(monkeypatch):
+    """防御候选携带 price(收盘价), 供统一持仓监控 add_picks 登记买入参考价。"""
+    gate = StyleGate()
+
+    def fake_members(bk, limit=80):
+        return {
+            'BK0475': [
+                {'code': '601398', 'name': '工商银行', 'pct': 3.3, 'price': 9.4},
+                {'code': '601939', 'name': '建设银行', 'pct': 3.0, 'price': 12.76},
+            ],
+        }.get(bk, [])
+
+    monkeypatch.setattr('tools.style_gate.fetch_board_members', fake_members)
+    cands = gate.defensive_candidates(top_n=2, min_pct=0.0, max_pct=7.0)
+    assert len(cands) == 2
+    assert cands[0]['price'] == 9.4
+    assert cands[1]['price'] == 12.76
+    # 价格字段缺失时也不抛异常(price=None 由调用方过滤)
+    def fake_no_price(bk, limit=80):
+        return {'BK0475': [
+            {'code': '601398', 'name': '工商银行', 'pct': 3.3},
+        ]}.get(bk, [])
+    monkeypatch.setattr('tools.style_gate.fetch_board_members', fake_no_price)
+    cands2 = gate.defensive_candidates(top_n=2)
+    assert cands2[0].get('price') is None

@@ -177,7 +177,8 @@ def run():
                 )
             else:
                 tlabel = {'LOW_QUALITY': '低位绩优', 'C_TAIL': 'C尾盘',
-                          'LEADER': '龙头', 'STRATEGY': '策略'}.get(
+                          'LEADER': '龙头', 'DEFENSIVE': '防御银行',
+                          'STRATEGY': '策略'}.get(
                     pick_type, '策略')
                 dmark = ('压力位卖出' if (trigger_type == 'TP' and p.get('pressure') is not None)
                          else direction)

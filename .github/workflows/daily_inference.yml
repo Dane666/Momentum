@@ -255,6 +255,21 @@ jobs:
               style_snapshot = gate.market_style_snapshot()
               if state == 'bear':
                   defensive_picks = gate.defensive_candidates(top_n=5, min_pct=0.0, max_pct=7.0)
+                  # 🔑 防御候选接入统一持仓监控(2026-11-20): 登记到 picks_tracking.json,
+                  # 由 position_monitor 每30min 跟踪盈亏 + Bark 提醒(长拿20日/不设紧止损)。
+                  # 参数对齐回测: 银行股持有20日 +2.48%/胜率70%, 次日开盘≈收盘(低开-0.24%)。
+                  if defensive_picks:
+                      try:
+                          from momentum.tools.tracking_utils import add_picks
+                          def_reg = [{'code': p['code'], 'name': p['name'],
+                                      'price': p['price']} for p in defensive_picks
+                                     if p.get('price') is not None]
+                          n_def = add_picks(def_reg, 'DEFENSIVE',
+                                            sl_ratio=0.88, tp_ratio=1.10,
+                                            hold_max_days=20)
+                          print(f"DEFENSIVE 登记监控 {n_def} 只 (sl-12%/长拿20日)")
+                      except Exception as e:
+                          print(f"DEFENSIVE 登记失败(跳过): {e}")
           except Exception as e:
               print(f"style_gate 注释失败(跳过): {e}")
           style_emoji = {'defensive': '🛡️', 'aggressive': '🔥', 'neutral': '⚪', 'unknown': '❓'}
@@ -349,3 +364,12 @@ jobs:
           git add data/push_candidates.json
           git commit -m "chore: nightly push candidates $(date +%F)" || echo "no-change"
           git push || echo "push-failed"
+
+      - name: Push defensive tracking (防御候选登记监控)
+        if: ${{ success() }}
+        run: |
+          git config user.email "ci@workbuddy.local"
+          git config user.name "wb-ci"
+          git add data/picks_tracking.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "No defensive tracking change"; else \
+            git commit -m "auto: register defensive picks" && git push origin main; fi
