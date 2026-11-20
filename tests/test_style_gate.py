@@ -92,6 +92,27 @@ def test_defensive_candidates_filters_and_dedups(monkeypatch):
     assert codes[0] == '601398'
 
 
+def test_defensive_candidates_max_pct_filters_high_gainers(monkeypatch):
+    """max_pct 上限: 过滤当天已涨停/暴涨的票, 只留温和逆势上涨。"""
+    gate = StyleGate()
+
+    def fake_members(bk, limit=80):
+        return {
+            'BK0475': [
+                {'code': '601398', 'name': '工商银行', 'pct': 3.3},   # 温和, 保留
+                {'code': '600803', 'name': '新奥股份', 'pct': 9.99},  # 涨停, 应被 max_pct=7 过滤
+                {'code': '600036', 'name': '招商银行', 'pct': 7.5},   # 超过7%, 应被过滤
+            ],
+        }.get(bk, [])
+
+    monkeypatch.setattr('tools.style_gate.fetch_board_members', fake_members)
+    cands = gate.defensive_candidates(top_n=5, min_pct=0.0, max_pct=7.0)
+    codes = [c['code'] for c in cands]
+    assert '601398' in codes          # 温和上涨保留
+    assert '600803' not in codes      # 涨停过滤
+    assert '600036' not in codes      # 超过7%过滤
+
+
 def test_market_style_snapshot_spread(monkeypatch):
     """风格快照: 防御均 vs 进攻均, spread 符号正确。mock 板块指数涨跌接口。"""
     gate = StyleGate()

@@ -254,7 +254,7 @@ jobs:
               # 市场风格强弱快照 + 弱势日防御候选(2026-11-20 扩展)
               style_snapshot = gate.market_style_snapshot()
               if state == 'bear':
-                  defensive_picks = gate.defensive_candidates(top_n=5, min_pct=0.0)
+                  defensive_picks = gate.defensive_candidates(top_n=5, min_pct=0.0, max_pct=7.0)
           except Exception as e:
               print(f"style_gate 注释失败(跳过): {e}")
           style_emoji = {'defensive': '🛡️', 'aggressive': '🔥', 'neutral': '⚪', 'unknown': '❓'}
@@ -291,7 +291,8 @@ jobs:
                   lines.append("⚠️ 弱势日推荐票均为题材(进攻)风格, 历史弱势期此类票胜率仅22%; 建议观望或转防御(银行/红利)")
               if defensive_picks:
                   dp_str = ", ".join(f"{p['name']}({p['code']}){p['pct']:+.1f}%" for p in defensive_picks)
-                  lines.append(f"🛡️ 弱势日防御候选(逆势上涨): {dp_str}")
+                  lines.append(f"🛡️ 弱势日防御候选(温和逆势上涨, 已滤>7%涨停): {dp_str}")
+                  lines.append("   ↳ 次日开盘买入; 集合竞价若高开>3%或一字涨停则放弃等回踩")
           # 择时 verdict 一行
           lines += ["", f"{state_emoji} 市场{label}: {verdict.get('msg','')}",
                     f"👉 建议: {action}",

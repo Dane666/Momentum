@@ -221,11 +221,14 @@ class StyleGate:
         return [c for c, info in annotated.items() if info.get('style') in keep_style]
 
     def defensive_candidates(self, top_n: int = 6,
-                             min_pct: float = 0.0) -> List[dict]:
+                             min_pct: float = 0.0,
+                             max_pct: float = 7.0) -> List[dict]:
         """弱势日防御候选清单: 从防御板块成分股里筛出当天逆势上涨(或抗跌)的票。
 
         返回 [{code, name, pct, board}] 按涨幅降序, 最多 top_n 只。
         min_pct: 只保留当日涨幅 >= min_pct 的票(默认 0 = 只留上涨的)。
+        max_pct: 只保留当日涨幅 <= max_pct 的票(默认 7 = 过滤掉当天已涨停/暴涨、
+                 次日大概率高开追高的票, 只留"温和逆势上涨"可次日开盘安全介入的)。
         同一只票可能属于多个板块, 去重取首次出现。
         """
         seen = {}
@@ -233,7 +236,7 @@ class StyleGate:
             members = fetch_board_members(bk, limit=80)
             for m in members:
                 pct = m.get('pct')
-                if pct is None or pct < min_pct:
+                if pct is None or pct < min_pct or pct > max_pct:
                     continue
                 if m['code'] in seen:
                     continue
