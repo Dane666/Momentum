@@ -2597,5 +2597,25 @@
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-23",
+    "code": "000410",
+    "name": "沈阳机床",
+    "price": 6.22,
+    "sl_price": 5.909,
+    "tp_price": 6.8420000000000005,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-23",
+    "code": "002749",
+    "name": "国光股份",
+    "price": 9.25,
+    "sl_price": 8.79,
+    "tp_price": 10.18,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
