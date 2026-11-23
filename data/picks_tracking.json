@@ -2108,17 +2108,6 @@
   },
   {
     "date": "2026-11-16",
-    "code": "000400",
-    "name": "许继电气",
-    "price": 26.12,
-    "sl_price": 24.814,
-    "tp_price": 28.732000000000003,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": 2.18
-  },
-  {
-    "date": "2026-11-16",
     "code": "600853",
     "name": "龙建股份",
     "price": 4.46,
@@ -2132,49 +2121,6 @@
     "trigger_type": "SL",
     "trigger_time": "2026-11-17 09:32:41",
     "pnl_ratio": -9.42
-  },
-  {
-    "date": "2026-11-16",
-    "code": "002690",
-    "name": "美亚光电",
-    "price": 17.48,
-    "sl_price": 16.61,
-    "tp_price": 18.88,
-    "status": "WATCHING",
-    "type": "STRATEGY",
-    "max_pnl": 1.32
-  },
-  {
-    "date": "2026-11-16",
-    "code": "000430",
-    "name": "张家界",
-    "price": 5.83,
-    "sl_price": 4.96,
-    "tp_price": 6.7,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.362,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -0.17
-  },
-  {
-    "date": "2026-11-16",
-    "code": "001309",
-    "name": "德明利",
-    "price": 179.3,
-    "sl_price": 152.41,
-    "tp_price": 206.19,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.2119,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 1.74
   },
   {
     "date": "2026-11-16",
@@ -2198,86 +2144,6 @@
     "trigger_type": "TP",
     "trigger_time": "2026-11-19 09:31:47",
     "pnl_ratio": 18.94
-  },
-  {
-    "date": "2026-11-16",
-    "code": "603929",
-    "name": "亚翔集成",
-    "price": 83.69,
-    "sl_price": 71.14,
-    "tp_price": 96.24,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.111,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 1.94
-  },
-  {
-    "date": "2026-11-16",
-    "code": "603045",
-    "name": "福达合金",
-    "price": 30.45,
-    "sl_price": 25.88,
-    "tp_price": 35.02,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.224,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 0.33
-  },
-  {
-    "date": "2026-11-17",
-    "code": "000430",
-    "name": "张家界",
-    "price": 5.75,
-    "sl_price": 4.89,
-    "tp_price": 6.61,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.2736,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -2.09
-  },
-  {
-    "date": "2026-11-17",
-    "code": "001309",
-    "name": "德明利",
-    "price": 177.39,
-    "sl_price": 150.78,
-    "tp_price": 204.0,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.1647,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 2.97
-  },
-  {
-    "date": "2026-11-17",
-    "code": "603045",
-    "name": "福达合金",
-    "price": 29.76,
-    "sl_price": 25.3,
-    "tp_price": 34.22,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.1736,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -1.34
   },
   {
     "date": "2026-11-17",
@@ -2304,22 +2170,6 @@
     "pnl_ratio": 21.28
   },
   {
-    "date": "2026-11-17",
-    "code": "600961",
-    "name": "株冶集团",
-    "price": 16.06,
-    "sl_price": 13.65,
-    "tp_price": 18.47,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.2245,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -2.68
-  },
-  {
     "date": "2026-11-18",
     "code": "000980",
     "name": "众泰汽车",
@@ -2339,102 +2189,6 @@
     "trigger_type": "SL",
     "trigger_time": "2026-11-19 10:03:09",
     "pnl_ratio": -5.39
-  },
-  {
-    "date": "2026-11-18",
-    "code": "002463",
-    "name": "沪电股份",
-    "price": 79.7,
-    "sl_price": 75.72,
-    "tp_price": 87.67,
-    "status": "WATCHING",
-    "type": "C_TAIL",
-    "support": null,
-    "pressure": null,
-    "weight": 0.4692,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": 1.29
-  },
-  {
-    "date": "2026-11-18",
-    "code": "000430",
-    "name": "张家界",
-    "price": 5.65,
-    "sl_price": 4.8,
-    "tp_price": 6.5,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.2601,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -0.88
-  },
-  {
-    "date": "2026-11-18",
-    "code": "603045",
-    "name": "福达合金",
-    "price": 29.72,
-    "sl_price": 25.26,
-    "tp_price": 34.18,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.1649,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -1.41
-  },
-  {
-    "date": "2026-11-18",
-    "code": "002259",
-    "name": "升达林业",
-    "price": 3.6,
-    "sl_price": 3.06,
-    "tp_price": 4.14,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.191,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -0.56
-  },
-  {
-    "date": "2026-11-18",
-    "code": "000426",
-    "name": "兴业银锡",
-    "price": 20.1,
-    "sl_price": 17.09,
-    "tp_price": 23.11,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.1711,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -1.64
-  },
-  {
-    "date": "2026-11-18",
-    "code": "600961",
-    "name": "株冶集团",
-    "price": 15.77,
-    "sl_price": 13.4,
-    "tp_price": 18.14,
-    "status": "WATCHING",
-    "type": "LOW_QUALITY",
-    "support": null,
-    "pressure": null,
-    "weight": 0.2129,
-    "regime_state": null,
-    "regime_scale": null,
-    "max_pnl": -1.08
   },
   {
     "date": "2026-11-19",
@@ -2467,7 +2221,7 @@
     "weight": 0.2879,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -0.32
+    "max_pnl": 2.11
   },
   {
     "date": "2026-11-19",
@@ -2476,14 +2230,19 @@
     "price": 1.01,
     "sl_price": 0.96,
     "tp_price": 1.11,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 0.361,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -1.98
+    "max_pnl": -1.98,
+    "exit_price": 0.96,
+    "pnl_pct": -4.95,
+    "trigger_type": "SL",
+    "trigger_time": "2026-11-23 09:01:51",
+    "pnl_ratio": -4.95
   },
   {
     "date": "2026-11-19",
@@ -2510,7 +2269,7 @@
     "tp_price": 28.69,
     "status": "WATCHING",
     "type": "STRATEGY",
-    "max_pnl": 0.19
+    "max_pnl": 1.5
   },
   {
     "date": "2026-11-19",
@@ -2621,7 +2380,8 @@
     "pressure": null,
     "weight": 1.0,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 0.63
   },
   {
     "date": "2026-11-20",
@@ -2636,7 +2396,8 @@
     "pressure": null,
     "weight": 0.2451,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.57
   },
   {
     "date": "2026-11-20",
@@ -2651,7 +2412,8 @@
     "pressure": null,
     "weight": 0.1485,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.49
   },
   {
     "date": "2026-11-20",
@@ -2666,7 +2428,8 @@
     "pressure": null,
     "weight": 0.1582,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -2.05
   },
   {
     "date": "2026-11-20",
@@ -2681,7 +2444,8 @@
     "pressure": null,
     "weight": 0.2704,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.29
   },
   {
     "date": "2026-11-20",
@@ -2696,7 +2460,8 @@
     "pressure": null,
     "weight": 0.1778,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.2
   },
   {
     "date": "2026-11-20",
@@ -2712,7 +2477,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-20",
@@ -2728,7 +2494,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-20",
@@ -2744,7 +2511,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-20",
@@ -2760,7 +2528,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-20",
@@ -2776,6 +2545,7 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   }
 ]
