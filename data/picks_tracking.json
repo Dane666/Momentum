@@ -2823,5 +2823,35 @@
     "weight": 0.2701,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-24",
+    "code": "002452",
+    "name": "长高电气",
+    "price": 11.15,
+    "sl_price": 10.5925,
+    "tp_price": 12.265,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-24",
+    "code": "002749",
+    "name": "国光股份",
+    "price": 9.88,
+    "sl_price": 9.39,
+    "tp_price": 10.57,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-24",
+    "code": "000678",
+    "name": "襄阳轴承",
+    "price": 19.64,
+    "sl_price": 18.66,
+    "tp_price": 21.6,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
