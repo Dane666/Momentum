@@ -2778,5 +2778,50 @@
     "regime_state": null,
     "regime_scale": null,
     "hold_max_days": 20
+  },
+  {
+    "date": "2026-11-24",
+    "code": "603725",
+    "name": "天安新材",
+    "price": 10.03,
+    "sl_price": 9.53,
+    "tp_price": 11.03,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.2276,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-24",
+    "code": "002387",
+    "name": "维信诺",
+    "price": 6.32,
+    "sl_price": 6.0,
+    "tp_price": 6.95,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5023,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-24",
+    "code": "000026",
+    "name": "飞亚达",
+    "price": 22.42,
+    "sl_price": 21.3,
+    "tp_price": 24.66,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.2701,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
