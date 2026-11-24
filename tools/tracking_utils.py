@@ -15,7 +15,7 @@
 公共 API:
   add_picks(picks, pick_type, sl_ratio=0.95, tp_ratio=1.10,
             date=None, status='WATCHING', track_file=None, db_path=None) -> int
-      将选股追加到 data/picks_tracking.json(按 date+code+type 去重) 并同步
+      将选股追加到 data/picks_tracking.json(按 date+code 跨策略去重) 并同步
       stock_picks 表, 供 position_monitor 统一监控。返回新增条数。
   bark_notify(title, body)
       统一 Bark 推送(自动解析 device key, 含 http 前缀兼容)。
@@ -222,7 +222,7 @@ def add_picks(picks: list, pick_type: str, sl_ratio: float = 0.95,
         hold_max_days: 该笔持仓的"到期减仓提醒"天数(按策略覆盖全局 HOLD_MAX_DAYS,
             如模型通道=10 / 价量回踩=20)。None 则不写, 由 position_monitor 用全局默认。
     Returns:
-        新增条数(已存在的 date+code+type 组合自动跳过)。
+        新增条数(已存在的 date+code 组合自动跳过, 跨策略去重, 以首次入库为准)。
     """
     if not picks:
         return 0
@@ -234,7 +234,9 @@ def add_picks(picks: list, pick_type: str, sl_ratio: float = 0.95,
                     if os.path.exists(track_file) else [])
     except Exception:
         tracking = []
-    seen = {(p.get('date'), p.get('code'), p.get('type')) for p in tracking}
+    # 同日同票去重(跨策略): 以第一次入库记录为准。同一交易日同一 code 若已存在
+    # (无论之前由哪个策略 type 登记), 后续策略重复选到该票则跳过, 不覆盖首次记录。
+    seen = {(p.get('date'), p.get('code')) for p in tracking}
     new_recs = []
     for p in picks:
         code = str(p.get('code', '')).strip()
@@ -245,8 +247,9 @@ def add_picks(picks: list, pick_type: str, sl_ratio: float = 0.95,
         except (TypeError, ValueError):
             logger.warning("[tracking] 跳过无效价格: %s", p)
             continue
-        key = (date, code, pick_type)
+        key = (date, code)
         if key in seen:
+            logger.info("[tracking] 同日同票已存在(%s), 以首次入库为准, 跳过", code)
             continue
         rec = dict(date=date, code=code, name=p.get('name') or code,
                    price=round(price, 2),
