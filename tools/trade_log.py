@@ -35,17 +35,18 @@ def _hold_days(entry_date, exit_date):
 
 
 def collect(track_file=TRACK_FILE):
-    """返回 (realized, open) 两个 list。
+    """返回 (realized, open, watching) 三个 list。
 
     realized: 已平仓交易(含 TRIGGERED 与带 exit_price 的 MANUAL/HOLDING)
-    open:     当前仍持仓(无 exit_price)
+    open:     当前仍真实持仓(无 exit_price 的 MANUAL/HOLDING)
+    watching: 当前策略模拟观察股(无 exit_price 的 WATCHING, 由 position_monitor 监控)
     每条记录字段: code,name,type,entry_date,entry_price,exit_date,exit_price,
                   pnl_pct,hold_days,trigger_type,weight
     """
     if not os.path.exists(track_file):
-        return [], []
+        return [], [], []
     recs = json.loads(Path(track_file).read_text(encoding='utf-8'))
-    realized, open_ = [], []
+    realized, open_, watching = [], [], []
     for p in recs:
         code = p.get('code'); entry = p.get('price'); edate = p.get('date')
         st = p.get('status')
@@ -69,10 +70,17 @@ def collect(track_file=TRACK_FILE):
                 weight=p.get('weight'),
                 sl=round(p.get('sl_price'), 2) if p.get('sl_price') else None,
                 tp=round(p.get('tp_price'), 2) if p.get('tp_price') else None))
-    return realized, open_
+        elif st == 'WATCHING' and exit_price is None:
+            # 策略模拟观察股: 不算真实持仓, 但需如实展示"正在被 position_monitor 监控"
+            watching.append(dict(
+                code=code, name=p.get('name', code), type=p.get('type', 'STRATEGY'),
+                entry_date=edate, entry_price=round(float(entry), 2),
+                sl=round(p.get('sl_price'), 2) if p.get('sl_price') else None,
+                tp=round(p.get('tp_price'), 2) if p.get('tp_price') else None))
+    return realized, open_, watching
 
 
-def summarize(realized, open_):
+def summarize(realized, open_, watching=None):
     L = ["📒 实盘交易日志"]
     L.append("=" * 50)
     if not realized:
@@ -102,7 +110,14 @@ def summarize(realized, open_):
             L.append(f"  {o['code']} {o['name']} 入场¥{o['entry_price']} "
                      f"SL¥{o['sl']} TP¥{o['tp']}{w}")
     else:
-        L.append("当前无持仓")
+        L.append("当前无真实持仓(MANUAL/HOLDING)")
+    # 模拟观察股(WATCHING): 如实展示"策略选股仍在监控中", 避免"无持仓"误导
+    watching = watching or []
+    if watching:
+        L.append(f"📡 模拟观察 {len(watching)} 只(策略选股, position_monitor 监控中):")
+        for w in watching:
+            L.append(f"  {w['code']} {w['name']} [{w['type']}] 入场¥{w['entry_price']} "
+                     f"SL¥{w['sl']} TP¥{w['tp']}")
     return "\n".join(L)
 
 
@@ -125,8 +140,8 @@ if __name__ == '__main__':
     ap.add_argument('--push', action='store_true', help="额外 Bark 推送")
     ap.add_argument('--track-file', default=TRACK_FILE)
     a = ap.parse_args()
-    realized, open_ = collect(a.track_file)
-    text = summarize(realized, open_)
+    realized, open_, watching = collect(a.track_file)
+    text = summarize(realized, open_, watching)
     print(text)
     if a.export:
         p = export_csv(realized, a.export)
