@@ -2,10 +2,11 @@ name: strategy-align-report
 #
 # 月度策略对齐 + 实盘日志报告 — 回应评估建议⑤(快照式回测对齐口径)与⑥(实盘交易日志)。
 # 每月1日 16:00 CST 跑:
-#   - tools/align_report.py       回测(OOS) vs 实盘信号 统一口径并排对比
-#   - tools/trade_log.py          实盘持仓台账 + 已平仓盈亏统计
-#   - tools/trade_journal.py --factors --push  策略/因子有效性明细
-# 三项均 Bark 推送, 便于逐月监控"回测很美 / 实盘很骨感"的偏差是否收敛。
+#   tools/monthly_report.py  聚合以下三份为一条「月度策略综述」Bark:
+#     - tools/align_report.py       回测(OOS) vs 实盘信号 统一口径并排对比
+#     - tools/trade_log.py          实盘持仓台账 + 已平仓盈亏统计
+#     - tools/trade_journal.py --factors  策略/因子有效性明细
+# 合并为单条推送, 避免每月 3 条打断, 便于逐月监控"回测很美/实盘很骨感"偏差是否收敛。
 #
 # Triggers:
 #   Primary:  cron-job.org → POST workflow_dispatch   每月1日 16:00 CST
@@ -59,11 +60,5 @@ jobs:
             echo "DB 已存在(缓存命中), 跳过下载 ($(du -h qlib_pro_v16.db | cut -f1))"
           fi
 
-      - name: 回测 vs 实盘 对齐报告 (Bark)
-        run: python tools/align_report.py --push
-
-      - name: 实盘交易日志 (Bark)
-        run: python tools/trade_log.py --push
-
-      - name: 策略/因子有效性明细 (Bark)
-        run: python tools/trade_journal.py --factors --push
+      - name: 月度策略综述 (合并对齐+交易日志+因子有效性为一条 Bark)
+        run: python tools/monthly_report.py

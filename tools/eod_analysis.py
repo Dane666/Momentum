@@ -144,10 +144,15 @@ def run():
     except Exception:
         pass
 
-    # 选股跟踪: D0-D3 后验 — 监控日报(单条 Bark, 内部已裁剪+归档)
+    # 选股跟踪: D0-D3 后验 — 监控日报内容并入本条盘后归档(不再单独发 Bark)
     try:
-        from tools.stock_picks_tracker import push_report
-        push_report()
+        from tools.stock_picks_tracker import run as tracker_run
+        tlines = tracker_run()
+        if tlines:
+            lines.append("")
+            lines.append("─" * 40)
+            lines.append("📊 策略表现监控日报 (D0-D3)")
+            lines.extend(tlines)
     except Exception as e:
         logger.warning(f"[EOD] stock_picks_tracker failed: {e}")
 
