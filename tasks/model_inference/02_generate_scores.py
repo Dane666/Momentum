@@ -39,7 +39,7 @@ except ImportError:
     s.loader.exec_module(m)
 import volume_price_scan as VPS
 import volume_price_strategy as VS
-from _universe import filter_st
+from _universe import filter_st, filter_mainboard
 
 
 def latest_panel():
@@ -68,8 +68,11 @@ def _load_ctx_features():
 def _flag_untradable(ctx, pan):
     """True = 当日涨停/一字板, 不可以合理价格买入。
 
-    基于 ctx kline: preclose=前一日收盘; 涨停 = 涨幅>=9.5% 且收在最高价(封板)。
+    基于 ctx kline: preclose=前一日收盘; 涨停 = 涨幅>=阈值 且收在最高价(封板)。
     一字板(开=高=收)亦满足该条件, 一并排除。
+    涨跌停阈值按代码前缀自适应(2026-11-24): 主板 60/00 = 10%(判定 >=9.5%),
+    创业板 30/科创板 68 = 20%(判定 >=19.5%)。当前候选池已做主板过滤, 但此处仍按
+    前缀自适应, 防止未来放开主板过滤或复用本函数到其它路径时漏判 20% 涨停。
     """
     need = set(pan['code'].unique())
     ctxmap = {}
@@ -92,9 +95,11 @@ def _flag_untradable(ctx, pan):
         if pre is None or not np.isfinite(pre) or pre <= 0:
             flags.append(False)
             continue
-        close = float(row['close']); high = float(row['high']); open_ = float(row['open'])
+        close = float(row['close']); high = float(row['high'])
         pct = (close - pre) / pre
-        is_limit = (pct >= 0.095) and abs(close - high) < 1e-6
+        # 阈值按板块: 创业板(30)/科创板(688) 20% 涨停, 主板(60/00) 10% 涨停
+        thr = 0.195 if str(c).startswith(('30', '68')) else 0.095
+        is_limit = (pct >= thr) and abs(close - high) < 1e-6
         flags.append(bool(is_limit))
     return pd.Series(flags, index=pan.index, dtype=bool)
 
@@ -115,6 +120,10 @@ def generate_scores(panel_path=None, model_path=None):
 
     # ST/*ST 过滤: 戴帽风险票(5% 涨跌停/退市风险), 模型横截面 alpha 不适用, 直接剔除
     pan = filter_st(pan)
+
+    # 主板过滤(2026-11-24): 只留沪深主板 60/00, 剔除创业板(30)/科创板(68)/北交所。
+    # 用户交易权限仅覆盖主板, 创业板/科创板选出也无法买入; 且 20% 涨跌停与模型假设不符。
+    pan = filter_mainboard(pan)
 
     # 新鲜度过滤: 丢弃停牌/数据陈旧(最新交易日落后 asof 超过 7 个自然日)的票
     asof = pan['trade_date'].max()

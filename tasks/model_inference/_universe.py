@@ -64,3 +64,32 @@ def filter_st(pan):
     if dropped:
         print(f'[universe] ST/*ST 过滤丢弃 {dropped} 只戴帽风险票')
     return pan
+
+
+# 主板代码前缀(2026-11-24): 沪深主板 60/00。剔除创业板(30)、科创板(68)、北交所(8/4)。
+# 背景: 用户交易权限仅覆盖主板(60/00), 创业板/科创板虽有账号但无权限, 选出也无法买入;
+#       且创业板/科创板 20% 涨跌停与模型假设(10%)不符, 止损-8%/突破判定失真。
+MAINBOARD_PREFIXES = ('60', '00')
+
+
+def _norm_code(c):
+    s = str(c)
+    m = re.search(r'(\d{6})', s)
+    return m.group(1) if m else s.zfill(6)
+
+
+def filter_mainboard(pan):
+    """只保留沪深主板(60/00 开头)股票, 剔除创业板(30)/科创板(68)/北交所(8/4)。
+
+    pan 须含 'code'(可为零填充字符串/带交易所后缀)。返回过滤后的 DataFrame。
+    """
+    before = len(pan)
+    if 'code' not in pan.columns:
+        return pan
+    codes = pan['code'].map(_norm_code)
+    is_mb = codes.str.startswith(MAINBOARD_PREFIXES)
+    pan = pan[is_mb].copy()
+    dropped = before - len(pan)
+    if dropped:
+        print(f'[universe] 主板过滤丢弃 {dropped} 只非主板票(创业板/科创板/北交所)')
+    return pan

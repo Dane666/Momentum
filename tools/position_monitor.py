@@ -67,11 +67,48 @@ def _days_held(date_str):
         return None
 
 
+# 策略类型 -> 中文标签(持仓提醒统一展示用, 2026-11-24)
+STRATEGY_LABELS = {
+    'LOW_QUALITY': '低位绩优',
+    'C_TAIL': 'C尾盘',
+    'LEADER': '龙头',
+    'DEFENSIVE': '防御银行',
+    'MANUAL': '手动持仓',
+    'VP_BREAKOUT': '价量突破',
+    'VP_PULLBACK': '价量回踩',
+    'STRATEGY': '策略',
+}
+
+
+def strategy_label(pick_type: str) -> str:
+    """策略类型 -> 中文标签。"""
+    return STRATEGY_LABELS.get(pick_type, pick_type or '策略')
+
+
+def _hold_ctx_line(p):
+    """持仓提醒统一上下文行: 策略 / 选股日期 / 持仓第几天。
+
+    返回一行字符串(不含换行), 供各提醒文案拼接。空则返回空字符串。
+    """
+    parts = []
+    strat = strategy_label(p.get('type', 'STRATEGY'))
+    parts.append(f"策略[{strat}]")
+    date_s = p.get('date')
+    if date_s:
+        days = _days_held(date_s)
+        parts.append(f"选股[{str(date_s)[:10]}]")
+        if days is not None:
+            parts.append(f"持仓第{days}天")
+    return "  ".join(parts)
+
+
 def _scaled_tp_line(p, thr, current, pnl):
     tier = {0.10: '第一批(1/3)', 0.20: '第二批(1/3)', 0.30: '第三批(余下)'}.get(thr, f'{int(thr*100)}%')
     nm = p.get('name') or p.get('code', '?')
     w_s = f"  建议仓位{p['weight']*100:.0f}%" if p.get('weight') else ""
+    ctx = _hold_ctx_line(p)
     return (f"🪙 【分批止盈提醒】{nm}({p['code']}) 已达 +{int(thr*100)}% 盈利!\n"
+            f"{ctx}\n"
             f"当前价 ¥{current:.2f}  浮动盈亏 {pnl:+.1f}%{w_s}\n"
             f"建议卖出{tier}锁定利润, 余下跟随移动止盈。")
 
@@ -80,7 +117,9 @@ def _expiry_line(p, days, current, pnl, cap=None):
     cap = cap or HOLD_MAX_DAYS
     nm = p.get('name') or p.get('code', '?')
     w_s = f"  建议仓位{p['weight']*100:.0f}%" if p.get('weight') else ""
+    ctx = _hold_ctx_line(p)
     return (f"⏳ 【到期减仓提醒】{nm}({p['code']}) 已持仓 {days} 天(≥{cap})\n"
+            f"{ctx}\n"
             f"当前价 ¥{current:.2f}  浮动盈亏 {pnl:+.1f}%{w_s}\n"
             f"已达持仓上限周期, 建议减仓/落袋, 释放资金等待新信号。")
 
@@ -161,6 +200,7 @@ def run():
         if triggered:
             pick_type = p.get('type', 'STRATEGY')
             direction = {'TP': '止盈', 'SL': '止损', 'TRAIL': '移动止盈'}.get(trigger_type, '止盈')
+            ctx = _hold_ctx_line(p)
             # 压力位卖点上下文: 记录带 pressure 字段即表示以压力位为卖出目标
             pctx = ''
             if p.get('pressure') is not None:
@@ -172,19 +212,18 @@ def run():
                 line = (
                     f"⚠️ 【实际持仓警告】您的持仓 {p['name']}({p['code']})"
                     f" 已达{vmark}点！\n"
+                    f"{ctx}\n"
                     f"当前价: ¥{current:.2f}  实际盈亏: {pnl:+.1f}%{pctx}\n"
                     f"请速去券商手动操作！"
                 )
             else:
-                tlabel = {'LOW_QUALITY': '低位绩优', 'C_TAIL': 'C尾盘',
-                          'LEADER': '龙头', 'DEFENSIVE': '防御银行',
-                          'STRATEGY': '策略'}.get(
-                    pick_type, '策略')
+                tlabel = strategy_label(pick_type)
                 dmark = ('压力位卖出' if (trigger_type == 'TP' and p.get('pressure') is not None)
                          else direction)
                 line = (
                     f"📊 【{tlabel}模拟提示】观察股 {p['name']}({p['code']})"
                     f" 已触发{dmark}信号。\n"
+                    f"{ctx}\n"
                     f"当前价: ¥{current:.2f}  模拟盈亏: {pnl:+.1f}%{pctx}"
                 )
             alerts.append(line)
@@ -212,8 +251,10 @@ def run():
             updated = True
             sup = p.get('support') or p.get('price')
             pres = p.get('pressure') or tp
+            ctx = _hold_ctx_line(p)
             alerts.append(
                 f"🎯 【价量计划·止盈目标达成】{p['name']}({p['code']})\n"
+                f"{ctx}\n"
                 f"已触及压力位 ¥{tp:.2f}！\n"
                 f"买点(支撑): ¥{sup:.2f}  卖点(压力): ¥{pres:.2f}  当前: ¥{current:.2f}\n"
                 f"可考虑逢高止盈(涨至压力位附近卖出)。")

@@ -58,7 +58,8 @@ def calc_sector_heat(df: pd.DataFrame, code_sector: Dict[str, str],
                      min_stocks: int = 4) -> Dict[str, float]:
     df = df.copy()
     df['code'] = df['股票代码'].astype(str)
-    df = df[df['code'].str.startswith(('60', '00', '30', '68'))]
+    # 主板过滤(2026-11-24): 只保留沪深主板 60/00, 剔除创业板(30)/科创板(68)。
+    df = df[df['code'].str.startswith(('60', '00'))]
     df = df[~df['股票名称'].astype(str).str.contains('ST|退', na=False)]
     df['change'] = pd.to_numeric(df['涨跌幅'], errors='coerce').fillna(0)
     df['amt'] = pd.to_numeric(df['成交额'], errors='coerce').fillna(0)
@@ -79,7 +80,8 @@ def pick_tailspike(df: pd.DataFrame, hot_codes: List[str]) -> List[Dict]:
     """
     df = df.copy()
     df['code'] = df['股票代码'].astype(str)
-    df = df[df['code'].str.startswith(('60', '00', '30', '68'))]
+    # 主板过滤(2026-11-24): 只保留沪深主板 60/00。
+    df = df[df['code'].str.startswith(('60', '00'))]
     df = df[~df['股票名称'].astype(str).str.contains('ST|退', na=False)]
     df['change'] = pd.to_numeric(df['涨跌幅'], errors='coerce').fillna(0)
     df['price'] = pd.to_numeric(df['最新价'], errors='coerce').fillna(0)
