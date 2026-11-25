@@ -2515,7 +2515,7 @@
     "regime_state": null,
     "regime_scale": null,
     "hold_max_days": 20,
-    "max_pnl": -0.51
+    "max_pnl": 0.51
   },
   {
     "date": "2026-11-24",
@@ -2531,7 +2531,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": -0.65
   },
   {
     "date": "2026-11-24",
@@ -2547,7 +2548,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.16
   },
   {
     "date": "2026-11-24",
@@ -2563,7 +2565,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-24",
@@ -2579,7 +2582,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": -0.54
   },
   {
     "date": "2026-11-24",
@@ -2595,7 +2599,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 1.45
   },
   {
     "date": "2026-11-24",
@@ -2610,7 +2615,8 @@
     "pressure": null,
     "weight": 0.2276,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.89
   },
   {
     "date": "2026-11-24",
@@ -2625,7 +2631,8 @@
     "pressure": null,
     "weight": 0.5023,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 2.53
   },
   {
     "date": "2026-11-24",
@@ -2640,7 +2647,8 @@
     "pressure": null,
     "weight": 0.2701,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -3.66
   },
   {
     "date": "2026-11-24",
@@ -2650,7 +2658,8 @@
     "sl_price": 10.5925,
     "tp_price": 12.265,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -0.81
   },
   {
     "date": "2026-11-24",
@@ -2659,8 +2668,14 @@
     "price": 9.88,
     "sl_price": 9.39,
     "tp_price": 10.57,
-    "status": "WATCHING",
-    "type": "STRATEGY"
+    "status": "TRIGGERED",
+    "type": "STRATEGY",
+    "max_pnl": -6.88,
+    "exit_price": 9.2,
+    "pnl_pct": -6.88,
+    "trigger_type": "SL",
+    "trigger_time": "2026-11-25 09:34:39",
+    "pnl_ratio": -6.88
   },
   {
     "date": "2026-11-24",
@@ -2670,7 +2685,8 @@
     "sl_price": 18.66,
     "tp_price": 21.6,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -3.56
   },
   {
     "date": "2026-11-24",
@@ -2685,7 +2701,8 @@
     "pressure": null,
     "weight": 0.2422,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 0.57
   },
   {
     "date": "2026-11-24",
@@ -2700,7 +2717,8 @@
     "pressure": null,
     "weight": 0.1489,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -4.04
   },
   {
     "date": "2026-11-24",
@@ -2715,7 +2733,8 @@
     "pressure": null,
     "weight": 0.164,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.5
   },
   {
     "date": "2026-11-24",
@@ -2730,7 +2749,8 @@
     "pressure": null,
     "weight": 0.2685,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 1.5
   },
   {
     "date": "2026-11-24",
@@ -2745,7 +2765,8 @@
     "pressure": null,
     "weight": 0.1764,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 1.85
   },
   {
     "date": "2026-11-24",
@@ -2761,7 +2782,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": -0.4
   },
   {
     "date": "2026-11-24",
@@ -2777,7 +2799,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.13
   },
   {
     "date": "2026-11-24",
@@ -2793,7 +2816,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": -0.22
   },
   {
     "date": "2026-11-24",
@@ -2809,6 +2833,7 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.05
   }
 ]
