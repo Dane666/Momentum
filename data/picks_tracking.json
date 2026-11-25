@@ -2885,5 +2885,25 @@
     "weight": 0.5167,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-25",
+    "code": "002042",
+    "name": "华孚时尚",
+    "price": 3.98,
+    "sl_price": 3.7809999999999997,
+    "tp_price": 4.378,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-25",
+    "code": "002727",
+    "name": "一心堂",
+    "price": 13.55,
+    "sl_price": 12.87,
+    "tp_price": 14.91,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
