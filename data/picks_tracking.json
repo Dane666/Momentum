@@ -2855,5 +2855,35 @@
     "regime_scale": null,
     "hold_max_days": 20,
     "max_pnl": 0.89
+  },
+  {
+    "date": "2026-11-25",
+    "code": "600103",
+    "name": "青山纸业",
+    "price": 3.78,
+    "sl_price": 3.59,
+    "tp_price": 4.16,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.4833,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-25",
+    "code": "600156",
+    "name": "华升股份",
+    "price": 9.39,
+    "sl_price": 8.92,
+    "tp_price": 10.33,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.5167,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
