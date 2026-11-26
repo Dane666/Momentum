@@ -2319,14 +2319,19 @@
     "price": 10.15,
     "sl_price": 9.64,
     "tp_price": 11.17,
-    "status": "WATCHING",
+    "status": "TRIGGERED",
     "type": "C_TAIL",
     "support": null,
     "pressure": null,
     "weight": 0.3333,
     "regime_state": null,
     "regime_scale": null,
-    "max_pnl": -1.48
+    "max_pnl": -1.48,
+    "exit_price": 9.64,
+    "pnl_pct": -5.02,
+    "trigger_type": "SL",
+    "trigger_time": "2026-11-26 09:01:34",
+    "pnl_ratio": -5.02
   },
   {
     "date": "2026-11-23",
@@ -2571,7 +2576,7 @@
     "regime_state": null,
     "regime_scale": null,
     "hold_max_days": 20,
-    "max_pnl": 0.29
+    "max_pnl": 0.43
   },
   {
     "date": "2026-11-24",
@@ -2605,7 +2610,7 @@
     "regime_state": null,
     "regime_scale": null,
     "hold_max_days": 20,
-    "max_pnl": 1.9
+    "max_pnl": 2.24
   },
   {
     "date": "2026-11-24",
@@ -2803,7 +2808,7 @@
     "regime_state": null,
     "regime_scale": null,
     "hold_max_days": 20,
-    "max_pnl": -0.4
+    "max_pnl": -0.13
   },
   {
     "date": "2026-11-24",
@@ -2854,7 +2859,7 @@
     "regime_state": null,
     "regime_scale": null,
     "hold_max_days": 20,
-    "max_pnl": 0.89
+    "max_pnl": 1.39
   },
   {
     "date": "2026-11-25",
@@ -2869,7 +2874,8 @@
     "pressure": null,
     "weight": 0.4833,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-25",
@@ -2884,7 +2890,8 @@
     "pressure": null,
     "weight": 0.5167,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.75
   },
   {
     "date": "2026-11-25",
@@ -2894,7 +2901,8 @@
     "sl_price": 3.7809999999999997,
     "tp_price": 4.378,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": -1.23
   },
   {
     "date": "2026-11-25",
@@ -2904,7 +2912,8 @@
     "sl_price": 12.87,
     "tp_price": 14.91,
     "status": "WATCHING",
-    "type": "STRATEGY"
+    "type": "STRATEGY",
+    "max_pnl": 0.37
   },
   {
     "date": "2026-11-25",
@@ -2919,7 +2928,8 @@
     "pressure": null,
     "weight": 0.2405,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.38
   },
   {
     "date": "2026-11-25",
@@ -2934,7 +2944,8 @@
     "pressure": null,
     "weight": 0.1458,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -1.74
   },
   {
     "date": "2026-11-25",
@@ -2949,7 +2960,8 @@
     "pressure": null,
     "weight": 0.1605,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.77
   },
   {
     "date": "2026-11-25",
@@ -2964,7 +2976,8 @@
     "pressure": null,
     "weight": 0.2655,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.3
   },
   {
     "date": "2026-11-25",
@@ -2979,7 +2992,8 @@
     "pressure": null,
     "weight": 0.1877,
     "regime_state": null,
-    "regime_scale": null
+    "regime_scale": null,
+    "max_pnl": -0.31
   },
   {
     "date": "2026-11-25",
@@ -2995,7 +3009,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-25",
@@ -3011,7 +3026,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-25",
@@ -3027,7 +3043,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-25",
@@ -3043,7 +3060,8 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   },
   {
     "date": "2026-11-25",
@@ -3059,6 +3077,7 @@
     "weight": null,
     "regime_state": null,
     "regime_scale": null,
-    "hold_max_days": 20
+    "hold_max_days": 20,
+    "max_pnl": 0.0
   }
 ]
