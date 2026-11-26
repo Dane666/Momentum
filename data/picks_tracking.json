@@ -3156,5 +3156,35 @@
     "weight": 0.3894,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-26",
+    "code": "603360",
+    "name": "百傲化学",
+    "price": 11.3,
+    "sl_price": 10.735,
+    "tp_price": 12.430000000000001,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-26",
+    "code": "000593",
+    "name": "德龙汇能",
+    "price": 21.46,
+    "sl_price": 20.39,
+    "tp_price": 22.96,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-26",
+    "code": "603666",
+    "name": "亿嘉和",
+    "price": 27.85,
+    "sl_price": 26.46,
+    "tp_price": 30.64,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
