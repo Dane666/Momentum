@@ -3111,5 +3111,50 @@
     "regime_scale": null,
     "hold_max_days": 20,
     "max_pnl": 0.34
+  },
+  {
+    "date": "2026-11-26",
+    "code": "002913",
+    "name": "奥士康",
+    "price": 62.7,
+    "sl_price": 59.56,
+    "tp_price": 68.97,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.2631,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-26",
+    "code": "002548",
+    "name": "金新农",
+    "price": 5.48,
+    "sl_price": 5.21,
+    "tp_price": 6.03,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3475,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-26",
+    "code": "001226",
+    "name": "拓山重工",
+    "price": 41.22,
+    "sl_price": 39.16,
+    "tp_price": 45.34,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3894,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
