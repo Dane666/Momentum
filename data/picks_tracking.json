@@ -3412,5 +3412,35 @@
     "weight": 0.3478,
     "regime_state": null,
     "regime_scale": null
+  },
+  {
+    "date": "2026-11-27",
+    "code": "603666",
+    "name": "亿嘉和",
+    "price": 30.45,
+    "sl_price": 28.9275,
+    "tp_price": 33.495000000000005,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-27",
+    "code": "002583",
+    "name": "海能达",
+    "price": 7.99,
+    "sl_price": 7.59,
+    "tp_price": 8.79,
+    "status": "WATCHING",
+    "type": "STRATEGY"
+  },
+  {
+    "date": "2026-11-27",
+    "code": "002475",
+    "name": "立讯精密",
+    "price": 50.47,
+    "sl_price": 47.95,
+    "tp_price": 55.52,
+    "status": "WATCHING",
+    "type": "STRATEGY"
   }
 ]
