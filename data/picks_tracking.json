@@ -3367,5 +3367,50 @@
     "regime_scale": null,
     "hold_max_days": 20,
     "max_pnl": -1.02
+  },
+  {
+    "date": "2026-11-27",
+    "code": "603380",
+    "name": "易德龙",
+    "price": 23.68,
+    "sl_price": 22.5,
+    "tp_price": 26.05,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3692,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-27",
+    "code": "002902",
+    "name": "铭普光磁",
+    "price": 18.04,
+    "sl_price": 17.14,
+    "tp_price": 19.84,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.2829,
+    "regime_state": null,
+    "regime_scale": null
+  },
+  {
+    "date": "2026-11-27",
+    "code": "001268",
+    "name": "联合精密",
+    "price": 17.4,
+    "sl_price": 16.53,
+    "tp_price": 19.14,
+    "status": "WATCHING",
+    "type": "C_TAIL",
+    "support": null,
+    "pressure": null,
+    "weight": 0.3478,
+    "regime_state": null,
+    "regime_scale": null
   }
 ]
